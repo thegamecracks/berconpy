@@ -150,7 +150,7 @@ class AsyncRCONClient:
             This method was called while the client is already connected.
 
         """
-        if self._protocol.is_running:
+        if self._protocol.is_running():
             raise RuntimeError('connection is already running')
 
         password_bytes = password.encode('ascii')
@@ -190,7 +190,7 @@ class AsyncRCONClient:
         :returns: The server's response as a string.
 
         """
-        if self._protocol is None or not self._protocol.is_running:
+        if self._protocol is None or not self._protocol.is_running():
             raise RuntimeError('cannot send command when not connected')
 
         return await self._protocol._send_command(command)

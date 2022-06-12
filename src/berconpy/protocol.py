@@ -48,27 +48,26 @@ class RCONClientDatagramProtocol:
 
         self._transport: asyncio.DatagramTransport | None = None
 
-    @property
     def is_logged_in(self):
         """Indicates if the client is currently authenticated with the server.
 
         :returns:
-            True if authenticated, False if denied, or None if no
+            True if authenticated or None if no
             response has been received from the server.
+        :raises ValueError:
+            The password given to the server was denied.
 
         """
         if self._is_logged_in is not None and self._is_logged_in.done():
             return self._is_logged_in.result()
         return None
 
-    @property
     def is_connected(self):
         """Indicates if the client has a currently active connection
         with the server.
         """
         return self._transport is not None
 
-    @property
     def is_running(self):
         """Indicates if the client is running. This may not necessarily
         mean that the client is connected.
@@ -138,8 +137,10 @@ class RCONClientDatagramProtocol:
         This can also raise any exception when the connection finishes closing.
 
         :returns:
-            True if authenticated, False if denied, or None
-            if the connection closed without an error.
+            True if authenticated or None if the connection closed
+            without an error.
+        :raises ValueError:
+            The password given to the server was denied.
 
         """
         loop = asyncio.get_running_loop()
@@ -303,9 +304,9 @@ class RCONClientDatagramProtocol:
                     log.warning(f'{self.name}: failed to (re)connect to the server')
                     self.close(RuntimeError('could not connect to the server'))
                     continue
-                elif not self._is_logged_in.result():
+                elif self._is_logged_in.exception():
                     log.warning(f'{self.name}: password authentication was denied')
-                    self.close(ValueError('invalid password provided'))
+                    self.close(self._is_logged_in.exception())
                     continue
 
             if time.monotonic() - self._last_received > self.LAST_RECEIVED_TIMEOUT:
@@ -345,9 +346,17 @@ class RCONClientDatagramProtocol:
         self._dispatch('raw_event', packet)
 
         if packet.ptype is PacketType.LOGIN:
-            if not self._is_logged_in.done():
-                self._is_logged_in.set_result(packet.sequence == 1)
+            if self._is_logged_in.done():
+                return
+
+            if packet.sequence == 1:
+                self._is_logged_in.set_result(True)
                 self._dispatch_packet(packet)
+            else:
+                self._is_logged_in.set_exception(
+                    ValueError('invalid password provided')
+                )
+
         elif packet.ptype is PacketType.COMMAND:
             if packet.total is not None:
                 message = self._handle_multipart_packet(packet)
