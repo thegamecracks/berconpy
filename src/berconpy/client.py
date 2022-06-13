@@ -175,22 +175,22 @@ class AsyncRCONClient:
     def close(self):
         """Closes the connection.
 
-        Unlike connect(), this method is idempotent and will not error
-        when repeatedly called.
+        Unlike connect(), this method is idempotent and can be
+        called multiple times consecutively.
 
         """
         self._protocol.close()
 
     # Communication
 
-    async def send_command(self, command: str):
+    async def send_command(self, command: str) -> str:
         """Sends a command to the server and waits for a response.
 
         :param command: The command to send. Only ASCII characters are allowed.
         :returns: The server's response as a string.
 
         """
-        if self._protocol is None or not self._protocol.is_running():
+        if not self._protocol.is_running():
             raise RuntimeError('cannot send command when not connected')
 
         return await self._protocol._send_command(command)

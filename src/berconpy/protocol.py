@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from .client import AsyncRCONClient
 
 
-def should_replace_future(fut: asyncio.Future | None):
+def should_replace_future(fut: asyncio.Future | None) -> bool:
     return fut is None or fut.done()
 
 
@@ -48,7 +48,7 @@ class RCONClientDatagramProtocol:
 
         self._transport: asyncio.DatagramTransport | None = None
 
-    def is_logged_in(self):
+    def is_logged_in(self) -> bool | None:
         """Indicates if the client is currently authenticated with the server.
 
         :returns:
@@ -62,7 +62,7 @@ class RCONClientDatagramProtocol:
             return self._is_logged_in.result()
         return None
 
-    def is_connected(self):
+    def is_connected(self) -> bool:
         """Indicates if the client has a currently active connection
         with the server.
         """
@@ -75,7 +75,7 @@ class RCONClientDatagramProtocol:
         return self._running_event.is_set()
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.client.name
 
     # Event handling
@@ -92,7 +92,7 @@ class RCONClientDatagramProtocol:
             packet.message.decode('ascii')
         )
 
-    def _handle_multipart_packet(self, packet: Packet):
+    def _handle_multipart_packet(self, packet: Packet) -> bytes | None:
         seq = self._multipart_packets[packet.sequence]
         seq.append(packet)
 
@@ -108,7 +108,7 @@ class RCONClientDatagramProtocol:
 
     # Helper methods
 
-    def _get_next_sequence(self):
+    def _get_next_sequence(self) -> int:
         sequence = self._next_sequence
         self._next_sequence = (sequence + 1) % 256
         return sequence
@@ -133,7 +133,7 @@ class RCONClientDatagramProtocol:
     def _tick(self):
         self._last_received = time.monotonic()
 
-    async def wait_for_login(self):
+    async def wait_for_login(self) -> bool | None:
         """Waits indefinitely until the client has received a login response
         or the connection has closed.
 
@@ -187,7 +187,7 @@ class RCONClientDatagramProtocol:
         if fut is not None:
             fut.set_result(message)
 
-    async def _send_command(self, command: str):
+    async def _send_command(self, command: str) -> str:
         """Attempts to send a command to the server and
         read the server's response.
 
@@ -236,7 +236,7 @@ class RCONClientDatagramProtocol:
 
     # Connection methods
 
-    async def _authenticate(self, password: bytes):
+    async def _authenticate(self, password: bytes) -> bool | None:
         """Sends an authentication packet to the server and waits
         for a response.
         """
@@ -245,7 +245,7 @@ class RCONClientDatagramProtocol:
 
         return await self.wait_for_login()
 
-    async def connect(self, ip: str, port: int, password: bytes):
+    async def connect(self, ip: str, port: int, password: bytes) -> bool | None:
         """Creates a connection to the given address.
 
         Note that this does not keep the connection alive,
@@ -253,8 +253,10 @@ class RCONClientDatagramProtocol:
         receiving messages.
 
         :returns:
-            A boolean indicating if the client successfully authenticated
-            with the given password.
+            True if authenticated or None if the connection closed
+            without an error.
+        :raises ValueError:
+            The password given to the server was denied.
 
         """
         loop = asyncio.get_running_loop()
