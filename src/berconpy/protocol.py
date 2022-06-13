@@ -84,6 +84,9 @@ class RCONClientDatagramProtocol:
         self.client._dispatch(event, *args)
 
     def _dispatch_packet(self, packet: Packet):
+        if packet.ptype is PacketType.LOGIN:
+            return self._dispatch(packet.ptype.name.lower())
+
         self._dispatch(
             packet.ptype.name.lower(),
             packet.message.decode('ascii')
@@ -185,7 +188,8 @@ class RCONClientDatagramProtocol:
             fut.set_result(message)
 
     async def _send_command(self, command: str):
-        """Attempts to send a command to the server.
+        """Attempts to send a command to the server and
+        read the server's response.
 
         :param command: The ASCII command string to send.
         :returns: The server's response as a string.
