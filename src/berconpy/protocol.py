@@ -181,7 +181,7 @@ class RCONClientDatagramProtocol:
 
         """
         if message is None:
-            message = packet.message
+            message = packet.message.decode('ascii')
 
         fut = self._command_queue.pop(packet.sequence, None)
         if fut is not None:
