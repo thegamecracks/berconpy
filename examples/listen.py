@@ -41,6 +41,11 @@ async def server_response_to_command(command: str):
     print('on_command:', command)
 
 
+# Other events:
+# on_raw_event(packet: rcon.Packet)
+#     Fired for every packet received from the server.
+
+
 async def main():
     async with client.connect(IP_ADDR, PORT, PASSWORD):
         await asyncio.sleep(math.inf)
