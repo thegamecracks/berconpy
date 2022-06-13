@@ -5,7 +5,7 @@ import struct
 from .utils import unpack_from
 
 _BYTE = struct.Struct('!B')
-_HEADER = struct.Struct('!2cIB')  # b'BE' | CRC32 checksum | 0xFF
+_HEADER = struct.Struct('<2cI')  # b'BE' | CRC32 checksum
 _TYPE_SEQ = struct.Struct('!BB')
 _TOTAL_INDEX = struct.Struct('!xBB')
 
@@ -72,7 +72,8 @@ class Packet:
             packet specification.
 
         """
-        (*be, crc, ff), data = unpack_from(_HEADER, data)
+        (*be, crc), data = unpack_from(_HEADER, data)
+        (ff,), data = unpack_from(_BYTE, data)
         if b''.join(be) != b'BE':
             raise ValueError('expected BE as start of header')
         elif ff != 255:
@@ -106,10 +107,12 @@ class Packet:
 
     def _encode_header(self, message: bytes):
         crc = binascii.crc32(message)
-        return _HEADER.pack(b'B', b'E', crc, 0xFF)
+        return _HEADER.pack(b'B', b'E', crc)
 
     def _encode_message(self):
-        buffer = bytearray()
+        # NOTE: 0xFF byte is really part of the header, but it must
+        # be included in checksum, so we're putting it here
+        buffer = bytearray([0xFF])
 
         if self.ptype == PacketType.LOGIN:
             if self.sequence == -1:
