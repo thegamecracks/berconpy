@@ -64,16 +64,22 @@ class AsyncRCONClient:
     def _add_temporary_listener(self, event: str, predicate: MaybeCoroFunc):
         """Adds a temporary listener for an event and returns a future.
 
-        Unlike regular listeners, these cannot be removed with a method.
-        Instead, the returned future should be cancelled to indicate that
-        it is no longer in use.
-
-        :param event: The event to listen for. (e.g. "on_login")
+        These listeners can be removed either with `_remove_temporary_listener()`
+        or by cancelling the future that is returned.
 
         """
         fut = asyncio.get_running_loop().create_future()
         self._temporary_listeners[event].append((fut, predicate))
         return fut
+
+    def _remove_temporary_listener(self, event: str, fut: asyncio.Future, pred: MaybeCoroFunc):
+        listeners = self._temporary_listeners[event]
+        e = (fut, pred)
+
+        try:
+            listeners.remove(e)
+        except ValueError:
+            pass
 
     async def wait_for(
         self, event: str, *,
@@ -85,6 +91,7 @@ class AsyncRCONClient:
         :param event: The event to listen for. (e.g. "login" or "on_login")
         :param check:
             An optional predicate function to use as a filter.
+            This can be either a regular or an asynchronous function.
             The function should accept the same arguments that the event
             normally takes.
         :param timeout:
@@ -103,21 +110,27 @@ class AsyncRCONClient:
         fut = self._add_temporary_listener(event, check)
 
         try:
-            return asyncio.wait_for(fut, timeout=timeout)
+            return await asyncio.wait_for(fut, timeout=timeout)
         except asyncio.TimeoutError:
             fut.cancel()
             raise
 
     async def _try_dispatch_temporary(
-        self, fut: asyncio.Future, pred: MaybeCoroFunc, *args
+        self, event: str, fut: asyncio.Future, pred: MaybeCoroFunc, *args
     ):
+        if fut.done():
+            return self._remove_temporary_listener(event, fut, pred)
+
         try:
             result = await maybe_coro(pred, *args)
         except Exception as e:
-            fut.set_exception(e)
+            if not fut.done():
+                fut.set_exception(e)
+            self._remove_temporary_listener(event, fut, pred)
         else:
-            if result:
+            if result and not fut.done():
                 fut.set_result(args)
+            self._remove_temporary_listener(event, fut, pred)
 
     def _dispatch(self, event: str, *args):
         """Dispatches a message to the corresponding event listeners.
@@ -136,7 +149,7 @@ class AsyncRCONClient:
 
         for fut, pred in self._temporary_listeners[event]:
             asyncio.create_task(
-                self._try_dispatch_temporary(fut, pred, *args),
+                self._try_dispatch_temporary(event, fut, pred, *args),
                 name=f'berconpy-temp-{event}'
             )
 
