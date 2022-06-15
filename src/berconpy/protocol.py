@@ -4,7 +4,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from .packet import Packet, PacketType
+from .packet import *
 from .utils import EMPTY
 
 log = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ class RCONClientDatagramProtocol:
 
     RECEIVED_SEQUENCES_SIZE = 5
 
-    _multipart_packets: dict[int, list[Packet]]
+    _multipart_packets: dict[int, list[ServerCommandPacket]]
     _next_sequence: int
     _received_sequences: collections.deque[int]
     _command_queue: dict[int, asyncio.Future[str]]
@@ -100,28 +100,31 @@ class RCONClientDatagramProtocol:
         self.client._dispatch(event, *args)
 
     def _dispatch_packet(self, packet: Packet):
-        if packet.ptype is PacketType.LOGIN:
-            return self._dispatch(packet.ptype.name.lower())
-        elif packet.ptype is PacketType.MESSAGE:
+        if isinstance(packet, ServerLoginPacket):
+            assert packet.login_success
+            self._dispatch('login')
+        elif isinstance(packet, ServerCommandPacket):
+            self._dispatch('command', packet.message)
+        elif isinstance(packet, ServerMessagePacket):
             # Ensure repeat messages are not redispatched
             if packet.sequence in self._received_sequences:
                 return
             self._received_sequences.append(packet.sequence)
+            self._dispatch('message', packet.message)
+        else:
+            raise RuntimeError(f'unhandled Packet type {type(packet)}')
 
-        self._dispatch(
-            packet.ptype.name.lower(),
-            packet.message.decode('ascii')
-        )
-
-    def _handle_multipart_packet(self, packet: Packet) -> bytes | None:
+    def _handle_multipart_packet(
+        self, packet: ServerCommandPacket
+    ) -> str | None:
         seq = self._multipart_packets[packet.sequence]
         seq.append(packet)
 
         if len(seq) < packet.total:
             return
 
-        message = b''.join(p.message for p in seq)
-        self._dispatch(packet.ptype.name.lower(), message)
+        message = ''.join(p.message for p in seq)
+        self._dispatch('command', message)
 
         del self._multipart_packets[packet.sequence]
 
@@ -134,21 +137,20 @@ class RCONClientDatagramProtocol:
         self._next_sequence = (sequence + 1) % 256
         return sequence
 
-    def _send(self, packet: Packet, addr: Any = EMPTY):
+    def _send(self, packet: ClientPacket, addr: Any = EMPTY):
         if addr is not EMPTY:
-            self._transport.sendto(packet.to_bytes(), addr)
+            self._transport.sendto(packet.data, addr)
         else:
-            self._transport.sendto(packet.to_bytes())
-        log.debug(f'{self.name}: sent {packet.ptype.name} packet')
+            self._transport.sendto(packet.data)
+        log.debug(f'{self.name}: sent {packet.type.name} packet')
 
         self._last_sent = time.monotonic()
-        if packet.ptype == PacketType.COMMAND:
+        if isinstance(packet, ClientCommandPacket):
             self._last_command = self._last_sent
 
     def _send_keep_alive(self):
-        packet = Packet(
-            PacketType.COMMAND, self._get_next_sequence(), None, None, b''
-        )
+        sequence = self._get_next_sequence()
+        packet = ClientCommandPacket(sequence, '')
         self._send(packet)
 
     def _tick(self):
@@ -192,7 +194,7 @@ class RCONClientDatagramProtocol:
         if fut is not None:
             fut.cancel()
 
-    def _set_command(self, packet: Packet, message: str = None):
+    def _set_command(self, packet: ServerCommandPacket, message: str = None):
         """Notifies the future waiting on a command response packet.
 
         An alternative message may be given if the packet itself does
@@ -202,7 +204,7 @@ class RCONClientDatagramProtocol:
 
         """
         if message is None:
-            message = packet.message.decode('ascii')
+            message = packet.message
 
         fut = self._command_queue.pop(packet.sequence, None)
         if fut is not None:
@@ -218,15 +220,8 @@ class RCONClientDatagramProtocol:
             The server failed to respond to all attempts
 
         """
-        command_bytes = command.encode('ascii')
-
-        # TODO test max packet size
-        over_size = len(command_bytes) - 65498  # 65507 - 9 byte header
-        if over_size > 0:
-            raise ValueError(f'max packet size exceeded by {over_size} bytes')
-
         sequence = self._get_next_sequence()
-        packet = Packet(PacketType.COMMAND, sequence, None, None, command_bytes)
+        packet = ClientCommandPacket(sequence, command)
 
         for _ in range(self.COMMAND_ATTEMPTS):
             self._send(packet)
@@ -248,25 +243,25 @@ class RCONClientDatagramProtocol:
         """Returns a future waiting for a command response with
         the given sequence number.
         """
-        if sequence in self._command_queue:
-            raise RuntimeError(f'command {sequence} has already been queued')
+        fut = self._command_queue.get(sequence)
+        if fut is None:
+            loop = asyncio.get_running_loop()
+            self._command_queue[sequence] = fut = loop.create_future()
 
-        loop = asyncio.get_running_loop()
-        self._command_queue[sequence] = fut = loop.create_future()
         return fut
 
     # Connection methods
 
-    async def _authenticate(self, password: bytes) -> bool | None:
+    async def _authenticate(self, password: str) -> bool | None:
         """Sends an authentication packet to the server and waits
         for a response.
         """
-        packet = Packet(PacketType.LOGIN, -1, None, None, password)
+        packet = ClientLoginPacket(password)
         self._send(packet)
 
         return await self.wait_for_login()
 
-    async def connect(self, ip: str, port: int, password: bytes) -> bool | None:
+    async def connect(self, ip: str, port: int, password: str) -> bool | None:
         """Creates a connection to the given address.
 
         Note that this does not keep the connection alive,
@@ -303,7 +298,7 @@ class RCONClientDatagramProtocol:
         else:
             self._is_closing.set_result(True)
 
-    async def run(self, ip: str, port: int, password: bytes):
+    async def run(self, ip: str, port: int, password: str):
         loop = asyncio.get_running_loop()
 
         self._running_event.set()
@@ -365,19 +360,19 @@ class RCONClientDatagramProtocol:
 
     def datagram_received(self, data: bytes, addr):
         try:
-            packet = Packet.from_bytes(data)
-        except ValueError as e:
+            packet: Packet = Packet.from_bytes(data)
+        except (IndexError, ValueError) as e:
             return log.debug(f'{self.name}: failed to decode received data: {e}')
 
         self._tick()
-        log.debug(f'{self.name}: {packet.ptype.name} packet received')
+        log.debug(f'{self.name}: {packet.type.name} received')
         self._dispatch('raw_event', packet)
 
-        if packet.ptype is PacketType.LOGIN:
+        if isinstance(packet, ServerLoginPacket):
             if self._is_logged_in.done():
                 return
 
-            if packet.sequence == 1:
+            if packet.login_success:
                 self._is_logged_in.set_result(True)
                 self._dispatch_packet(packet)
             else:
@@ -385,19 +380,23 @@ class RCONClientDatagramProtocol:
                     ValueError('invalid password provided')
                 )
 
-        elif packet.ptype is PacketType.COMMAND:
+        elif isinstance(packet, ServerCommandPacket):
             if packet.total is not None:
                 message = self._handle_multipart_packet(packet)
                 if message is not None:
-                    self._set_command(packet, message.decode('ascii'))
+                    self._set_command(packet, message)
             else:
                 self._dispatch_packet(packet)
                 self._set_command(packet)
-        elif packet.ptype is PacketType.MESSAGE:
+
+        elif isinstance(packet, ServerMessagePacket):
             self._dispatch_packet(packet)
 
-            ack = Packet(PacketType.MESSAGE, packet.sequence, None, None, b'')
+            ack = ClientMessagePacket(packet.sequence)
             self._send(ack, addr)
+
+        else:
+            raise RuntimeError(f'unhandled Packet type {type(packet)}')
 
     def error_received(self, exc: OSError):
         log.error(f'{self.name}: unusual error occurred during session', exc_info=exc)

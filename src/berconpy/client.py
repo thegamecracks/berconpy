@@ -166,12 +166,10 @@ class AsyncRCONClient:
         if self._protocol.is_running():
             raise RuntimeError('connection is already running')
 
-        password_bytes = password.encode('ascii')
-
         # Establish connection
         try:
             self._protocol_task = asyncio.create_task(
-                self._protocol.run(ip, port, password_bytes)
+                self._protocol.run(ip, port, password)
             )
 
             await self._protocol.wait_for_login()
