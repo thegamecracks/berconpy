@@ -99,7 +99,7 @@ class RCONClientDatagramProtocol:
     def _dispatch(self, event: str, *args):
         self.client._dispatch(event, *args)
 
-    def _dispatch_packet(self, packet: Packet):
+    def _dispatch_packet(self, packet: ServerPacket):
         if isinstance(packet, ServerLoginPacket):
             assert packet.login_success
             self._dispatch('login')
