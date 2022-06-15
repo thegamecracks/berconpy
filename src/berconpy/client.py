@@ -17,6 +17,22 @@ MaybeCoroFunc = CoroFunc | Callable
 class AsyncRCONClient:
     """An asynchronous interface for connecting to an BattlEye RCON server.
 
+    This client supports adding event listeners for handling
+    incoming data. To add an event listener, use the `add_listener()`
+    method or the `listen()` decorator.
+
+    Supported event names:
+        - on_raw_event(packet: ServerPacket)
+            Fired for every parsable packet received by the server.
+        - on_login()
+            Fired after a successful login to the server.
+        - on_command(command: str)
+            Fired after receiving a command response from the server.
+            This event is usually not necessary and responses can more
+            easily be received using the `send_command()` method.
+        - on_message(response: str)
+            Fired for messages sent by the server, e.g. player connections.
+
     :param name:
         An optional name used in logging messages.
         If not provided, a UUID is generated for the name.
