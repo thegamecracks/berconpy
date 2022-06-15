@@ -29,16 +29,17 @@ async def on_message(message: str):
 
 
 @client.listen('on_command')
-async def server_response_to_command(command: str):
-    # command may be an empty string, in which case it is either:
+async def server_response_to_command(response: str):
+    # response may be an empty string, in which case it is either:
     # 1. responding to our scheduled keep alive packets
     # 2. responding to an empty command we sent,
     #    i.e. `await client.send_command('')`
     #    which acts like a keep alive packet
-    if not command:
+    if not response:
         return print('on_command: keep alive')
 
-    print('on_command:', command)
+    # (since we are not sending any commands, this will not run)
+    print('on_command:', response)
 
 
 # Other events:
