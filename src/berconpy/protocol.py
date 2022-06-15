@@ -19,15 +19,25 @@ def should_replace_future(fut: asyncio.Future | None) -> bool:
 
 class RCONClientDatagramProtocol:
     RUN_INTERVAL = 1
-    KEEP_ALIVE_INTERVAL = 30  # NOTE: server times out after 45 seconds
+    KEEP_ALIVE_INTERVAL = 30
+    LAST_RECEIVED_TIMEOUT = 45  # don't change, specified by protocol
 
     COMMAND_ATTEMPTS = 3
     COMMAND_INTERVAL = 1
 
-    LAST_RECEIVED_TIMEOUT = 45
-
     RECONNECT_ATTEMPTS = 3
     RECONNECT_INTERVAL = 2
+
+    RECEIVED_SEQUENCES_SIZE = 5
+
+    _multipart_packets: dict[int, list[Packet]]
+    _next_sequence: int
+    _received_sequences: collections.deque[int]
+    _command_queue: dict[int, asyncio.Future[str]]
+
+    _last_command: float
+    _last_received: float
+    _last_sent: float  # NOTE: unused
 
     def __init__(self, client: "AsyncRCONClient"):
         self.client = client
@@ -35,6 +45,19 @@ class RCONClientDatagramProtocol:
         self._multipart_packets: dict[int, list[Packet]] = collections.defaultdict(list)
         self._next_sequence = 0  # 0-255
         self._command_queue: dict[int, asyncio.Future[str]] = {}
+
+        # These attributes are handled by run() / close()
+        # rather than in the reset
+        self._running_event = asyncio.Event()
+        self._is_logged_in: asyncio.Future[bool] | None = None
+        self._is_closing: asyncio.Future | None = None
+        self._transport: asyncio.DatagramTransport | None = None
+
+    def reset(self):
+        self._multipart_packets = collections.defaultdict(list)
+        self._next_sequence = 0
+        self._received_sequences = collections.deque((), self.RECEIVED_SEQUENCES_SIZE)
+        self._command_queue = {}
 
         mono = time.monotonic()
         self._last_command = mono
@@ -86,6 +109,11 @@ class RCONClientDatagramProtocol:
     def _dispatch_packet(self, packet: Packet):
         if packet.ptype is PacketType.LOGIN:
             return self._dispatch(packet.ptype.name.lower())
+        elif packet.ptype is PacketType.MESSAGE:
+            # Ensure repeat messages are not redispatched
+            if packet.sequence in self._received_sequences:
+                return
+            self._received_sequences.append(packet.sequence)
 
         self._dispatch(
             packet.ptype.name.lower(),
