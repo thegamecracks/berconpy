@@ -42,16 +42,14 @@ class RCONClientDatagramProtocol:
     def __init__(self, client: "AsyncRCONClient"):
         self.client = client
 
-        self._multipart_packets: dict[int, list[Packet]] = collections.defaultdict(list)
-        self._next_sequence = 0  # 0-255
-        self._command_queue: dict[int, asyncio.Future[str]] = {}
-
         # These attributes are handled by run() / close()
         # rather than in the reset
         self._running_event = asyncio.Event()
         self._is_logged_in: asyncio.Future[bool] | None = None
         self._is_closing: asyncio.Future | None = None
         self._transport: asyncio.DatagramTransport | None = None
+
+        self.reset()
 
     def reset(self):
         self._multipart_packets = collections.defaultdict(list)
@@ -64,12 +62,7 @@ class RCONClientDatagramProtocol:
         self._last_received = mono
         self._last_sent = mono
 
-        self._is_logged_in: asyncio.Future[bool] | None = None
-        self._is_closing: asyncio.Future | None = None
-
-        self._running_event = asyncio.Event()
-
-        self._transport: asyncio.DatagramTransport | None = None
+        self._running_event.clear()
 
     def is_logged_in(self) -> bool | None:
         """Indicates if the client is currently authenticated with the server.
@@ -355,7 +348,8 @@ class RCONClientDatagramProtocol:
         # Cleanup and raise any exception
         log.debug(f'{self.name}: disconnecting')
         self.disconnect()
-        self._running_event.clear()
+        self.reset()
+
         self._is_closing.result()
 
     # DatagramProtocol
