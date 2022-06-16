@@ -47,8 +47,8 @@ async def on_admin_message(admin_id: int, channel: str, message: str):
 
 
 @client.listen()
-async def on_player_message(channel: str, name: str, message: str):
-    print(f'({channel}) {name}: {message}')
+async def on_player_message(player: Player, channel: str, message: str):
+    print(f'({channel}) {player.name}: {message}')
 
 
 async def main():

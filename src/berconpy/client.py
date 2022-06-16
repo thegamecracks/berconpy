@@ -3,15 +3,11 @@ import collections
 import contextlib
 import logging
 import uuid
-from typing import Callable, Coroutine
 
 from .protocol import RCONClientDatagramProtocol
-from .utils import maybe_coro
+from .utils import CoroFunc, MaybeCoroFunc, maybe_coro
 
 log = logging.getLogger(__name__)
-
-CoroFunc = Callable[[...], Coroutine]
-MaybeCoroFunc = CoroFunc | Callable
 
 
 class AsyncRCONClient:

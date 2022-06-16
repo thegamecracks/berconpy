@@ -4,6 +4,7 @@ import re
 import time
 
 from berconpy import *
+from berconpy import utils
 
 from .player import Player
 
@@ -149,10 +150,10 @@ class AsyncArmaRCONClient(AsyncRCONClient):
         - on_admin_announcement(admin_id: int, message: str):
             Fired when an RCON admin sends a global message.
 
-        - on_admin_whisper(admin_id: int, name: str, message: str):
+        - on_admin_whisper(player: Player, admin_id: int, message: str):
             Fired when an RCON admin sends a message to a specific player.
 
-        - on_player_message(channel: str, name: str, message: str):
+        - on_player_message(player: Player, channel: str, message: str):
             Fired when a player sends a message.
 
     """
@@ -304,10 +305,15 @@ class AsyncArmaRCONClient(AsyncRCONClient):
                 self._dispatch('admin_announcement', admin_id, message)
             elif channel.startswith('To '):
                 name = channel.removeprefix('To ')
-                self._dispatch('admin_whisper', admin_id, name, message)
+                p = utils.get(self.players, name=name)
+                if p is not None:
+                    self._dispatch('admin_whisper', p, admin_id, message)
 
         elif m := _PLAYER_MESSAGE.fullmatch(response):
-            self._dispatch('player_message', *_get_pattern_args(m))
+            channel, name, message = _get_pattern_args(m)
+            p = utils.get(self.players, name=name)
+            if p is not None:
+                self._dispatch('player_message', p, channel, message)
 
         else:
             log.warning('unexpected message from server: %s', response)
