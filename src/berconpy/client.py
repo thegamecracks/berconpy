@@ -49,6 +49,9 @@ class AsyncRCONClient:
             str, list[tuple[asyncio.Future, MaybeCoroFunc]]
         ] = collections.defaultdict(list)
 
+    def __repr__(self):
+        return '<{} name={!r}>'.format(type(self).__name__, self.name)
+
     # Event handling
 
     def add_listener(self, event: str, func: CoroFunc):
