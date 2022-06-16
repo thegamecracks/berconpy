@@ -295,7 +295,7 @@ class RCONClientDatagramProtocol:
             self._transport = None
 
     def close(self, exc: Exception = None):
-        if self._is_closing.done():
+        if self._is_closing is None or self._is_closing.done():
             return
         elif exc is not None:
             self._is_closing.set_exception(exc)
