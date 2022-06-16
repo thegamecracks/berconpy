@@ -29,8 +29,8 @@ Manual installation:
 1. Download and unzip the repository
 2. Open a terminal inside the new directory
 3. Run the following command:
-  - Windows: `py -m pip install .`
-  - Linux: `python3 -m pip install .`
+   - Windows: `py -m pip install .`
+   - Linux: `python3 -m pip install .`
 
 ## Basic Usage
 
