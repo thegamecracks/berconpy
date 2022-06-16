@@ -43,7 +43,7 @@ async def on_player_kick(player_id: int, name: str, guid: str, reason: str):
 
 @client.listen()
 async def on_admin_message(admin_id: int, channel: str, message: str):
-    print(f'Admin #{admin_id}')
+    print(f'({channel}) Admin #{admin_id}: {message}')
 
 
 @client.listen()
