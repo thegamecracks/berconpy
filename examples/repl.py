@@ -1,11 +1,18 @@
 """Connects to an RCON server and allows typing in any command."""
 import asyncio
+import logging
 
 import berconpy as rcon
 
 IP_ADDR = 'XXX.XXX.XXX.XXX'
 PORT = 9999
 PASSWORD = 'ASCII_PASSWORD'
+
+log = logging.getLogger('berconpy')
+log.setLevel(logging.WARNING)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+log.addHandler(handler)
 
 client = rcon.AsyncRCONClient('repl.py')
 
