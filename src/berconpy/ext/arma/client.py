@@ -241,6 +241,7 @@ class AsyncArmaRCONClient(AsyncRCONClient):
     async def _invalidate_player(self, player_id: int, name: str):
         self._players.pop(player_id, None)
         self._incomplete_players.pop(player_id, None)
+        self._player_pings.pop(player_id, None)
 
     # Event dispatcher
 
