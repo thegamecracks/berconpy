@@ -60,7 +60,7 @@ async def main():
 
             if command.lower() == '#players':
                 for p in client.players:
-                    print(p)
+                    print(repr(p))
             else:
                 response = await client.send_command(command)
                 print(response)

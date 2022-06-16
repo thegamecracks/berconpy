@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from .client import AsyncArmaRCONClient
 
 
-@dataclass(unsafe_hash=True, slots=True)
+@dataclass(repr=False, slots=True, unsafe_hash=True)
 class Player:
     """Represents an Arma player in the server.
 
@@ -15,8 +15,8 @@ class Player:
     id: The ID assigned to this player by the server.
     name: The player's name.
     guid:
-        The player's GUID. It may be possible for this to be an empty
-        string if the client does not receive that information from a packet.
+        The player's GUID. This may be an empty string if the client
+        has not yet received the GUID from the server.
     addr: The IP address and port this player connected from.
     is_guid_valid:
         Whether the server confirmed the validity of this player's GUID.
@@ -27,13 +27,26 @@ class Player:
         during connection.
 
     """
-    client: "AsyncArmaRCONClient" = field(compare=True, repr=True, hash=True)
-    id: int                       = field(compare=True, repr=True, hash=True)
-    name: str                     = field(compare=False, repr=True, hash=False)
-    guid: str                     = field(compare=False, repr=False, hash=False)
-    addr: str                     = field(compare=False, repr=False, hash=False)
-    is_guid_valid: bool           = field(compare=False, repr=True, hash=False)
-    in_lobby: bool                = field(compare=False, repr=True, hash=False)
+    client: "AsyncArmaRCONClient" = field(compare=True, hash=True)
+    id: int                       = field(compare=True, hash=True)
+    name: str                     = field(compare=False, hash=False)
+    guid: str                     = field(compare=False, hash=False)
+    addr: str                     = field(compare=False, hash=False)
+    is_guid_valid: bool           = field(compare=False, hash=False)
+    in_lobby: bool                = field(compare=False, hash=False)
+
+    def __repr__(self):
+        attrs = (
+            (k, repr(getattr(self, k)))
+            for k in ('client', 'id', 'name', 'is_guid_valid', 'in_lobby')
+        )
+        return '<{} {}>'.format(
+            type(self).__name__,
+            ' '.join('='.join(pair) for pair in attrs)
+        )
+
+    def __str__(self):
+        return self.name
 
     @property
     def ping(self) -> int:
