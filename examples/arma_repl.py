@@ -54,10 +54,16 @@ async def on_player_message(channel: str, name: str, message: str):
 async def main():
     async with client.connect(IP_ADDR, PORT, PASSWORD):
         print(await client.send_command('commands'))
+
         while True:
             command = await ainput()
-            response = await client.send_command(command)
-            print(response)
+
+            if command.lower() == '#players':
+                for p in client.players:
+                    print(p)
+            else:
+                response = await client.send_command(command)
+                print(response)
 
 
 if __name__ == '__main__':

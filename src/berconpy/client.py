@@ -38,10 +38,14 @@ class AsyncRCONClient:
         If not provided, a UUID is generated for the name.
 
     """
-    def __init__(self, name: str = None):
+    def __init__(
+        self,
+        name: str = None,
+        protocol_cls=RCONClientDatagramProtocol
+    ):
         self.name: str = name or str(uuid.uuid4())
 
-        self._protocol = RCONClientDatagramProtocol(self)
+        self._protocol = protocol_cls(self)
         self._protocol_task: asyncio.Task | None = None
 
         self._event_listeners: dict[str, list[CoroFunc]] = collections.defaultdict(list)
