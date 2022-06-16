@@ -37,8 +37,7 @@ class Packet:
     __slots__ = ('data',)
 
     def __init__(self, data: bytes):
-        # TODO test max packet size
-        over_size = len(data) - 65498  # 65507 - 9 byte header
+        over_size = len(data) - 65507
         if over_size > 0:
             raise ValueError(f'max packet size exceeded by {over_size} bytes')
 
@@ -156,7 +155,7 @@ class Packet:
 
         elif ptype is PacketType.COMMAND and not from_client:
             sequence = data[8]
-            if len(data) > 9 and data[9] == 0:  # command response may be empty
+            if len(data) > 9 and data[9] == 0:
                 total, index = data[10], data[11]
                 response = data[12:].decode('ascii')
             else:
