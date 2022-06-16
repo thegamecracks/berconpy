@@ -1,8 +1,8 @@
-"""Connects to an RCON server and allows typing in any command."""
+"""Demonstrates the Arma RCON extension."""
 import asyncio
 import logging
 
-from berconpy.ext import arma as arma_rcon
+from berconpy.ext.arma import AsyncArmaRCONClient
 
 IP_ADDR = 'XXX.XXX.XXX.XXX'
 PORT = 9999
@@ -14,7 +14,7 @@ handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 log.addHandler(handler)
 
-client = arma_rcon.AsyncArmaRCONClient('repl.py')
+client = AsyncArmaRCONClient(__name__)
 
 
 async def ainput():

@@ -1,18 +1,36 @@
 # berconpy
 
-A (currently) asynchronous Python wrapper over the
+An asynchronous Python wrapper over the
 [BattlEye RCON protocol][1].
+
+## Features
+
+- Easy-to-use event based client interface
+- Automatic server timeout recovery
+- Built-in extension for Arma RCON
+
+## Requirements
+
+- **Python 3.10** or higher
 
 ## Installation
 
 To install this package you must clone the repository,
-either through git or manually downloading the files.
+either through git or by manually downloading the files.
 
 Using git:
 
 ```
 pip install git+https://github.com/thegamecracks/berconpy
 ```
+
+Manual installation:
+
+1. Download and unzip the repository
+2. Open a terminal inside the new directory
+3. Run the following command:
+   - Windows: `py -m pip install .`
+   - Linux: `python3 -m pip install .`
 
 ## Basic Usage
 
@@ -45,6 +63,6 @@ See the [examples](examples/) for more details.
 
 ## License
 
-This project is under the [MIT](LICENSE) License.
+This project uses the [MIT](LICENSE) License.
 
 [1]: https://www.battleye.com/downloads/BERConProtocol.txt
