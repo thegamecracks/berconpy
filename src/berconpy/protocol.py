@@ -347,10 +347,12 @@ class RCONClientDatagramProtocol:
 
         # Cleanup and raise any exception
         log.debug(f'{self.name}: disconnecting')
+        closing = self._is_closing
+
         self.disconnect()
         self.reset()
 
-        self._is_closing.result()
+        closing.result()
 
     # DatagramProtocol
 
