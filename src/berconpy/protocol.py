@@ -39,14 +39,13 @@ class RCONClientDatagramProtocol:
     _last_received: float
     _last_sent: float  # NOTE: unused
 
+    _is_logged_in: asyncio.Future[bool] | None
+    _is_closing: asyncio.Future | None
+
     def __init__(self, client: "AsyncRCONClient"):
         self.client = client
 
-        # These attributes are handled by run() / close()
-        # rather than in the reset
         self._running_event = asyncio.Event()
-        self._is_logged_in: asyncio.Future[bool] | None = None
-        self._is_closing: asyncio.Future | None = None
         self._transport: asyncio.DatagramTransport | None = None
 
         self.reset()
@@ -61,6 +60,9 @@ class RCONClientDatagramProtocol:
         self._last_command = mono
         self._last_received = mono
         self._last_sent = mono
+
+        self._is_logged_in = None
+        self._is_closing = None
 
         self._running_event.clear()
 
@@ -169,10 +171,12 @@ class RCONClientDatagramProtocol:
             The password given to the server was denied.
 
         """
+        # This method may be called before run() so we need to
+        # make sure the futures are initialized with something
         loop = asyncio.get_running_loop()
-        if should_replace_future(self._is_logged_in):
+        if self._is_logged_in is None:
             self._is_logged_in = loop.create_future()
-        if should_replace_future(self._is_closing):
+        if self._is_closing is None:
             self._is_closing = loop.create_future()
 
         done, pending = await asyncio.wait(
@@ -331,9 +335,10 @@ class RCONClientDatagramProtocol:
                     self.close(self._is_logged_in.exception())
                     continue
 
-            if time.monotonic() - self._last_received > self.LAST_RECEIVED_TIMEOUT:
-                log.debug(f'{self.name}: server has timed out')
+            if (overtime := time.monotonic() - self._last_received) > self.LAST_RECEIVED_TIMEOUT:
+                log.warning(f'{self.name}: server has timed out (last received {overtime:.0f} seconds ago)')
                 self._is_logged_in = loop.create_future()
+                continue
             elif time.monotonic() - self._last_command > self.KEEP_ALIVE_INTERVAL:
                 log.debug(f'{self.name}: sending keep alive packet')
                 self._send_keep_alive()
@@ -360,7 +365,7 @@ class RCONClientDatagramProtocol:
 
     def datagram_received(self, data: bytes, addr):
         try:
-            packet: Packet = Packet.from_bytes(data)
+            packet: ServerPacket = Packet.from_bytes(data)
         except (IndexError, ValueError) as e:
             return log.debug(f'{self.name}: failed to decode received data: {e}')
 

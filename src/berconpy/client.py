@@ -215,6 +215,9 @@ class AsyncRCONClient:
 
         :param command: The command to send. Only ASCII characters are allowed.
         :returns: The server's response as a string.
+        :raises RuntimeError:
+            The client is either not connected or the server
+            could/would not respond to the command.
 
         """
         if not self._protocol.is_running():
