@@ -234,7 +234,7 @@ class AsyncArmaRCONClient(AsyncRCONClient):
             if self._incomplete_players.pop(player_id, None):
                 self._players[player_id] = p
 
-    def _invalidate_player(self, player_id: int, name: str):
+    def _invalidate_player(self, player_id: int, *args):
         self._players.pop(player_id, None)
         self._incomplete_players.pop(player_id, None)
         self._player_pings.pop(player_id, None)
@@ -266,7 +266,9 @@ class AsyncArmaRCONClient(AsyncRCONClient):
             self._dispatch('player_disconnect', *args)
 
         elif m := _BATTLEYE_KICK.fullmatch(response):
-            self._dispatch('player_kick', *_get_pattern_args(m))
+            args = _get_pattern_args(m)
+            self._invalidate_player(*args)
+            self._dispatch('player_kick', *args)
 
         elif m := _RCON_MESSAGE.fullmatch(response):
             admin_id, channel, message = _get_pattern_args(m)
