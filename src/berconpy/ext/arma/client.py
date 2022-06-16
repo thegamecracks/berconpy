@@ -157,10 +157,6 @@ class AsyncArmaRCONClient(AsyncRCONClient):
         )
         self.add_listener('on_login', self._cache_on_login)
         self.add_listener('on_message', self._dispatch_arma_message)
-        self.add_listener('on_player_connect', self._cache_player)
-        self.add_listener('on_player_guid', self._cache_player_guid)
-        self.add_listener('on_player_verify_guid', self._verify_player_guid)
-        self.add_listener('on_player_disconnect', self._invalidate_player)
         self._setup_cache()
 
     def _setup_cache(self):
@@ -201,7 +197,7 @@ class AsyncArmaRCONClient(AsyncRCONClient):
 
         await self.fetch_players()
 
-    # Listeners to handle keeping player cache up to date
+    # Methods to handle keeping player cache up to date
 
     def _get_pending_player(self, player_id: int) -> Player | None:
         return self._incomplete_players.get(player_id) or self._players.get(player_id)
@@ -214,7 +210,7 @@ class AsyncArmaRCONClient(AsyncRCONClient):
         if p is not None:
             self._players[player_id] = p
 
-    async def _cache_player(self, player_id: int, name: str, addr: str):
+    def _cache_player(self, player_id: int, name: str, addr: str):
         # first message; start timer to cache
         p = Player(self, player_id, name, '', addr, False, False)
         self._incomplete_players[player_id] = p
@@ -224,13 +220,13 @@ class AsyncArmaRCONClient(AsyncRCONClient):
             name=f'berconpy-arma-push-to-cache-{player_id}'
         )
 
-    async def _cache_player_guid(self, player_id: int, name: str, guid: str):
+    def _cache_player_guid(self, player_id: int, name: str, guid: str):
         # second message
         p = self._get_pending_player(player_id)
         if p is not None:
             p.guid = guid
 
-    async def _verify_player_guid(self, guid: str, player_id: int, name: str):
+    def _verify_player_guid(self, guid: str, player_id: int, name: str):
         # last message, can push to cache early
         p = self._get_pending_player(player_id)
         if p is not None:
@@ -238,7 +234,7 @@ class AsyncArmaRCONClient(AsyncRCONClient):
             if self._incomplete_players.pop(player_id, None):
                 self._players[player_id] = p
 
-    async def _invalidate_player(self, player_id: int, name: str):
+    def _invalidate_player(self, player_id: int, name: str):
         self._players.pop(player_id, None)
         self._incomplete_players.pop(player_id, None)
         self._player_pings.pop(player_id, None)
@@ -250,16 +246,24 @@ class AsyncArmaRCONClient(AsyncRCONClient):
             self._dispatch('admin_login', *_get_pattern_args(m))
 
         elif m := _CONNECTED.fullmatch(response):
-            self._dispatch('player_connect', *_get_pattern_args(m))
+            args = _get_pattern_args(m)
+            self._cache_player(*args)
+            self._dispatch('player_connect', *args)
 
         elif m := _GUID.fullmatch(response):
-            self._dispatch('player_guid', *_get_pattern_args(m))
+            args = _get_pattern_args(m)
+            self._cache_player_guid(*args)
+            self._dispatch('player_guid', *args)
 
         elif m := _VERIFIED_GUID.fullmatch(response):
-            self._dispatch('player_verify_guid', *_get_pattern_args(m))
+            args = _get_pattern_args(m)
+            self._verify_player_guid(*args)
+            self._dispatch('player_verify_guid', *args)
 
         elif m := _DISCONNECTED.fullmatch(response):
-            self._dispatch('player_disconnect', *_get_pattern_args(m))
+            args = _get_pattern_args(m)
+            self._invalidate_player(*args)
+            self._dispatch('player_disconnect', *args)
 
         elif m := _BATTLEYE_KICK.fullmatch(response):
             self._dispatch('player_kick', *_get_pattern_args(m))
