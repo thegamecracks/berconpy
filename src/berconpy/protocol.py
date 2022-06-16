@@ -1,6 +1,8 @@
 import asyncio
 import collections
+import itertools
 import logging
+import math
 import time
 from typing import TYPE_CHECKING, Any
 
@@ -25,8 +27,7 @@ class RCONClientDatagramProtocol:
     COMMAND_ATTEMPTS = 3
     COMMAND_INTERVAL = 1
 
-    RECONNECT_ATTEMPTS = 3
-    RECONNECT_INTERVAL = 2
+    INITIAL_CONNECT_ATTEMPTS = 3
 
     RECEIVED_SEQUENCES_SIZE = 5
 
@@ -304,6 +305,7 @@ class RCONClientDatagramProtocol:
 
     async def run(self, ip: str, port: int, password: str):
         loop = asyncio.get_running_loop()
+        first_iteration = True
 
         self._running_event.set()
         if should_replace_future(self._is_closing):
@@ -311,23 +313,36 @@ class RCONClientDatagramProtocol:
 
         while not self._is_closing.done():
             if self._is_logged_in is None or not self._is_logged_in.done():
-                log.info(f'{self.name}: attempting to (re)connect to server')
+                log.info('{}: attempting to {re}connect to server'.format(
+                    self.name, re='re' * (not first_iteration)
+                ))
 
-                for _ in range(self.RECONNECT_ATTEMPTS):
+                if should_replace_future(self._is_logged_in):
+                    self._is_logged_in = loop.create_future()
+
+                attempts = itertools.count()
+                if first_iteration:
+                    attempts = range(self.INITIAL_CONNECT_ATTEMPTS)
+
+                for i in attempts:
+                    delay = 2 ** (i % 10)  # exponential backoff
                     try:
-                        if should_replace_future(self._is_logged_in):
-                            self._is_logged_in = loop.create_future()
-
                         await asyncio.wait_for(
                             self.connect(ip, port, password),
-                            timeout=self.RECONNECT_INTERVAL
+                            timeout=delay
                         )
                         break
                     except asyncio.TimeoutError:
-                        pass
+                        if math.log10(i + 1) % 1 != 0:
+                            continue
+
+                        log.warning('{}: failed {:,d} login attempt{s}'.format(
+                            self.name, i + 1,
+                            s='s' * (i != 0)
+                        ))
 
                 if not self._is_logged_in.done():
-                    log.warning(f'{self.name}: failed to (re)connect to the server')
+                    log.warning(f'{self.name}: failed to connect to the server')
                     self.close(RuntimeError('could not connect to the server'))
                     continue
                 elif self._is_logged_in.exception():
@@ -344,6 +359,7 @@ class RCONClientDatagramProtocol:
                 self._send_keep_alive()
 
             await asyncio.sleep(self.RUN_INTERVAL)
+            first_iteration = False
 
         # Cleanup and raise any exception
         log.debug(f'{self.name}: disconnecting')
