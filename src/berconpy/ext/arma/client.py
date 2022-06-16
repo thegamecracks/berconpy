@@ -110,30 +110,41 @@ class AsyncArmaRCONClient(AsyncRCONClient):
             logging in. Note that there is no logout equivalent
             for this event.
 
-        - on_player_connect(player_id: int, name: str, addr: str):
+        - on_player_connect(player: Player):
             Fired when a player connects to a server.
 
-        - on_player_guid(player_id: int, name: str, guid: str):
-            Fired when receiving the BattlEye GUID for a connecting player.
+            Note that the player's GUID will most likely be an empty string
+            at this point, but can be updated in-place afterwards when GUID
+            events are received.
 
-        - on_player_verify_guid(guid: str, player_id: int, name: str):
+        - on_player_guid(player: Player):
+            Fired when receiving the BattlEye GUID for a connecting player.
+            The given player object will have the updated GUID.
+
+        - on_player_verify_guid(player: Player):
             Fired when the server has verified the BattlEye GUID
             for a connecting player.
 
-        - on_player_disconnect(player_id: int, name: str):
+        - on_player_disconnect(player: Player):
             Fired when a player manually disconnects from the server.
+
+            The `players` list will no longer contain the player provided here.
+
             This event does not fire when BattlEye kicks the player;
             see the following event `on_battleye_kick()`.
 
-        - on_player_kick(player_id: int, name: str, guid: str, reason: str):
+        - on_player_kick(player: Player, reason: str):
             Fired when BattlEye kicks a player either automatically
             (e.g. "Client not responding") or by an admin (i.e. "Admin Kick").
 
+            The `players` list will no longer contain the player provided here.
+
         - on_admin_message(admin_id: int, channel: str, message: str):
-            Fired when an RCON admin sends a message. This event
-            is further broken down into `on_admin_global_message()`
-            and `on_admin_whisper()`. The corresponding event
-            is dispatched alongside this event.
+            Fired when an RCON admin sends a message.
+
+            This event is further broken down into
+            `on_admin_global_message()` and `on_admin_whisper()`.
+            The corresponding event is dispatched alongside this event.
 
         - on_admin_announcement(admin_id: int, message: str):
             Fired when an RCON admin sends a global message.
@@ -202,42 +213,54 @@ class AsyncArmaRCONClient(AsyncRCONClient):
     def _get_pending_player(self, player_id: int) -> Player | None:
         return self._incomplete_players.get(player_id) or self._players.get(player_id)
 
-    async def _push_to_cache(self, player_id: int):
+    def _push_to_cache(self, player_id: int):
+        # We have a potential race condition where fetch_players() /
+        # keep alive may occur just before player is added to cache;
+        # in that case we can throw away the pending player
+        p = self._incomplete_players.pop(player_id, None)
+        if p is None or player_id in self._players:
+            return
+
+        self._players[player_id] = p
+
+    async def _delayed_push_to_cache(self, player_id: int):
         # Give 5 seconds for events to come in before adding to self._players
         await asyncio.sleep(5)
+        self._push_to_cache(player_id)
 
-        p = self._incomplete_players.pop(player_id, None)
-        if p is not None:
-            self._players[player_id] = p
-
-    def _cache_player(self, player_id: int, name: str, addr: str):
+    def _cache_player(self, player_id: int, name: str, addr: str) -> Player:
         # first message; start timer to cache
         p = Player(self, player_id, name, '', addr, False, False)
         self._incomplete_players[player_id] = p
 
         asyncio.create_task(
-            self._push_to_cache(player_id),
+            self._delayed_push_to_cache(player_id),
             name=f'berconpy-arma-push-to-cache-{player_id}'
         )
 
-    def _cache_player_guid(self, player_id: int, name: str, guid: str):
+        return p
+
+    def _cache_player_guid(self, player_id: int, name: str, guid: str) -> Player | None:
         # second message
         p = self._get_pending_player(player_id)
         if p is not None:
             p.guid = guid
+        return p
 
-    def _verify_player_guid(self, guid: str, player_id: int, name: str):
+    def _verify_player_guid(self, guid: str, player_id: int, name: str) -> Player | None:
         # last message, can push to cache early
         p = self._get_pending_player(player_id)
         if p is not None:
             p.is_guid_valid = True
-            if self._incomplete_players.pop(player_id, None):
-                self._players[player_id] = p
+            self._push_to_cache(player_id)
+        return p
 
-    def _invalidate_player(self, player_id: int, *args):
-        self._players.pop(player_id, None)
-        self._incomplete_players.pop(player_id, None)
+    def _invalidate_player(self, player_id: int, *args) -> Player | None:
+        p = self._players.pop(player_id, None)
+        p = p or self._incomplete_players.pop(player_id, None)
         self._player_pings.pop(player_id, None)
+
+        return p
 
     # Event dispatcher
 
@@ -247,28 +270,31 @@ class AsyncArmaRCONClient(AsyncRCONClient):
 
         elif m := _CONNECTED.fullmatch(response):
             args = _get_pattern_args(m)
-            self._cache_player(*args)
-            self._dispatch('player_connect', *args)
+            p = self._cache_player(*args)
+            self._dispatch('player_connect', p)
 
         elif m := _GUID.fullmatch(response):
             args = _get_pattern_args(m)
-            self._cache_player_guid(*args)
-            self._dispatch('player_guid', *args)
+            # NOTE: it might be possible to receive these events before
+            # on_player_connect, in which case we cannot get a Player
+            # object to dispatch
+            if p := self._cache_player_guid(*args):
+                self._dispatch('player_guid', p)
 
         elif m := _VERIFIED_GUID.fullmatch(response):
             args = _get_pattern_args(m)
-            self._verify_player_guid(*args)
-            self._dispatch('player_verify_guid', *args)
+            if p := self._verify_player_guid(*args):
+                self._dispatch('player_verify_guid', p)
 
         elif m := _DISCONNECTED.fullmatch(response):
             args = _get_pattern_args(m)
-            self._invalidate_player(*args)
-            self._dispatch('player_disconnect', *args)
+            if p := self._invalidate_player(*args):
+                self._dispatch('player_disconnect', p)
 
         elif m := _BATTLEYE_KICK.fullmatch(response):
             args = _get_pattern_args(m)
-            self._invalidate_player(*args)
-            self._dispatch('player_kick', *args)
+            if p := self._invalidate_player(*args):
+                self._dispatch('player_kick', p, m['reason'])
 
         elif m := _RCON_MESSAGE.fullmatch(response):
             admin_id, channel, message = _get_pattern_args(m)

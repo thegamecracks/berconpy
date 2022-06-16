@@ -2,7 +2,7 @@
 import asyncio
 import logging
 
-from berconpy.ext.arma import AsyncArmaRCONClient
+from berconpy.ext.arma import AsyncArmaRCONClient, Player
 
 IP_ADDR = 'XXX.XXX.XXX.XXX'
 PORT = 9999
@@ -27,18 +27,18 @@ async def on_admin_login(admin_id: int, addr: str):
 
 
 @client.listen()
-async def on_player_connect(player_id: int, name: str, addr: str):
-    print(f'Player #{player_id} {name} connected')
+async def on_player_connect(player: Player):
+    print(f'Player #{player.id} {player.name} connected')
 
 
 @client.listen()
-async def on_player_disconnect(player_id: int, name: str):
-    print(f'Player #{player_id} {name} disconnected')
+async def on_player_disconnect(player: Player):
+    print(f'Player #{player.id} {player.name} disconnected')
 
 
 @client.listen()
-async def on_player_kick(player_id: int, name: str, guid: str, reason: str):
-    print(f'Player #{player_id} {name} was kicked: {reason}')
+async def on_player_kick(player: Player, reason: str):
+    print(f'Player #{player.id} {player.name} was kicked: {reason}')
 
 
 @client.listen()
