@@ -26,7 +26,7 @@ class Ban:
     """
     client: "AsyncRCONClient" = field(compare=True, hash=True)
     index: int                = field(compare=True, hash=True)
-    id: str                 = field(compare=False, hash=False)
+    id: str                   = field(compare=False, hash=False)
     duration: int | None      = field(compare=False, hash=False)
     reason: str               = field(compare=False, hash=False)
 
