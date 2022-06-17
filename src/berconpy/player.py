@@ -60,6 +60,24 @@ class Player:
         """
         return self.client._player_pings.get(self.id, -1)
 
+    async def ban_guid(self, duration: int = None, reason: str = ''):
+        """Bans the player from the server using their GUID."""
+        # NOTE: ban #ID does the same as adding the player's GUID
+        await self.client.ban(self.guid, duration, reason)
+
+    async def ban_ip(self, duration: int = None, reason: str = ''):
+        """Bans this player from the server using their IP."""
+        ip = self.addr.split(':')[0]
+        await self.client.ban(ip, duration, reason)
+
+    def is_connected(self) -> bool:
+        """Checks if the player is still in the client's cache."""
+        return self.id in self.client._players
+
     async def kick(self, reason: str = ''):
         """Kicks this player from the server with an optional reason."""
         await self.client.kick(self.id, reason)
+
+    async def send(self, message: str):
+        """Sends a message to the player."""
+        await self.client.whisper(self.id, message)
