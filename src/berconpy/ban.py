@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .client import AsyncArmaRCONClient
+    from .client import AsyncRCONClient
 
 
 @dataclass(repr=False, slots=True, unsafe_hash=True)
@@ -21,11 +21,11 @@ class Ban:
     reason: The reason given for the ban.
 
     """
-    client: "AsyncArmaRCONClient" = field(compare=True, hash=True)
-    id: int                       = field(compare=True, hash=True)
-    addr: str                     = field(compare=False, hash=False)
-    duration: int | None          = field(compare=False, hash=False)
-    reason: str                   = field(compare=False, hash=False)
+    client: "AsyncRCONClient" = field(compare=True, hash=True)
+    id: int                   = field(compare=True, hash=True)
+    addr: str                 = field(compare=False, hash=False)
+    duration: int | None      = field(compare=False, hash=False)
+    reason: str               = field(compare=False, hash=False)
 
     def __repr__(self):
         attrs = (

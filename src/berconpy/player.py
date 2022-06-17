@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .client import AsyncArmaRCONClient
+    from .client import AsyncRCONClient
 
 
 @dataclass(repr=False, slots=True, unsafe_hash=True)
@@ -27,13 +27,13 @@ class Player:
         during connection.
 
     """
-    client: "AsyncArmaRCONClient" = field(compare=True, hash=True)
-    id: int                       = field(compare=True, hash=True)
-    name: str                     = field(compare=False, hash=False)
-    guid: str                     = field(compare=False, hash=False)
-    addr: str                     = field(compare=False, hash=False)
-    is_guid_valid: bool           = field(compare=False, hash=False)
-    in_lobby: bool                = field(compare=False, hash=False)
+    client: "AsyncRCONClient" = field(compare=True, hash=True)
+    id: int                   = field(compare=True, hash=True)
+    name: str                 = field(compare=False, hash=False)
+    guid: str                 = field(compare=False, hash=False)
+    addr: str                 = field(compare=False, hash=False)
+    is_guid_valid: bool       = field(compare=False, hash=False)
+    in_lobby: bool            = field(compare=False, hash=False)
 
     def __repr__(self):
         attrs = (

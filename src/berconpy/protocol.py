@@ -23,6 +23,7 @@ def should_replace_future(fut: asyncio.Future | None) -> bool:
 class RCONClientDatagramProtocol:
     RUN_INTERVAL = 1
     KEEP_ALIVE_INTERVAL = 30
+    PLAYERS_INTERVAL = 60
     LAST_RECEIVED_TIMEOUT = 45  # don't change, specified by protocol
 
     COMMAND_ATTEMPTS = 3
@@ -40,6 +41,7 @@ class RCONClientDatagramProtocol:
     _last_command: float
     _last_received: float
     _last_sent: float  # NOTE: unused
+    _last_players: float
 
     _is_logged_in: asyncio.Future[bool] | None
     _is_closing: asyncio.Future | None
@@ -62,6 +64,7 @@ class RCONClientDatagramProtocol:
         self._last_command = mono
         self._last_received = mono
         self._last_sent = mono
+        self._last_players = mono
 
         self._is_logged_in = None
         self._is_closing = None
@@ -154,8 +157,30 @@ class RCONClientDatagramProtocol:
 
     def _send_keep_alive(self):
         sequence = self._get_next_sequence()
-        packet = ClientCommandPacket(sequence, '')
-        self._send(packet)
+
+        if time.monotonic() - self._last_players > self.PLAYERS_INTERVAL:
+            self._last_players = time.monotonic()
+            packet = ClientCommandPacket(sequence, 'players')
+            self._send(packet)
+
+            asyncio.create_task(
+                self._wait_player_pings(sequence),
+                name=f'berconpy-ping-{sequence}'
+            )
+        else:
+            packet = ClientCommandPacket(sequence, '')
+            self._send(packet)
+
+    async def _wait_player_pings(self, sequence: int):
+        try:
+            response = await asyncio.wait_for(
+                self._wait_for_command(sequence),
+                timeout=5
+            )
+        except asyncio.TimeoutError:
+            pass
+        else:
+            self.client._update_players(response)
 
     def _tick(self):
         self._last_received = time.monotonic()
