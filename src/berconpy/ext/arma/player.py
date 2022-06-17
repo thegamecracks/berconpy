@@ -11,7 +11,7 @@ class Player:
 
     Attributes
     ----------
-    client: The client that created this player.
+    client: The client that created this object.
     id: The ID assigned to this player by the server.
     name: The player's name.
     guid:
@@ -59,3 +59,7 @@ class Player:
 
         """
         return self.client._player_pings.get(self.id, -1)
+
+    async def kick(self, reason: str = ''):
+        """Kicks this player from the server with an optional reason."""
+        await self.client.kick(self.id, reason)
