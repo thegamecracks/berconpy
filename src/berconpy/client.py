@@ -178,6 +178,8 @@ class AsyncRCONClient:
     async def connect(self, ip: str, port: int, password: str):
         """Connect to the given IP and port with password.
 
+        :raises LoginFailure:
+            The password given to the server was denied.
         :raises RuntimeError:
             This method was called while the client is already connected.
 

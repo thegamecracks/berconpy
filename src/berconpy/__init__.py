@@ -1,4 +1,5 @@
 from .client import AsyncRCONClient
+from .errors import *
 from .packet import *
 from .protocol import RCONClientDatagramProtocol
 from . import utils

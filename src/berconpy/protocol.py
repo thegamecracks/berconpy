@@ -6,6 +6,7 @@ import math
 import time
 from typing import TYPE_CHECKING, Any
 
+from .errors import LoginFailure, RCONCommandError
 from .packet import *
 from .utils import EMPTY
 
@@ -73,7 +74,7 @@ class RCONClientDatagramProtocol:
         :returns:
             True if authenticated or None if no
             response has been received from the server.
-        :raises ValueError:
+        :raises LoginFailure:
             The password given to the server was denied.
 
         """
@@ -168,7 +169,7 @@ class RCONClientDatagramProtocol:
         :returns:
             True if authenticated or None if the connection closed
             without an error.
-        :raises ValueError:
+        :raises LoginFailure:
             The password given to the server was denied.
 
         """
@@ -242,7 +243,7 @@ class RCONClientDatagramProtocol:
         self._cancel_command(sequence)
         log.warning(f'{self.name}: could not send command '
                     f'after {self.COMMAND_ATTEMPTS} attempts')
-        raise RuntimeError(f'failed to send command: {command}')
+        raise RCONCommandError(f'failed to send command: {command}')
 
     def _wait_for_command(self, sequence: int) -> asyncio.Future[str]:
         """Returns a future waiting for a command response with
@@ -276,7 +277,7 @@ class RCONClientDatagramProtocol:
         :returns:
             True if authenticated or None if the connection closed
             without an error.
-        :raises ValueError:
+        :raises LoginFailure:
             The password given to the server was denied.
 
         """
@@ -343,7 +344,7 @@ class RCONClientDatagramProtocol:
 
                 if not self._is_logged_in.done():
                     log.warning(f'{self.name}: failed to connect to the server')
-                    self.close(RuntimeError('could not connect to the server'))
+                    self.close(LoginFailure('could not connect to the server'))
                     continue
                 elif self._is_logged_in.exception():
                     log.warning(f'{self.name}: password authentication was denied')
@@ -400,7 +401,7 @@ class RCONClientDatagramProtocol:
                 self._dispatch_packet(packet)
             else:
                 self._is_logged_in.set_exception(
-                    ValueError('invalid password provided')
+                    LoginFailure('invalid password provided')
                 )
 
         elif isinstance(packet, ServerCommandPacket):
