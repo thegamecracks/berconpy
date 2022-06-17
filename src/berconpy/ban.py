@@ -48,6 +48,6 @@ class Ban:
         # Since ban indices are non-unique, we need to match the identifier
         # and remove the corresponding index (possible race condition)
         bans = await self.client.fetch_bans()
-        b = await utils.get(bans, id=self.id)
+        b = utils.get(bans, id=self.id)
         if b is not None:
             await self.client.unban(b.index)

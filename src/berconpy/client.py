@@ -9,7 +9,8 @@ from .ban import Ban
 from .errors import RCONCommandError
 from .player import Player
 from .protocol import RCONClientDatagramProtocol
-from .utils import CoroFunc, MaybeCoroFunc, get, maybe_coro
+from .utils import CoroFunc, MaybeCoroFunc, maybe_coro
+from . import utils
 
 log = logging.getLogger(__name__)
 
@@ -566,13 +567,13 @@ class AsyncRCONClient:
                 self._dispatch('admin_announcement', admin_id, message)
             elif channel.startswith('To '):
                 name = channel.removeprefix('To ')
-                p = await get(self.players, name=name)
+                p = utils.get(self.players, name=name)
                 if p is not None:
                     self._dispatch('admin_whisper', p, admin_id, message)
 
         elif m := _PLAYER_MESSAGE.fullmatch(response):
             channel, name, message = _get_pattern_args(m)
-            p = await get(self.players, name=name)
+            p = utils.get(self.players, name=name)
             if p is not None:
                 self._dispatch('player_message', p, channel, message)
 
