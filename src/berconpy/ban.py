@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from . import utils
+
 if TYPE_CHECKING:
     from .client import AsyncRCONClient
 
@@ -12,9 +14,10 @@ class Ban:
     Attributes
     ----------
     client: The client that created this object.
-    id: The ID assigned to this ban by the server.
-        Note that this is not the same as a player ID.
-    addr: The player identifier this ban affects,
+    index: The index assigned to this ban by the server.
+           This is non-unique and is subject to change,
+           so it cannot be reliably used for unbanning.
+    id: The player identifier this ban affects, which is
         either a BattlEye GUID or an IP address.
     duration: The duration of the ban in minutes.
         This is -1 if expired or None for permanent bans.
@@ -22,8 +25,8 @@ class Ban:
 
     """
     client: "AsyncRCONClient" = field(compare=True, hash=True)
-    id: int                   = field(compare=True, hash=True)
-    addr: str                 = field(compare=False, hash=False)
+    index: int                = field(compare=True, hash=True)
+    id: str                 = field(compare=False, hash=False)
     duration: int | None      = field(compare=False, hash=False)
     reason: str               = field(compare=False, hash=False)
 
@@ -42,4 +45,9 @@ class Ban:
 
     async def unban(self):
         """Removes this ban from the server."""
-        await self.client.unban(self.id)
+        # Since ban indices are non-unique, we need to match the identifier
+        # and remove the corresponding index (possible race condition)
+        bans = await self.client.fetch_bans()
+        b = await utils.get(bans, id=self.id)
+        if b is not None:
+            await self.client.unban(b.index)

@@ -38,7 +38,7 @@ _PLAYER_MESSAGE = re.compile(
 # Command responses
 _ADMINS_ROW = re.compile(r'(?P<id>\d+) +(?P<addr>.*?:\d+)')
 _BANS_ROW = re.compile(
-    r'(?P<id>\d+) +(?P<addr>[\w.]+) +'
+    r'(?P<index>\d+) +(?P<id>[\w.]+) +'
     r'(?P<duration>\d+|-|perm) +(?P<reason>.*)'
 )
 _PLAYERS_ROW = re.compile(
@@ -353,6 +353,7 @@ class AsyncRCONClient:
         self._protocol.close()
 
     # Commands
+    # (documentation: https://www.battleye.com/support/documentation/)
 
     async def ban(self, addr: int | str, duration: int = None, reason: str = ''):
         """Bans a given player ID, GUID, or IP address (without port).
@@ -388,7 +389,7 @@ class AsyncRCONClient:
 
         bans = []
         for m in _BANS_ROW.finditer(response):
-            ban_id, addr, duration, reason = _get_pattern_args(m)
+            index, ban_id, duration, reason = _get_pattern_args(m)
 
             if duration == '-':
                 duration = -1
@@ -397,7 +398,7 @@ class AsyncRCONClient:
             else:
                 duration = int(duration)
 
-            b = Ban(self, ban_id, addr, duration, reason)
+            b = Ban(self, index, ban_id, duration, reason)
             bans.append(b)
 
         return bans
