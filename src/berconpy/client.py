@@ -194,6 +194,30 @@ class AsyncRCONClient:
         """Returns a list of players in the server."""
         return list(self._players.values())
 
+    def is_logged_in(self) -> bool | None:
+        """Indicates if the client is currently authenticated with the server.
+
+        :returns:
+            True if authenticated or None if no
+            response has been received from the server.
+        :raises LoginFailure:
+            The password given to the server was denied.
+
+        """
+        return self._protocol.is_logged_in()
+
+    def is_connected(self) -> bool:
+        """Indicates if the client has a currently active connection
+        with the server.
+        """
+        return self._protocol.is_connected()
+
+    def is_running(self) -> bool:
+        """Indicates if the client is running. This may not necessarily
+        mean that the client is connected.
+        """
+        return self._protocol.is_running()
+
     # Event handling
 
     def add_listener(self, event: str, func: CoroFunc):

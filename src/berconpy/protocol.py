@@ -77,29 +77,14 @@ class RCONClientDatagramProtocol:
         self._running_event.clear()
 
     def is_logged_in(self) -> bool | None:
-        """Indicates if the client is currently authenticated with the server.
-
-        :returns:
-            True if authenticated or None if no
-            response has been received from the server.
-        :raises LoginFailure:
-            The password given to the server was denied.
-
-        """
         if self._is_logged_in is not None and self._is_logged_in.done():
             return self._is_logged_in.result()
         return None
 
     def is_connected(self) -> bool:
-        """Indicates if the client has a currently active connection
-        with the server.
-        """
         return self._transport is not None
 
-    def is_running(self):
-        """Indicates if the client is running. This may not necessarily
-        mean that the client is connected.
-        """
+    def is_running(self) -> bool:
         return self._running_event.is_set()
 
     @property
