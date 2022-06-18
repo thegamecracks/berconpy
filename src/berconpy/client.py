@@ -129,7 +129,7 @@ class AsyncRCONClient:
             Fired when an RCON admin sends a message.
 
             This event is further broken down into
-            `on_admin_global_message()` and `on_admin_whisper()`.
+            `on_admin_announcement()` and `on_admin_whisper()`.
             The corresponding event is dispatched alongside this event.
 
         - on_admin_announcement(admin_id: int, message: str):
