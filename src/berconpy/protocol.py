@@ -55,11 +55,14 @@ class RCONClientDatagramProtocol:
 
         self.reset()
 
-    def reset(self):
+    def reset_cache(self):
         self._multipart_packets = collections.defaultdict(list)
         self._next_sequence = 0
         self._received_sequences = collections.deque((), self.RECEIVED_SEQUENCES_SIZE)
         self._command_queue = {}
+
+    def reset(self):
+        self.reset_cache()
 
         mono = time.monotonic()
         self._addr = None
@@ -381,6 +384,7 @@ class RCONClientDatagramProtocol:
 
             if (overtime := time.monotonic() - self._last_received) > self.LAST_RECEIVED_TIMEOUT:
                 log.warning(f'{self.name}: server has timed out (last received {overtime:.0f} seconds ago)')
+                self.reset_cache()
                 self._is_logged_in = loop.create_future()
                 continue
             elif time.monotonic() - self._last_command > self.KEEP_ALIVE_INTERVAL:
