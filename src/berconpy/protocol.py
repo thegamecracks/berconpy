@@ -264,8 +264,9 @@ class RCONClientDatagramProtocol:
                 )
             except asyncio.TimeoutError:
                 pass
+            finally:
+                self._cancel_command(sequence)
 
-        self._cancel_command(sequence)
         log.warning(f'{self.name}: could not send command '
                     f'after {self.COMMAND_ATTEMPTS} attempts')
         raise RCONCommandError(f'failed to send command: {command}')
