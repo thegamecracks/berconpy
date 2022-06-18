@@ -311,11 +311,14 @@ class AsyncRCONClient:
         except Exception as e:
             if not fut.done():
                 fut.set_exception(e)
-        else:
-            if result and not fut.done():
-                fut.set_result(args)
-        finally:
             self._remove_temporary_listener(event, fut, pred)
+        else:
+            if not result or fut.done():
+                return
+
+            fut.set_result(args)
+            self._remove_temporary_listener(event, fut, pred)
+
 
     def _dispatch(self, event: str, *args):
         """Dispatches a message to the corresponding event listeners.
