@@ -358,7 +358,7 @@ class AsyncRCONClient:
     # Commands
     # (documentation: https://www.battleye.com/support/documentation/)
 
-    async def ban(self, addr: int | str, duration: int = None, reason: str = ''):
+    async def ban(self, addr: int | str, duration: int = None, reason: str = '') -> str:
         """Bans a given player ID, GUID, or IP address (without port).
 
         Note that the player ID cannot be used to ban players that
@@ -374,7 +374,7 @@ class AsyncRCONClient:
         command = 'ban' if isinstance(addr, int) else 'addBan'
         if duration is None:
             duration = 0
-        await self.send_command(f'{command} {duration:d} {reason}'.strip())
+        return await self.send_command(f'{command} {duration:d} {reason}'.rstrip())
 
     async def fetch_admins(self) -> list[tuple[int, str]]:
         """Requests a list of RCON admins connected to the server,
@@ -428,15 +428,15 @@ class AsyncRCONClient:
         """Gets a player from cache using their server-given ID."""
         return self._players.get(player_id)
 
-    async def kick(self, player_id: int, reason: str = ''):
+    async def kick(self, player_id: int, reason: str = '') -> str:
         """Kicks a player with the given ID from the server
         with an optional reason.
         """
-        await self.send_command(f'kick {player_id:d} {reason}'.strip())
+        return await self.send_command(f'kick {player_id:d} {reason}'.rstrip())
 
-    async def send(self, message: str):
+    async def send(self, message: str) -> str:
         """Sends a message to all players in the server."""
-        await self.send_command(f'say -1 {message}')
+        return await self.send_command(f'say -1 {message}')
 
     async def send_command(self, command: str) -> str:
         """Sends a command to the server and waits for a response.
@@ -459,13 +459,13 @@ class AsyncRCONClient:
 
         return response
 
-    async def unban(self, ban_id: int):
+    async def unban(self, ban_id: int) -> str:
         """Removes the ban with the given ID from the server."""
-        await self.send_command(f'removeBan {ban_id:d}')
+        return await self.send_command(f'removeBan {ban_id:d}')
 
-    async def whisper(self, player_id: int, message: str):
+    async def whisper(self, player_id: int, message: str) -> str:
         """Sends a message to the player with the given ID."""
-        await self.send_command(f'say {player_id:d} {message}')
+        return await self.send_command(f'say {player_id:d} {message}')
 
     # Methods to handle keeping player cache up to date
 
