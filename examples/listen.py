@@ -30,21 +30,16 @@ async def on_message(message: str):
 
 @client.listen('on_command')
 async def server_response_to_command(response: str):
-    # response may be an empty string, in which case it is either:
-    # 1. responding to our scheduled keep alive packets
-    # 2. responding to an empty command we sent,
-    #    i.e. `await client.send_command('')`
-    #    which acts like a keep alive packet
+    # this event also includes keep alive commands we send to the server;
+    # for handling commands, reading the return value of
+    # `await client.send_command()` is the recommended method
     if not response:
-        return print('on_command: keep alive')
+        return print('on_command: <empty>')
 
-    # (since we are not sending any commands, this will not run)
     print('on_command:', response)
 
 
-# Other events:
-# on_raw_event(packet: rcon.Packet)
-#     Fired for every packet received from the server.
+# Other events are documented in AsyncRCONClient
 
 
 async def main():

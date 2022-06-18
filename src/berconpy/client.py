@@ -82,7 +82,7 @@ class AsyncRCONClient:
         - on_login():
             Fired after a successful login to the server.
 
-        - on_command(command: str):
+        - on_command(response: str):
             Fired after receiving a command response from the server.
             This event is usually not necessary and responses can more
             easily be received using the `send_command()` method.

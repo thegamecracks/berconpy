@@ -116,7 +116,8 @@ class RCONClientDatagramProtocol:
             assert packet.login_success
             self._dispatch('login')
         elif isinstance(packet, ServerCommandPacket):
-            self._dispatch('command', packet.message)
+            if packet.sequence in self._command_queue:
+                self._dispatch('command', packet.message)
         elif isinstance(packet, ServerMessagePacket):
             # Ensure repeat messages are not redispatched
             if packet.sequence in self._received_sequences:
@@ -136,7 +137,10 @@ class RCONClientDatagramProtocol:
             return
 
         message = ''.join(p.message for p in seq)
-        self._dispatch('command', message)
+        new_packet = ServerCommandPacket(
+            packet.sequence, packet.total, packet.index, message
+        )
+        self._dispatch_packet(new_packet)
 
         del self._multipart_packets[packet.sequence]
 
@@ -168,22 +172,32 @@ class RCONClientDatagramProtocol:
             self._send(packet)
 
             asyncio.create_task(
-                self._wait_player_pings(sequence),
+                self._wait_for_player_ping(sequence),
                 name=f'berconpy-ping-{sequence}'
             )
         else:
             packet = ClientCommandPacket(sequence, '')
             self._send(packet)
 
-    async def _wait_player_pings(self, sequence: int):
+            # We don't care about the response itself, but we still
+            # add it to _command_queue so `on_command` can ignore duplicates
+            asyncio.create_task(
+                self._wait_for_ping(sequence),
+                name=f'berconpy-ping-{sequence}'
+            )
+
+    async def _wait_for_ping(self, sequence: int):
         try:
-            response = await asyncio.wait_for(
+            return await asyncio.wait_for(
                 self._wait_for_command(sequence),
                 timeout=5
             )
         except asyncio.TimeoutError:
             pass
-        else:
+
+    async def _wait_for_player_ping(self, sequence: int):
+        response = await self._wait_for_ping(sequence)
+        if response is not None:
             self.client._update_players(response)
 
     def _tick(self):
@@ -440,6 +454,8 @@ class RCONClientDatagramProtocol:
                 )
 
         elif isinstance(packet, ServerCommandPacket):
+            # NOTE: dispatch must happen before _set_command(),
+            # otherwise the on_command event won't know we queued the command
             if packet.total is not None:
                 message = self._handle_multipart_packet(packet)
                 if message is not None:
