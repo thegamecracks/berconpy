@@ -38,6 +38,7 @@ class RCONClientDatagramProtocol:
     _received_sequences: collections.deque[int]
     _command_queue: dict[int, asyncio.Future[str]]
 
+    _addr: tuple[str, int] | None
     _last_command: float
     _last_received: float
     _last_sent: float  # NOTE: unused
@@ -61,6 +62,7 @@ class RCONClientDatagramProtocol:
         self._command_queue = {}
 
         mono = time.monotonic()
+        self._addr = None
         self._last_command = mono
         self._last_received = mono
         self._last_sent = mono
@@ -145,10 +147,9 @@ class RCONClientDatagramProtocol:
         return sequence
 
     def _send(self, packet: ClientPacket, addr: Any = EMPTY):
-        if addr is not EMPTY:
-            self._transport.sendto(packet.data, addr)
-        else:
-            self._transport.sendto(packet.data)
+        if addr is EMPTY:
+            addr = self._addr
+        self._transport.sendto(packet.data, addr)
         log.debug(f'{self.name}: sent {packet.type.name} packet')
 
         self._last_sent = time.monotonic()
@@ -293,7 +294,7 @@ class RCONClientDatagramProtocol:
 
         return await self.wait_for_login()
 
-    async def connect(self, ip: str, port: int, password: str) -> bool | None:
+    async def connect(self, password: str) -> bool | None:
         """Creates a connection to the given address.
 
         Note that this does not keep the connection alive,
@@ -312,7 +313,7 @@ class RCONClientDatagramProtocol:
         self.disconnect()
         self._transport, _ = await loop.create_datagram_endpoint(
             lambda: self,  # type: ignore
-            remote_addr=(ip, port)
+            remote_addr=self._addr
         )
 
         return await self._authenticate(password)
@@ -334,6 +335,7 @@ class RCONClientDatagramProtocol:
         loop = asyncio.get_running_loop()
         first_iteration = True
 
+        self._addr = (ip, port)
         self._running_event.set()
         if should_replace_future(self._is_closing):
             self._is_closing = loop.create_future()
@@ -355,7 +357,7 @@ class RCONClientDatagramProtocol:
                     delay = 2 ** (i % 10)  # exponential backoff
                     try:
                         await asyncio.wait_for(
-                            self.connect(ip, port, password),
+                            self.connect(password),
                             timeout=delay
                         )
                         break
@@ -409,6 +411,9 @@ class RCONClientDatagramProtocol:
             log.info(f'{self.name}: connection has been closed')
 
     def datagram_received(self, data: bytes, addr):
+        if addr != self._addr:
+            return log.debug(f'ignoring message from unknown address: {addr}')
+
         try:
             packet: ServerPacket = Packet.from_bytes(data)
         except (IndexError, ValueError) as e:
