@@ -148,6 +148,8 @@ class AsyncRCONClient:
         If not provided, a UUID is generated for the name.
 
     """
+    _EXPECTED_MESSAGES: set[str] = frozenset(('Connected to BE Master',))
+
     _client_id: int
     _players: dict[int, Player]
     _incomplete_players: dict[int, Player]
@@ -423,7 +425,7 @@ class AsyncRCONClient:
         return self.players
 
     def get_player(self, player_id: int) -> Player | None:
-        """Gets a player using their server-given ID."""
+        """Gets a player from cache using their server-given ID."""
         return self._players.get(player_id)
 
     async def kick(self, player_id: int, reason: str = ''):
@@ -577,7 +579,7 @@ class AsyncRCONClient:
             if p is not None:
                 self._dispatch('player_message', p, channel, message)
 
-        else:
+        elif response not in self._EXPECTED_MESSAGES:
             log.warning('unexpected message from server: %s', response)
 
     def _update_players(self, response: str):
