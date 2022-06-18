@@ -470,10 +470,22 @@ class AsyncRCONClient:
     # Methods to handle keeping player cache up to date
 
     async def _cache_on_login(self):
-        admin_id, addr = await self.wait_for('admin_login', timeout=10)
-        self._client_id = admin_id
+        self._setup_cache()
+        try:
+            admin_id, addr = await self.wait_for('admin_login', timeout=10)
+        except asyncio.TimeoutError:
+            log.warning(
+                'did not receive admin_login event within 10 seconds; '
+                'client id will not be available'
+            )
+        else:
+            self._client_id = admin_id
 
-        await self.fetch_players()
+            try:
+                await self.fetch_players()
+            except RCONCommandError:
+                log.warning('failed to receive players from server; '
+                            'player cache will not be available')
 
     def _get_pending_player(self, player_id: int) -> Player | None:
         return self._incomplete_players.get(player_id) or self._players.get(player_id)
