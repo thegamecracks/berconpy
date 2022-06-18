@@ -468,7 +468,8 @@ class AsyncRCONClient:
         :param command: The command to send. Only ASCII characters are allowed.
         :returns: The server's response as a string.
         :raises RCONCommandError:
-            The server has disabled this command.
+            The server has either disabled this command or failed to
+            respond to our command.
         :raises RuntimeError:
             The client is either not connected or the server
             could/would not respond to the command.
