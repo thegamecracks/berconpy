@@ -4,6 +4,7 @@ import contextlib
 import logging
 import re
 import uuid
+import weakref
 
 from .ban import Ban
 from .errors import RCONCommandError
@@ -153,7 +154,7 @@ class AsyncRCONClient:
     _client_id: int
     _players: dict[int, Player]
     _incomplete_players: dict[int, Player]
-    _player_pings: dict[int, int]
+    _player_pings: weakref.WeakKeyDictionary[Player, int]
 
     def __init__(
         self,
@@ -177,7 +178,7 @@ class AsyncRCONClient:
     def _setup_cache(self):
         self._players = {}
         self._incomplete_players = {}
-        self._player_pings = {}
+        self._player_pings = weakref.WeakKeyDictionary()
 
     def __repr__(self):
         return '<{} name={!r}>'.format(type(self).__name__, self.name)
@@ -563,8 +564,6 @@ class AsyncRCONClient:
     def _invalidate_player(self, player_id: int, *args) -> Player | None:
         p = self._players.pop(player_id, None)
         p = p or self._incomplete_players.pop(player_id, None)
-        self._player_pings.pop(player_id, None)
-
         return p
 
     # Event dispatcher
@@ -631,7 +630,7 @@ class AsyncRCONClient:
             if kwargs['in_lobby']:
                 kwargs['name'] = kwargs['name'].removesuffix(' (Lobby)')
 
-            self._player_pings[kwargs['id']] = kwargs.pop('ping')
+            ping = kwargs.pop('ping')
 
             # Create new player if necessary or otherwise update in-place
             p = self._players.get(kwargs['id'])
@@ -642,6 +641,7 @@ class AsyncRCONClient:
                 for k, v in kwargs.items():
                     setattr(p, k, v)
 
+            self._player_pings[p] = ping
             current_ids.add(kwargs['id'])
 
         # Throw away players no longer in the server

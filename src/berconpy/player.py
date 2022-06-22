@@ -1,11 +1,9 @@
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .client import AsyncRCONClient
 
 
-@dataclass(repr=False, slots=True, unsafe_hash=True)
 class Player:
     """Represents an Arma player in the server.
 
@@ -27,13 +25,32 @@ class Player:
         during connection.
 
     """
-    client: "AsyncRCONClient" = field(compare=True, hash=True)
-    id: int                   = field(compare=True, hash=True)
-    name: str                 = field(compare=False, hash=False)
-    guid: str                 = field(compare=False, hash=False)
-    addr: str                 = field(compare=False, hash=False)
-    is_guid_valid: bool       = field(compare=False, hash=False)
-    in_lobby: bool            = field(compare=False, hash=False)
+    __slots__ = (
+        '__weakref__',
+        'client', 'id', 'name', 'guid', 'addr',
+        'is_guid_valid', 'in_lobby'
+    )
+
+    def __init__(
+        self, client: "AsyncRCONClient",
+        id: int, name: str, guid: str, addr: str,
+        is_guid_valid: bool, in_lobby: bool
+    ):
+        self.client = client
+        self.id = id
+        self.name = name
+        self.guid = guid
+        self.addr = addr
+        self.is_guid_valid = is_guid_valid
+        self.in_lobby = in_lobby
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        return (self.client, self.id) == (other.client, other.id)
+
+    def __hash__(self):
+        return hash((self.client, self.id))
 
     def __repr__(self):
         attrs = (
@@ -58,7 +75,7 @@ class Player:
         and then periodically during the connection's lifetime.
 
         """
-        return self.client._player_pings.get(self.id, -1)
+        return self.client._player_pings.get(self, -1)
 
     async def ban_guid(self, duration: int = None, reason: str = ''):
         """Bans the player from the server using their GUID."""
