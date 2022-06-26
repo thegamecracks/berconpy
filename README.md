@@ -33,6 +33,8 @@ async def main():
 asyncio.run(main())
 ```
 
+Further documentation can be found in the [source code][2].
+
 ## Installation
 
 (**Python 3.10** or higher is required)
@@ -53,8 +55,6 @@ Manual installation with pip:
 3. Run the following command:
    - Windows: `py -m pip install .`
    - Linux: `python3 -m pip install .`
-
-Further documentation can be found in the [source code][2].
 
 ## Related resources
 - [BattlEye RCON protocol specification][1]
