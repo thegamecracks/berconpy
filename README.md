@@ -6,7 +6,7 @@ An asynchronous Python wrapper over the
 ## Features
 
 - Easy to use event-based interface
-- Automatic recovery from network loss
+- Automatic network loss recovery
 - Included extension for using Arma-related commands
 
 ## Basic Usage
@@ -39,7 +39,7 @@ Further documentation can be found in the [source code][2].
 
 (**Python 3.10** or higher is required)
 
-This package be installed by cloning this repository,
+This package can be installed by cloning this repository,
 either with git or by manual download.
 
 With git and pip installed:
