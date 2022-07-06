@@ -335,7 +335,7 @@ class RCONClientDatagramProtocol:
         elif exc is not None:
             self._is_closing.set_exception(exc)
         else:
-            self._is_closing.set_result(True)
+            self._is_closing.set_result(None)
 
     async def run(self, ip: str, port: int, password: str):
         loop = asyncio.get_running_loop()
@@ -346,65 +346,64 @@ class RCONClientDatagramProtocol:
         if should_replace_future(self._is_closing):
             self._is_closing = loop.create_future()
 
-        while not self._is_closing.done():
-            if self._is_logged_in is None or not self._is_logged_in.done():
-                log.info('{}: attempting to {re}connect to server'.format(
-                    self.name, re='re' * (not first_iteration)
-                ))
+        try:
+            while not self._is_closing.done():
+                if self._is_logged_in is None or not self._is_logged_in.done():
+                    log.info('{}: attempting to {re}connect to server'.format(
+                        self.name, re='re' * (not first_iteration)
+                    ))
 
-                if should_replace_future(self._is_logged_in):
+                    if should_replace_future(self._is_logged_in):
+                        self._is_logged_in = loop.create_future()
+
+                    attempts = itertools.count()
+                    if first_iteration:
+                        attempts = range(self.INITIAL_CONNECT_ATTEMPTS)
+
+                    for i in attempts:
+                        delay = 2 ** (i % 10)  # exponential backoff
+                        try:
+                            await asyncio.wait_for(
+                                self.connect(password),
+                                timeout=delay
+                            )
+                            break
+                        except asyncio.TimeoutError:
+                            if math.log10(i + 1) % 1 != 0:
+                                continue
+
+                            log.warning('{}: failed {:,d} login attempt{s}'.format(
+                                self.name, i + 1,
+                                s='s' * (i != 0)
+                            ))
+
+                    if not self._is_logged_in.done():
+                        log.error(f'{self.name}: failed to connect to the server')
+                        raise LoginFailure('could not connect to the server')
+                    elif self._is_logged_in.exception():
+                        log.error(f'{self.name}: password authentication was denied')
+                        raise self._is_logged_in.exception()
+
+                if (overtime := time.monotonic() - self._last_received) > self.LAST_RECEIVED_TIMEOUT:
+                    log.info(f'{self.name}: server has timed out (last received {overtime:.0f} seconds ago)')
+                    self.reset_cache()
                     self._is_logged_in = loop.create_future()
-
-                attempts = itertools.count()
-                if first_iteration:
-                    attempts = range(self.INITIAL_CONNECT_ATTEMPTS)
-
-                for i in attempts:
-                    delay = 2 ** (i % 10)  # exponential backoff
-                    try:
-                        await asyncio.wait_for(
-                            self.connect(password),
-                            timeout=delay
-                        )
-                        break
-                    except asyncio.TimeoutError:
-                        if math.log10(i + 1) % 1 != 0:
-                            continue
-
-                        log.warning('{}: failed {:,d} login attempt{s}'.format(
-                            self.name, i + 1,
-                            s='s' * (i != 0)
-                        ))
-
-                if not self._is_logged_in.done():
-                    log.error(f'{self.name}: failed to connect to the server')
-                    self.close(LoginFailure('could not connect to the server'))
                     continue
-                elif self._is_logged_in.exception():
-                    log.error(f'{self.name}: password authentication was denied')
-                    self.close(self._is_logged_in.exception())
-                    continue
+                elif time.monotonic() - self._last_command > self.KEEP_ALIVE_INTERVAL:
+                    log.debug(f'{self.name}: sending keep alive packet')
+                    self._send_keep_alive()
 
-            if (overtime := time.monotonic() - self._last_received) > self.LAST_RECEIVED_TIMEOUT:
-                log.info(f'{self.name}: server has timed out (last received {overtime:.0f} seconds ago)')
-                self.reset_cache()
-                self._is_logged_in = loop.create_future()
-                continue
-            elif time.monotonic() - self._last_command > self.KEEP_ALIVE_INTERVAL:
-                log.debug(f'{self.name}: sending keep alive packet')
-                self._send_keep_alive()
-
-            await asyncio.sleep(self.RUN_INTERVAL)
-            first_iteration = False
-
-        # Cleanup and raise any exception
-        log.debug(f'{self.name}: disconnecting')
-        closing = self._is_closing
-
-        self.disconnect()
-        self.reset()
-
-        closing.result()
+                await asyncio.sleep(self.RUN_INTERVAL)
+                first_iteration = False
+        except Exception as e:
+            self.close(e)
+            raise
+        else:
+            self.close()
+        finally:
+            log.debug(f'{self.name}: disconnecting')
+            self.disconnect()
+            self.reset()
 
     # DatagramProtocol
 
