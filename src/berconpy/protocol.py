@@ -261,8 +261,12 @@ class RCONClientDatagramProtocol:
             self._send(packet)
 
             try:
+                # NOTE: if we let wait_for() cancel the future, it is possible
+                # for _set_command() to be called just before our finally
+                # statement is reached, allowing _set_command() to throw
+                # an InvalidStateError.
                 return await asyncio.wait_for(
-                    self._wait_for_command(sequence),
+                    asyncio.shield(self._wait_for_command(sequence)),
                     timeout=self.COMMAND_INTERVAL
                 )
             except asyncio.TimeoutError:
