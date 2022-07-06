@@ -312,6 +312,8 @@ class RCONClientDatagramProtocol:
             without an error.
         :raises LoginFailure:
             The password given to the server was denied.
+        :raises OSError:
+            An error occurred while attempting to connect to the server.
 
         """
         loop = asyncio.get_running_loop()
@@ -368,7 +370,9 @@ class RCONClientDatagramProtocol:
                                 timeout=delay
                             )
                             break
-                        except asyncio.TimeoutError:
+                        except (asyncio.TimeoutError, OSError):
+                            # NOTE: we don't want to retry after a LoginFailure
+                            # since that indicates invalid credentials
                             if math.log10(i + 1) % 1 != 0:
                                 continue
 
