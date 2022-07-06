@@ -69,6 +69,32 @@ def _get_pattern_kwargs(m: re.Match) -> dict[str, int | str]:
     return kwargs
 
 
+def _prepare_canceller(
+    protocol: RCONClientDatagramProtocol,
+    running_task: asyncio.Task,
+    current_task: asyncio.Task = None
+):
+    """Adds a callback to the task running the protocol to cancel
+    the current task once the running task is complete.
+
+    This should *only* be called after waiting for login, which is when the
+    closing future exists for the canceller to suppress exceptions from it.
+
+    """
+    def _actual_canceller(_):
+        current_task.cancel()
+        closing.exception()
+
+    # We need to cache the closing future here, so we're still able to
+    # suppress the future exception if the protocol closed with one
+    closing = protocol._is_closing
+    if closing is None:
+        raise RuntimeError('cannot set up canceller before/after protocol has finished running')
+
+    current_task = current_task or asyncio.current_task()
+    running_task.add_done_callback(_actual_canceller)
+
+
 class AsyncRCONClient:
     """An asynchronous interface for connecting to an BattlEye RCON server.
 
@@ -346,7 +372,11 @@ class AsyncRCONClient:
 
     @contextlib.asynccontextmanager
     async def connect(self, ip: str, port: int, password: str):
-        """Connect to the given IP and port with password.
+        """Connects to the given IP and port with password.
+
+        If an unexpected error occurs after successfully logging in,
+        the current task will be cancelled in order to prevent
+        the script unintentionally being stuck indefinitely.
 
         :raises LoginFailure:
             The password given to the server was denied.
@@ -363,22 +393,26 @@ class AsyncRCONClient:
                 self._protocol.run(ip, port, password)
             )
 
+            # it's important we wait for login here, otherwise the user
+            # could attempt sending commands before a connection was made
             await self._protocol.wait_for_login()
+            _prepare_canceller(self._protocol, self._protocol_task)
             yield self
         finally:
             self.close()
 
             # Propagate any exception from the task
-            # FIXME: if login fails then wait_for_login() raises
-            #   the same exception, resulting in a dirtier traceback
-            await self._protocol_task
-            self._protocol_task.result()
+            if self._protocol_task.done() and self._protocol_task.exception():
+                raise self._protocol_task.exception() from None
 
     def close(self):
         """Closes the connection.
 
-        Unlike connect(), this method is idempotent and can be
-        called multiple times consecutively.
+        If this is used inside the `connect()` context manager,
+        the current task will be cancelled to prevent the script
+        unintentionally being stuck indefinitely.
+
+        This method is idempotent and can be called multiple times consecutively.
 
         """
         self._protocol.close()
