@@ -377,16 +377,16 @@ class RCONClientDatagramProtocol:
                         ))
 
                 if not self._is_logged_in.done():
-                    log.warning(f'{self.name}: failed to connect to the server')
+                    log.error(f'{self.name}: failed to connect to the server')
                     self.close(LoginFailure('could not connect to the server'))
                     continue
                 elif self._is_logged_in.exception():
-                    log.warning(f'{self.name}: password authentication was denied')
+                    log.error(f'{self.name}: password authentication was denied')
                     self.close(self._is_logged_in.exception())
                     continue
 
             if (overtime := time.monotonic() - self._last_received) > self.LAST_RECEIVED_TIMEOUT:
-                log.warning(f'{self.name}: server has timed out (last received {overtime:.0f} seconds ago)')
+                log.info(f'{self.name}: server has timed out (last received {overtime:.0f} seconds ago)')
                 self.reset_cache()
                 self._is_logged_in = loop.create_future()
                 continue
