@@ -24,7 +24,7 @@ _VERIFIED_GUID = re.compile(r'Verified GUID \((?P<guid>\w+)\) of player #(?P<id>
 # _UNVERIFIED_GUID = ?
 _DISCONNECTED = re.compile(r'Player #(?P<id>\d+) (?P<name>.+) disconnected')
 _BATTLEYE_KICK = re.compile(
-    r'Player #(?P<id>\d+) (?P<name>.+) \((?P<guid>\w+)\) has been kicked '
+    r'Player #(?P<id>\d+) (?P<name>.+) \((?P<guid>\w+|-)\) has been kicked '
     r'by BattlEye: (?P<reason>.+)'
 )
 _RCON_MESSAGE = re.compile(
