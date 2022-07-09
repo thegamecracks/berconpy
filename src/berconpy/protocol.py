@@ -412,13 +412,13 @@ class RCONClientDatagramProtocol:
     # DatagramProtocol
 
     def connection_made(self, transport):
-        log.info(f'{self.name}: connected to server')
+        log.debug(f'{self.name}: protocol connected')
 
     def connection_lost(self, exc: Exception | None):
         if exc:
-            log.error(f'{self.name}: connection has closed with error', exc_info=exc)
+            log.error(f'{self.name}: protocol disconnected with error', exc_info=exc)
         else:
-            log.info(f'{self.name}: connection has been closed')
+            log.debug(f'{self.name}: protocol disconnected')
 
     def datagram_received(self, data: bytes, addr):
         if addr != self._addr:
