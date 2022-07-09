@@ -2,7 +2,6 @@ import asyncio
 import collections
 import itertools
 import logging
-import math
 import time
 from typing import TYPE_CHECKING, Any
 
@@ -30,6 +29,7 @@ class RCONClientDatagramProtocol:
     COMMAND_INTERVAL = 1
 
     INITIAL_CONNECT_ATTEMPTS = 3
+    CONNECTION_TIMEOUT = 3
 
     RECEIVED_SEQUENCES_SIZE = 5
 
@@ -303,9 +303,8 @@ class RCONClientDatagramProtocol:
     async def connect(self, password: str) -> bool | None:
         """Creates a connection to the given address.
 
-        Note that this does not keep the connection alive,
-        and `run()` must be called afterwards to continue
-        receiving messages.
+        If necessary, any previous connection will be closed
+        before creating a new connection.
 
         :returns:
             True if authenticated or None if the connection closed
@@ -316,9 +315,11 @@ class RCONClientDatagramProtocol:
             An error occurred while attempting to connect to the server.
 
         """
-        loop = asyncio.get_running_loop()
+        log.debug(f'{self.name}: attempting a new connection')
+        if self.is_connected():
+            self.disconnect()
 
-        self.disconnect()
+        loop = asyncio.get_running_loop()
         self._transport, _ = await loop.create_datagram_endpoint(
             lambda: self,  # type: ignore
             remote_addr=self._addr
@@ -363,23 +364,24 @@ class RCONClientDatagramProtocol:
                         attempts = range(self.INITIAL_CONNECT_ATTEMPTS)
 
                     for i in attempts:
-                        delay = 2 ** (i % 10)  # exponential backoff
                         try:
                             await asyncio.wait_for(
                                 self.connect(password),
-                                timeout=delay
+                                timeout=self.CONNECTION_TIMEOUT
                             )
                             break
                         except (asyncio.TimeoutError, OSError):
                             # NOTE: we don't want to retry after a LoginFailure
                             # since that indicates invalid credentials
-                            if math.log10(i + 1) % 1 != 0:
-                                continue
+                            if i % 10 == 0:
+                                log.warning('{}: failed {:,d} login attempt{s}'.format(
+                                    self.name, i + 1,
+                                    s='s' * (i != 0)
+                                ))
 
-                            log.warning('{}: failed {:,d} login attempt{s}'.format(
-                                self.name, i + 1,
-                                s='s' * (i != 0)
-                            ))
+                            # exponential backoff
+                            self.disconnect()
+                            await asyncio.sleep(2 ** (i % 11))
 
                     if not self._is_logged_in.done():
                         log.error(f'{self.name}: failed to connect to the server')
