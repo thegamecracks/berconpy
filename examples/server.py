@@ -15,8 +15,8 @@ handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 log.addHandler(handler)
 
-server = rcon_server.AsyncRCONServer('server', password=PASSWORD)
-client = rcon.AsyncRCONClient('client')
+server = rcon_server.AsyncRCONServer(password=PASSWORD)
+client = rcon.AsyncRCONClient()
 
 
 async def main():

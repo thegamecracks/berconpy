@@ -55,7 +55,7 @@ class Player:
     def __repr__(self):
         attrs = (
             (k, repr(getattr(self, k)))
-            for k in ('client', 'id', 'name', 'is_guid_valid', 'in_lobby')
+            for k in ('id', 'name', 'is_guid_valid', 'in_lobby')
         )
         return '<{} {}>'.format(
             type(self).__name__,

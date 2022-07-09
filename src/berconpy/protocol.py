@@ -87,10 +87,6 @@ class RCONClientDatagramProtocol:
     def is_running(self) -> bool:
         return self._running_event.is_set()
 
-    @property
-    def name(self) -> str:
-        return self.client.name
-
     # Event handling
 
     def _dispatch(self, event: str, *args):
@@ -142,7 +138,7 @@ class RCONClientDatagramProtocol:
         if addr is EMPTY:
             addr = self._addr
         self._transport.sendto(packet.data, addr)
-        log.debug(f'{self.name}: sent {packet.type.name} packet')
+        log.debug(f'sent {packet.type.name} packet')
 
         self._last_sent = time.monotonic()
         if isinstance(packet, ClientCommandPacket):
@@ -274,8 +270,7 @@ class RCONClientDatagramProtocol:
             finally:
                 self._cancel_command(sequence)
 
-        log.warning(f'{self.name}: could not send command '
-                    f'after {self.COMMAND_ATTEMPTS} attempts')
+        log.warning(f'could not send command after {self.COMMAND_ATTEMPTS} attempts')
         raise RCONCommandError(f'failed to send command: {command}')
 
     def _wait_for_command(self, sequence: int) -> asyncio.Future[str]:
@@ -315,7 +310,7 @@ class RCONClientDatagramProtocol:
             An error occurred while attempting to connect to the server.
 
         """
-        log.debug(f'{self.name}: attempting a new connection')
+        log.debug('attempting a new connection')
         if self.is_connected():
             self.disconnect()
 
@@ -352,8 +347,8 @@ class RCONClientDatagramProtocol:
         try:
             while not self._is_closing.done():
                 if self._is_logged_in is None or not self._is_logged_in.done():
-                    log.info('{}: attempting to {re}connect to server'.format(
-                        self.name, re='re' * (not first_iteration)
+                    log.info('attempting to {re}connect to server'.format(
+                        re='re' * (not first_iteration)
                     ))
 
                     if should_replace_future(self._is_logged_in):
@@ -374,9 +369,8 @@ class RCONClientDatagramProtocol:
                             # NOTE: we don't want to retry after a LoginFailure
                             # since that indicates invalid credentials
                             if i % 10 == 0:
-                                log.warning('{}: failed {:,d} login attempt{s}'.format(
-                                    self.name, i + 1,
-                                    s='s' * (i != 0)
+                                log.warning('failed {:,d} login attempt{s}'.format(
+                                    i + 1, s='s' * (i != 0)
                                 ))
 
                             # exponential backoff
@@ -384,19 +378,19 @@ class RCONClientDatagramProtocol:
                             await asyncio.sleep(2 ** (i % 11))
 
                     if not self._is_logged_in.done():
-                        log.error(f'{self.name}: failed to connect to the server')
+                        log.error('failed to connect to the server')
                         raise LoginFailure('could not connect to the server')
                     elif self._is_logged_in.exception():
-                        log.error(f'{self.name}: password authentication was denied')
+                        log.error('password authentication was denied')
                         raise self._is_logged_in.exception()
 
                 if (overtime := time.monotonic() - self._last_received) > self.LAST_RECEIVED_TIMEOUT:
-                    log.info(f'{self.name}: server has timed out (last received {overtime:.0f} seconds ago)')
+                    log.info(f'server has timed out (last received {overtime:.0f} seconds ago)')
                     self.reset_cache()
                     self._is_logged_in = loop.create_future()
                     continue
                 elif time.monotonic() - self._last_command > self.KEEP_ALIVE_INTERVAL:
-                    log.debug(f'{self.name}: sending keep alive packet')
+                    log.debug('sending keep alive packet')
                     self._send_keep_alive()
 
                 await asyncio.sleep(self.RUN_INTERVAL)
@@ -407,20 +401,19 @@ class RCONClientDatagramProtocol:
         else:
             self.close()
         finally:
-            log.debug(f'{self.name}: disconnecting')
             self.disconnect()
             self.reset()
 
     # DatagramProtocol
 
     def connection_made(self, transport):
-        log.debug(f'{self.name}: protocol connected')
+        log.debug('protocol has connected')
 
     def connection_lost(self, exc: Exception | None):
         if exc:
-            log.error(f'{self.name}: protocol disconnected with error', exc_info=exc)
+            log.error('protocol has disconnected with error', exc_info=exc)
         else:
-            log.debug(f'{self.name}: protocol disconnected')
+            log.debug('protocol has disconnected')
 
     def datagram_received(self, data: bytes, addr):
         if addr != self._addr:
@@ -429,10 +422,10 @@ class RCONClientDatagramProtocol:
         try:
             packet: ServerPacket = Packet.from_bytes(data)
         except (IndexError, ValueError) as e:
-            return log.debug(f'{self.name}: failed to decode received data: {e}')
+            return log.debug(f'ignoring malformed data with cause: {e}')
 
         self._tick()
-        log.debug(f'{self.name}: {packet.type.name} received')
+        log.debug(f'{packet.type.name} received')
         self._dispatch('raw_event', packet)
 
         if isinstance(packet, ServerLoginPacket):
@@ -468,4 +461,4 @@ class RCONClientDatagramProtocol:
             raise RuntimeError(f'unhandled Packet type {type(packet)}')
 
     def error_received(self, exc: OSError):
-        log.error(f'{self.name}: unusual error occurred during session', exc_info=exc)
+        log.error('unusual error occurred during session', exc_info=exc)

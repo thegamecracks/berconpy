@@ -3,7 +3,6 @@ import collections
 import contextlib
 import logging
 import re
-import uuid
 import weakref
 
 from .ban import Ban
@@ -184,11 +183,8 @@ class AsyncRCONClient:
 
     def __init__(
         self,
-        name: str = None,
         protocol_cls=RCONClientDatagramProtocol
     ):
-        self.name: str = name or str(uuid.uuid4())
-
         self._protocol = protocol_cls(self)
         self._protocol_task: asyncio.Task | None = None
 
@@ -205,9 +201,6 @@ class AsyncRCONClient:
         self._players = {}
         self._incomplete_players = {}
         self._player_pings = weakref.WeakKeyDictionary()
-
-    def __repr__(self):
-        return '<{} name={!r}>'.format(type(self).__name__, self.name)
 
     @property
     def client_id(self) -> int | None:
@@ -353,7 +346,7 @@ class AsyncRCONClient:
         Note that the event name should not be prefixed with "on_".
 
         """
-        log.debug(f'{self.name}: dispatching event {event}')
+        log.debug(f'dispatching event {event}')
         event = 'on_' + event
 
         for func in self._event_listeners[event]:

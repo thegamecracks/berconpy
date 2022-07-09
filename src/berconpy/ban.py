@@ -33,7 +33,7 @@ class Ban:
     def __repr__(self):
         attrs = (
             (k, repr(getattr(self, k)))
-            for k in ('client', 'id', 'duration', 'reason')
+            for k in ('id', 'duration', 'reason')
         )
         return '<{} {}>'.format(
             type(self).__name__,
