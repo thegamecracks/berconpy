@@ -1,5 +1,7 @@
 # berconpy
 
+[![PyPI](https://img.shields.io/pypi/v/berconpy?label=View%20on%20pypi&style=flat-square)](https://pypi.org/project/berconpy/)
+
 An asynchronous Python wrapper over the
 [BattlEye RCON protocol][1].
 
