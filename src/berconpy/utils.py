@@ -4,7 +4,7 @@ from typing import Any, Callable, Coroutine, Iterable, TypeVar
 EMPTY = object()
 T = TypeVar('T')
 
-CoroFunc = Callable[[...], Coroutine]
+CoroFunc = Callable[..., Coroutine]
 MaybeCoroFunc = CoroFunc | Callable
 
 
