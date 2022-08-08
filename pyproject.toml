@@ -1,3 +1,29 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "berconpy"
+description = "An async wrapper for the BattlEye RCON protocol"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "thegamecracks" }]
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: AsyncIO",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: System :: Networking",
+]
+dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {attr = "berconpy.__version__"}
+
+[project.urls]
+"Homepage" = "https://github.com/thegamecracks/berconpy"
+"Issue Tracker" = "https://github.com/thegamecracks/berconpy/issues"
