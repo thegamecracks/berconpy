@@ -39,24 +39,24 @@ Further documentation can be found in the [source code][2].
 
 (**Python 3.10** or higher is required)
 
-This package can be installed by cloning this repository,
-either with git or by manual download.
+This package can be installed from PyPi using the following command:
 
-With git and pip installed:
+```
+# Linux/macOS
+python3 -m pip install berconpy
+
+# Windows
+py -m pip install berconpy
+```
+
+If you want to install the development version instead, and you have git installed:
 
 ```
 pip install git+https://github.com/thegamecracks/berconpy
 ```
 
-Manual installation with pip:
-
-1. Download and unzip the repository
-2. Open a terminal inside the unzipped directory
-3. Run the following command:
-   - Windows: `py -m pip install .`
-   - Linux: `python3 -m pip install .`
-
 ## Related resources
+
 - [BattlEye RCON protocol specification][1]
 - [BattlEye RCON commands](https://www.battleye.com/support/documentation/)
 - [Arma server commands](https://community.bistudio.com/wiki/Multiplayer_Server_Commands)
