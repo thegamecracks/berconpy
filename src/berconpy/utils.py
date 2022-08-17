@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, Callable, Coroutine, Iterable, TypeVar
+from typing import Callable, Coroutine, Iterable, TypeVar
 
 EMPTY = object()
 T = TypeVar('T')
