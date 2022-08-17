@@ -183,12 +183,6 @@ class Packet:
         return b'BE' + crc
 
     @staticmethod
-    def _get_checksum(message: bytes) -> bytes:
-        """Returns the checksum bytes that should be included
-        in the header based on the given message.
-        """
-
-    @staticmethod
     def _get_initial_message(packet_type: PacketType) -> bytearray:
         return bytearray((0xFF, packet_type.value))
 
