@@ -35,7 +35,7 @@ async def main():
 asyncio.run(main())
 ```
 
-Further documentation can be found in the [source code][2].
+See the [documentation][2] for more details.
 
 ## Installation
 
@@ -68,4 +68,4 @@ pip install git+https://github.com/thegamecracks/berconpy
 This project uses the [MIT](LICENSE) License.
 
 [1]: https://www.battleye.com/downloads/BERConProtocol.txt
-[2]: https://github.com/thegamecracks/berconpy/blob/main/src/berconpy/client.py
+[2]: http://berconpy.readthedocs.io/
