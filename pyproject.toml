@@ -24,6 +24,9 @@ dynamic = ["version"]
 [tool.setuptools.dynamic]
 version = {attr = "berconpy.__version__"}
 
+[project.optional-dependencies]
+docs = ["sphinx>=5.1.1", "sphinx-autodoc-typehints>=1.19.2"]
+
 [project.urls]
 "Homepage" = "https://github.com/thegamecracks/berconpy"
 "Issue Tracker" = "https://github.com/thegamecracks/berconpy/issues"

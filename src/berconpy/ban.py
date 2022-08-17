@@ -9,26 +9,36 @@ if TYPE_CHECKING:
 
 @dataclass(repr=False, slots=True, unsafe_hash=True)
 class Ban:
-    """Represents a GUID/IP ban on the server.
+    """Represents a GUID/IP ban on the server."""
 
-    Attributes
-    ----------
-    client: The client that created this object.
-    index: The index assigned to this ban by the server.
-           This is non-unique and is subject to change,
-           so it cannot be reliably used for unbanning.
-    id: The player identifier this ban affects, which is
-        either a BattlEye GUID or an IP address.
-    duration: The duration of the ban in minutes.
-        This is -1 if expired or None for permanent bans.
-    reason: The reason given for the ban.
-
-    """
     client: "AsyncRCONClient" = field(compare=True, hash=True)
+    """The client that created this object."""
+
     index: int                = field(compare=True, hash=True)
+    """
+    The index assigned to this ban by the server.
+
+    This is non-unique and is subject to change, so it cannot
+    be reliably used for unbanning.
+    """
+
     id: str                   = field(compare=False, hash=False)
+    """
+    The player identifier this ban affects.
+
+    This can be either a BattlEye GUID or an IP address.
+    """
+
     duration: int | None      = field(compare=False, hash=False)
+    """
+    The duration of the ban in minutes.
+
+    If the ban has expired, this will be ``-1``.
+    If the ban is permanent, this will be ``None``.
+    """
+
     reason: str               = field(compare=False, hash=False)
+    """The reason given for the ban."""
 
     def __repr__(self):
         attrs = (

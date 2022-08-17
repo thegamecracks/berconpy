@@ -23,10 +23,11 @@ class AsyncArmaRCONClient(AsyncRCONClient):
     async def restart_server(self) -> str:
         """Tells the server to restart.
 
-        Note that this client will not close automatically, rather
-        the connect() context manager should be exited or close()
-        should be called. Otherwise, the client will continue to
-        attempt reconnecting to the server.
+        .. note::
+            The client does not automatically close after this command
+            is sent. If you need to prevent the client from indefinitely
+            attempting to reconnect, you should call the
+            :py:meth:`~berconpy.AsyncRCONClient.close()` method.
 
         """
         return await self.send_command('#restartserver')
@@ -34,8 +35,9 @@ class AsyncArmaRCONClient(AsyncRCONClient):
     async def select_mission(self, mission: str, difficulty: str = '') -> str:
         """Selects a new mission for the server to load.
 
-        :param mission: The name of the mission to load
-            without the file extension (e.g. 'MP_Bootcamp_01.Altis').
+        :param mission:
+            The name of the mission to load without the file extension
+            (e.g. ``"MP_Bootcamp_01.Altis"``).
         :param difficulty:
             The new difficulty to use on the server (e.g. Recruit,
             Regular, Veteran, Custom). If not provided, the current
@@ -47,10 +49,11 @@ class AsyncArmaRCONClient(AsyncRCONClient):
     async def shutdown_server(self) -> str:
         """Tells the server to shut down.
 
-        Note that this client will not close automatically, rather
-        the connect() context manager should be exited or close()
-        should be called. Otherwise, the client will continue to
-        attempt reconnecting to the server.
+        .. note::
+            The client does not automatically close after this command
+            is sent. If you need to prevent the client from indefinitely
+            attempting to reconnect, you should call the
+            :py:meth:`~berconpy.AsyncRCONClient.close()` method.
 
         """
         return await self.send_command('#shutdown')

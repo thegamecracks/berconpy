@@ -95,85 +95,7 @@ def _prepare_canceller(
 
 
 class AsyncRCONClient:
-    """An asynchronous interface for connecting to an BattlEye RCON server.
-
-    This client supports adding event listeners for handling
-    incoming data. To add an event listener, use the `add_listener()`
-    method or the `listen()` decorator.
-
-    Supported events:
-        - on_raw_event(packet: ServerPacket):
-            Fired for every parsable packet received by the server.
-
-        - on_login():
-            Fired after a successful login to the server.
-
-        - on_command(response: str):
-            Fired after receiving a command response from the server.
-            This event is usually not necessary and responses can more
-            easily be received using the `send_command()` method.
-
-        - on_message(response: str):
-            Fired for messages sent by the server, e.g. player connections.
-
-        - on_admin_login(admin_id: int, addr: str):
-            Fired when a RCON admin logs into the server.
-            The first message received will be our client
-            logging in. Note that there is no logout equivalent
-            for this event.
-
-        - on_player_connect(player: Player):
-            Fired when a player connects to a server.
-
-            Note that the player's GUID will most likely be an empty string
-            at this point, but can be updated in-place afterwards when GUID
-            events are received.
-
-        - on_player_guid(player: Player):
-            Fired when receiving the BattlEye GUID for a connecting player.
-            The given player object will have the updated GUID.
-
-        - on_player_verify_guid(player: Player):
-            Fired when the server has verified the BattlEye GUID
-            for a connecting player.
-
-        - on_player_disconnect(player: Player):
-            Fired when a player manually disconnects from the server.
-
-            The `players` list will no longer contain the player provided here.
-
-            This event does not fire when BattlEye kicks the player;
-            see the following event `on_battleye_kick()`.
-
-        - on_player_kick(player: Player, reason: str):
-            Fired when BattlEye kicks a player either automatically
-            (e.g. "Client not responding") or by an admin (i.e. "Admin Kick").
-
-            The `players` list will no longer contain the player provided here.
-
-        - on_admin_message(admin_id: int, channel: str, message: str):
-            Fired when an RCON admin sends a message.
-
-            This event is further broken down into
-            `on_admin_announcement()` and `on_admin_whisper()`.
-            The corresponding event is dispatched alongside this event.
-
-        - on_admin_announcement(admin_id: int, message: str):
-            Fired when an RCON admin sends a global message.
-
-        - on_admin_whisper(player: Player, admin_id: int, message: str):
-            Fired when an RCON admin sends a message to a specific player.
-
-        - on_player_message(player: Player, channel: str, message: str):
-            Fired when a player sends a message.
-
-    Parameters
-    ----------
-    name:
-        An optional name used in logging messages.
-        If not provided, a UUID is generated for the name.
-
-    """
+    """An asynchronous interface for connecting to an BattlEye RCON server."""
     _EXPECTED_MESSAGES: set[str] = frozenset(('Connected to BE Master',))
 
     _client_id: int
@@ -204,14 +126,14 @@ class AsyncRCONClient:
 
     @property
     def client_id(self) -> int | None:
-        """Returns the RCON admin ID this client was given or None
+        """The RCON admin ID this client was given or None
         if the client has not logged in.
         """
         return getattr(self, '_client_id', None)
 
     @property
     def players(self) -> list[Player]:
-        """Returns a list of players in the server."""
+        """The list of players in the server."""
         return list(self._players.values())
 
     def is_logged_in(self) -> bool | None:
@@ -241,22 +163,45 @@ class AsyncRCONClient:
     # Event handling
 
     def add_listener(self, event: str, func: CoroFunc):
-        """Adds a listener for a given event (e.g. "on_login")."""
+        """Adds a listener for a given event (e.g. ``"on_login"``).
+
+        :param event:
+            The event to listen for.
+            See the :doc:`/events` for a list of supported events.
+        :param func:
+            The coroutine function to dispatch when the event is received.
+
+        """
         self._event_listeners[event].append(func)
 
     def remove_listener(self, event: str, func: CoroFunc):
-        """Removes a listener for a given event (e.g. "on_login")."""
+        """Removes a listener for a given event (e.g. ``"on_login"``).
+
+        This method is a no-op if the given event and function
+        does not match any registered listener.
+
+        :param event: The event used by the listener.
+        :param func: The coroutine function used by the listener.
+
+        """
         try:
             self._event_listeners[event].remove(func)
         except ValueError:
             pass
 
     def listen(self, event: str = None):
-        """A decorator shorthand for adding a listener for a given event
-        (e.g. "on_login").
+        """A decorator shorthand to add a listener for a given event
+        (e.g. ``"on_login"``).
+
+        Example usage:
+
+        >>> client = AsyncRCONClient()
+        >>> @client.listen()
+        ... async def on_login():
+        ...     print('We have logged in!')
 
         :param event:
-            The event to listen for. If None, the function name
+            The event to listen for. If ``None``, the function name
             is used as the event name.
 
         """
@@ -293,7 +238,7 @@ class AsyncRCONClient:
     ):
         """Waits for a specific event to occur and returns the result.
 
-        :param event: The event to listen for. (e.g. "login" or "on_login")
+        :param event: The event to listen for. (e.g. ``"login"`` or ``"on_login"``)
         :param check:
             An optional predicate function to use as a filter.
             This can be either a regular or an asynchronous function.
@@ -301,7 +246,8 @@ class AsyncRCONClient:
             normally takes.
         :param timeout:
             An optional timeout for the function. If this is provided
-            and the function times out, an `asyncio.TimeoutError` is raised.
+            and the function times out, an :py:exc:`asyncio.TimeoutError`
+            is raised.
         :returns: The arguments passed to the given event.
         :raises asyncio.TimeoutError:
             The function timed out while waiting for the event.
@@ -401,7 +347,7 @@ class AsyncRCONClient:
     def close(self):
         """Closes the connection.
 
-        If this is used inside the `connect()` context manager,
+        If this is used inside the :py:meth:`connect()` context manager,
         the current task will be cancelled to prevent the script
         unintentionally being stuck indefinitely.
 
@@ -421,7 +367,7 @@ class AsyncRCONClient:
 
         :param addr: The ID, GUID, or IP address to ban.
         :param duration:
-            The duration of the ban in minutes. If None, the ban
+            The duration of the ban in minutes. If ``None``, the ban
             will be permanent.
         :param reason: The reason for the ban.
 

@@ -4,7 +4,7 @@ class RCONError(Exception):
 
 class LoginFailure(RCONError):
     """Raised when either the RCON server could not respond to
-    login attempts, or the password given was incorrect.
+    login attempts, or the password given to the server was incorrect.
     """
 
 

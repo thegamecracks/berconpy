@@ -9,29 +9,56 @@ __all__ = (
 
 
 class PacketType(enum.Enum):
+    """The type of packet received by the server.
+
+    Each :py:class:`Packet` instance falls under one of these types
+    and can be checked through the :py:attr:`Packet.type` property.
+
+    The :py:attr:`value` of this enum directly corresponds with the
+    `protocol specification`_.
+
+    .. note::
+
+        This type can also be inferred from the packet's class as
+        part of its design, where subclasses directly correspond to
+        the message type they are representing in the protocol (see typestates_).
+
+    .. _protocol specification: https://www.battleye.com/downloads/BERConProtocol.txt
+    .. _typestates: https://en.wikipedia.org/wiki/Typestate_analysis
+
+    """
     LOGIN = 0x00
+    """Used for the login process initiated by the client."""
+
     COMMAND = 0x01
+    """Used for command/response exchanges between the client and server."""
+
     MESSAGE = 0x02
+    """
+    Used for messages indicating activity on the server
+    and acknowledgements by the client.
+    """
 
 
 class Packet:
     """The base class used for all messages sent between
     the BattlEye RCON server and client.
 
-    The protocol specification can be found here:
-    https://www.battleye.com/downloads/BERConProtocol.txt
+    For more details, see the `official protocol specification`_.
 
     Several properties are defined here but are not implemented.
-    In order to get an actual packet, one of the subclasses must be
-    constructed or the `Packet.from_bytes()` method should be used
-    to convert to one of the appropriate subtypes.
+    Those properties correspond to the built-in subclasses, which can be
+    instantiated through either their custom constructors or from this
+    class's :py:meth:`from_bytes()` method.
 
     Only a few properties are guaranteed:
-    1. `checksum`
-    2. `type`
+        1. :py:attr:`checksum`
+        2. :py:attr:`type`
 
-    Every other property may return None if the subclass's usage
+    Every other property may return ``None`` if the subclass's usage
     does not require it.
+
+    .. _official protocol specification: https://www.battleye.com/downloads/BERConProtocol.txt
 
     """
     __slots__ = ('data',)
@@ -48,25 +75,33 @@ class Packet:
 
     @property
     def checksum(self) -> int:
-        """Returns the CRC32 checksum included in the header."""
+        """The CRC32 checksum included in the header."""
         return int.from_bytes(self.data[2:6], 'little')
 
     @property
     def type(self) -> PacketType:
-        """Returns the packet type according to the protocol."""
+        """The packet's type defined in the protocol.
+
+        This property is computed from the :py:attr:`data` attribute
+        of the packet which in typical cases should correspond
+        with the type of the class itself.
+
+        .. seealso:: :py:class:`PacketType`
+
+        """
         return PacketType(self.data[7])
 
     @property
     def login_success(self) -> bool | None:
-        """Returns a boolean indicating if the server authenticated the client."""
+        """A boolean indicating if the server authenticated the client."""
 
     @property
     def sequence(self) -> int | None:
-        """Returns the sequence number of the COMMAND or MESSAGE packet."""
+        """The sequence number of the COMMAND or MESSAGE packet."""
 
     @property
     def total(self) -> int | None:
-        """Returns the total number of packets associated with a
+        """The total number of packets associated with a
         COMMAND server response.
 
         If a sub-header is not provided with the response,
@@ -76,7 +111,7 @@ class Packet:
 
     @property
     def index(self) -> int | None:
-        """Returns the zero-based index of the packet associated with a
+        """The zero-based index of the packet associated with a
         COMMAND server response.
 
         If a sub-header is not provided with the response,

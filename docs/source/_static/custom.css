@@ -1,0 +1,4 @@
+/* Add margin between functions and class members */
+.py .function, .py .method, .py .property {
+    margin-bottom: 1rem;
+}
