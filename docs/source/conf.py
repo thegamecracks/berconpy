@@ -2,6 +2,7 @@
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+from sphinx.application import Sphinx
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -41,3 +42,13 @@ html_theme_options = {
     'github_repo': 'berconpy',
     'github_user': 'thegamecracks',
 }
+
+
+def skip_init(app: Sphinx, what: str, name: str, obj, skip: bool, options):
+    # https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#event-autodoc-skip-member
+    if what == 'method' and name == '__init__':
+        return True
+
+
+def setup(app: Sphinx):
+    app.connect('autodoc-skip-member', skip_init)
