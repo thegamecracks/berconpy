@@ -20,8 +20,8 @@ class PacketType(enum.Enum):
     .. note::
 
         This type can also be inferred from the packet's class as
-        part of its design, where subclasses directly correspond to
-        the message type they are representing in the protocol (see typestates_).
+        subclasses directly correspond to the message type they are
+        representing in the protocol (a.k.a. typestates_).
 
     .. _protocol specification: https://www.battleye.com/downloads/BERConProtocol.txt
     .. _typestates: https://en.wikipedia.org/wiki/Typestate_analysis
@@ -59,6 +59,8 @@ class Packet:
     does not require it.
 
     .. _official protocol specification: https://www.battleye.com/downloads/BERConProtocol.txt
+
+    :param data: The binary data contained by the packet.
 
     """
     __slots__ = ('data',)
@@ -223,11 +225,23 @@ class Packet:
 
 
 class ClientPacket(Packet):
-    """The base class for packets sent by the client."""
+    """The base class for packets sent by the client.
+
+    The subclasses of this packet are:
+
+    - :py:class:`ClientLoginPacket`
+    - :py:class:`ClientCommandPacket`
+    - :py:class:`ClientMessagePacket`
+
+    """
 
 
 class ClientLoginPacket(ClientPacket):
-    """The packet used to log in a client."""
+    """The packet used to log in a client.
+
+    :param password: The password to use when logging in.
+
+    """
     def __init__(self, password: str):
         buffer = self._get_initial_message(PacketType.LOGIN)
         buffer.extend(password.encode('ascii'))
@@ -257,7 +271,12 @@ class ClientLoginPacket(ClientPacket):
 
 
 class ClientCommandPacket(ClientPacket):
-    """The packet sent by the client issuing a command to the server."""
+    """The packet sent by the client issuing a command to the server.
+
+    :param sequence: The sequence number identifying the packet.
+    :param command: The command to send to the server.
+
+    """
     def __init__(self, sequence: int, command: str):
         buffer = self._get_initial_message(PacketType.COMMAND)
         buffer.append(sequence)
@@ -289,7 +308,11 @@ class ClientCommandPacket(ClientPacket):
 
 
 class ClientMessagePacket(ClientPacket):
-    """The packet sent to acknowledge a given server message."""
+    """The packet sent to acknowledge a given server message.
+
+    :param sequence: The sequence number of the message being acknowledged.
+
+    """
     def __init__(self, sequence: int):
         buffer = self._get_initial_message(PacketType.MESSAGE)
         buffer.append(sequence)
@@ -319,11 +342,23 @@ class ClientMessagePacket(ClientPacket):
 
 
 class ServerPacket(Packet):
-    """The base class used for packets sent by the server."""
+    """The base class used for packets sent by the server.
+
+    The subclasses of this packet are:
+
+    - :py:class:`ServerLoginPacket`
+    - :py:class:`ServerCommandPacket`
+    - :py:class:`ServerMessagePacket`
+
+    """
 
 
 class ServerLoginPacket(ServerPacket):
-    """The packet indicating if login was successful."""
+    """The packet indicating if login was successful.
+
+    :param success: Indicates if the server has authenticated the client.
+
+    """
     def __init__(self, success: bool):
         buffer = self._get_initial_message(PacketType.LOGIN)
         buffer.append(1 if success else 0)
@@ -353,7 +388,17 @@ class ServerLoginPacket(ServerPacket):
 
 
 class ServerCommandPacket(ServerPacket):
-    """The packet(s) sent in response to a command."""
+    """The packet(s) sent in response to a command.
+
+    :param sequence: The sequence number of the command being responded to.
+    :param total: The number of packets included in the response.
+    :param index: The packet's index in the response, starting at 0.
+    :param response:
+        The contents contained in the response,
+        or part of the response if this content is split across
+        multiple packets.
+
+    """
     def __init__(self, sequence: int, total: int, index: int, response: str):
         buffer = self._get_initial_message(PacketType.COMMAND)
         buffer.append(sequence)
@@ -401,7 +446,12 @@ class ServerCommandPacket(ServerPacket):
 
 
 class ServerMessagePacket(ServerPacket):
-    """The packet sent to share a message to the client."""
+    """The packet sent to share a message to the client.
+
+    :param sequence: The sequence number identifying the message.
+    :param message: The contents contained in the message.
+
+    """
     def __init__(self, sequence: int, message: str):
         buffer = self._get_initial_message(PacketType.MESSAGE)
         buffer.append(sequence)
