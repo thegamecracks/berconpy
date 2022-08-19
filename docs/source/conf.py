@@ -35,7 +35,7 @@ autodoc_member_order = 'groupwise'
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
-html_css_files = ['custom.css']
+html_css_files = []
 html_theme_options = {
     'description': 'Bringing the almighty event loop to your remote console',
     'github_button': True,
