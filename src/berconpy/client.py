@@ -95,7 +95,16 @@ def _prepare_canceller(
 
 
 class AsyncRCONClient:
-    """An asynchronous interface for connecting to an BattlEye RCON server."""
+    """An asynchronous interface for connecting to an BattlEye RCON server.
+
+    .. note::
+
+        Most of this class's methods for sending commands like
+        :py:meth:`kick()` may raise :py:exc:`RCONCommandError` or
+        :py:exc:`RuntimeError` since they rely on the :py:meth:`send_command()`
+        method.
+
+    """
     _EXPECTED_MESSAGES: set[str] = frozenset(('Connected to BE Master',))
 
     _client_id: int
@@ -163,11 +172,12 @@ class AsyncRCONClient:
     # Event handling
 
     def add_listener(self, event: str, func: CoroFunc):
-        """Adds a listener for a given event (e.g. ``"on_login"``).
+        """Adds a listener for a given event, e.g. ``"on_login"``.
+
+        See the :doc:`/events` for a list of supported events.
 
         :param event:
             The event to listen for.
-            See the :doc:`/events` for a list of supported events.
         :param func:
             The coroutine function to dispatch when the event is received.
 
@@ -175,7 +185,7 @@ class AsyncRCONClient:
         self._event_listeners[event].append(func)
 
     def remove_listener(self, event: str, func: CoroFunc):
-        """Removes a listener for a given event (e.g. ``"on_login"``).
+        """Removes a listener from a given event, e.g. ``"on_login"``.
 
         This method is a no-op if the given event and function
         does not match any registered listener.
@@ -190,8 +200,8 @@ class AsyncRCONClient:
             pass
 
     def listen(self, event: str = None):
-        """A decorator shorthand to add a listener for a given event
-        (e.g. ``"on_login"``).
+        """A decorator shorthand to add a listener for a given event,
+        e.g. ``"on_login"``.
 
         Example usage:
 
@@ -238,7 +248,10 @@ class AsyncRCONClient:
     ):
         """Waits for a specific event to occur and returns the result.
 
-        :param event: The event to listen for. (e.g. ``"login"`` or ``"on_login"``)
+        This allows handling one-shot events in a simpler manner than
+        with persistent listeners.
+
+        :param event: The event to wait for, e.g. ``"login"`` and ``"on_login"``.
         :param check:
             An optional predicate function to use as a filter.
             This can be either a regular or an asynchronous function.
@@ -248,9 +261,9 @@ class AsyncRCONClient:
             An optional timeout for the function. If this is provided
             and the function times out, an :py:exc:`asyncio.TimeoutError`
             is raised.
-        :returns: The arguments passed to the given event.
+        :returns: The same arguments received in the event.
         :raises asyncio.TimeoutError:
-            The function timed out while waiting for the event.
+            The timeout was exceeded while waiting.
 
         """
         if not event.startswith('on_'):
@@ -311,11 +324,19 @@ class AsyncRCONClient:
 
     @contextlib.asynccontextmanager
     async def connect(self, ip: str, port: int, password: str):
-        """Connects to the given IP and port with password.
+        """Returns an asynchronous context manager for logging into
+        the given `IP` and `port` with `password`.
+
+        Example usage::
+
+            client = berconpy.AsyncRCONClient()
+            async with client.connect(ip, port, password):
+                print('Connected!')
+            print('Disconnected!')
 
         If an unexpected error occurs after successfully logging in,
-        the current task will be cancelled in order to prevent
-        the script unintentionally being stuck indefinitely.
+        the current task that the context manager is used in will be
+        **cancelled** to prevent the script being stuck in an infinite loop.
 
         :raises LoginFailure:
             The password given to the server was denied.
@@ -348,8 +369,8 @@ class AsyncRCONClient:
         """Closes the connection.
 
         If this is used inside the :py:meth:`connect()` context manager,
-        the current task will be cancelled to prevent the script
-        unintentionally being stuck indefinitely.
+        the current task that the context manager is used in will be
+        **cancelled** to prevent the script being stuck in an infinite loop.
 
         This method is idempotent and can be called multiple times consecutively.
 
@@ -365,11 +386,14 @@ class AsyncRCONClient:
         Note that the player ID cannot be used to ban players that
         are no longer in the server; a GUID or IP address must be provided.
 
+        :py:meth:`Player.ban_ip()` and :py:meth:`Player.ban_guid()` are
+        shorthands for calling this method.
+
         :param addr: The ID, GUID, or IP address to ban.
         :param duration:
             The duration of the ban in minutes. If ``None``, the ban
             will be permanent.
-        :param reason: The reason for the ban.
+        :param reason: An optional reason to include with the ban.
 
         """
         command = 'ban' if isinstance(addr, int) else 'addBan'
@@ -426,17 +450,32 @@ class AsyncRCONClient:
         return self.players
 
     def get_player(self, player_id: int) -> Player | None:
-        """Gets a player from cache using their server-given ID."""
+        """Gets a player from cache using their server-given ID.
+
+        :param player_id: The ID of the player.
+        :returns: The retrieved player or ``None`` if not found.
+
+        """
         return self._players.get(player_id)
 
     async def kick(self, player_id: int, reason: str = '') -> str:
         """Kicks a player with the given ID from the server
         with an optional reason.
+
+        :py:meth:`Player.kick()` is a shorthand for calling this method.
+
+        :param player_id: The ID of the player.
+        :param reason: An optional reason to show when kicking.
+
         """
         return await self.send_command(f'kick {player_id:d} {reason}'.rstrip())
 
     async def send(self, message: str) -> str:
-        """Sends a message to all players in the server."""
+        """Sends a message to all players in the server.
+
+        :param message: The message to send. Only ASCII characters are allowed.
+
+        """
         return await self.send_command(f'say -1 {message}')
 
     async def send_command(self, command: str) -> str:
@@ -462,11 +501,22 @@ class AsyncRCONClient:
         return response
 
     async def unban(self, ban_id: int) -> str:
-        """Removes the ban with the given ID from the server."""
+        """Removes the ban with the given ID from the server.
+
+        :param ban_id: The ID of the ban to remove.
+
+        """
         return await self.send_command(f'removeBan {ban_id:d}')
 
     async def whisper(self, player_id: int, message: str) -> str:
-        """Sends a message to the player with the given ID."""
+        """Sends a message to the player with the given ID.
+
+        :py:meth:`Player.send()` is a shorthand for calling this method.
+
+        :param player_id: The ID of the player to send to.
+        :param message: The message to send. Only ASCII characters are allowed.
+
+        """
         return await self.send_command(f'say {player_id:d} {message}')
 
     # Methods to handle keeping player cache up to date
