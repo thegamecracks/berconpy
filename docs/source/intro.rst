@@ -1,5 +1,5 @@
-Getting Started
-===============
+Introduction
+============
 
 This guide will go through installing **berconpy** and using it to connect
 to a server, send commands, and receive messages.

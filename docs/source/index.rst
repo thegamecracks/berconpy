@@ -16,11 +16,21 @@ Welcome to berconpy's documentation!
 
    asyncio.run(main())
 
+Getting started
+---------------
+
+.. toctree::
+   :maxdepth: 2
+
+   intro
+
+Reference
+---------
+
 .. toctree::
    :maxdepth: 2
    :glob:
 
-   intro
    api
    events
    ext/*
