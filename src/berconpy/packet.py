@@ -15,7 +15,7 @@ class PacketType(enum.Enum):
     and can be checked through the :py:attr:`Packet.type` property.
 
     The :py:attr:`value` of this enum directly corresponds with the
-    `protocol specification`_.
+    :download:`protocol specification </BERConProtocol.txt>`.
 
     .. note::
 
@@ -23,7 +23,6 @@ class PacketType(enum.Enum):
         subclasses directly correspond to the message type they are
         representing in the protocol (a.k.a. typestates_).
 
-    .. _protocol specification: https://www.battleye.com/downloads/BERConProtocol.txt
     .. _typestates: https://en.wikipedia.org/wiki/Typestate_analysis
 
     """
@@ -44,7 +43,7 @@ class Packet:
     """The base class used for all messages sent between
     the BattlEye RCON server and client.
 
-    For more details, see the `official protocol specification`_.
+    For more details, see the :download:`official protocol specification </BERConProtocol.txt>`.
 
     Several properties are defined here but are not implemented.
     Those properties correspond to the built-in subclasses, which can be
@@ -57,8 +56,6 @@ class Packet:
 
     Every other property may return ``None`` if the subclass's usage
     does not require it.
-
-    .. _official protocol specification: https://www.battleye.com/downloads/BERConProtocol.txt
 
     :param data: The binary data contained by the packet.
 

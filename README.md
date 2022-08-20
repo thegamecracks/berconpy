@@ -68,5 +68,5 @@ pip install git+https://github.com/thegamecracks/berconpy
 
 This project uses the [MIT](LICENSE) License.
 
-[1]: https://www.battleye.com/downloads/BERConProtocol.txt
+[1]: docs/source/BERConProtocol.txt
 [2]: http://berconpy.readthedocs.io/
