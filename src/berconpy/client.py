@@ -74,15 +74,15 @@ def _prepare_canceller(
     current_task: asyncio.Task = None
 ):
     """Adds a callback to the task running the protocol to cancel
-    the current task once the running task is complete.
+    the current task if the running task completes with an exception.
 
     This should *only* be called after waiting for login, which is when the
     closing future exists for the canceller to suppress exceptions from it.
 
     """
     def _actual_canceller(_):
-        current_task.cancel()
-        closing.exception()
+        if closing.exception() is not None:
+            current_task.cancel()
 
     # We need to cache the closing future here, so we're still able to
     # suppress the future exception if the protocol closed with one
@@ -368,11 +368,11 @@ class AsyncRCONClient:
     def close(self):
         """Closes the connection.
 
-        If this is used inside the :py:meth:`connect()` context manager,
-        the current task that the context manager is used in will be
-        **cancelled** to prevent the script being stuck in an infinite loop.
-
         This method is idempotent and can be called multiple times consecutively.
+
+        .. versionchanged:: 1.1
+
+            This method no longer causes the current task to be cancelled.
 
         """
         self._protocol.close()
