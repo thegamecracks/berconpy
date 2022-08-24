@@ -131,6 +131,50 @@ perform operations on different players like whispering and kicking.
 A list of players can be retrieved through the
 :py:attr:`~berconpy.AsyncRCONClient.players` property.
 
+Configuring Logging
+-------------------
+
+**berconpy** allows logging information about the protocol and the client
+during runtime with the built-in :py:mod:`logging` module. By default,
+no logging configuration is used. You can set up logging either with
+:py:func:`logging.basicConfig()` (which configures the root logger)
+or by adding your own handlers to the ``berconpy`` logger.
+
+The following table describes what messages are shown in each level of logging:
+
+======== =============================================================
+Level    Messages
+======== =============================================================
+CRITICAL *Unused*
+   ERROR Potentially fatal connection errors (e.g. incorrect password)
+ WARNING Failed commands and consecutive reconnects
+    INFO Connection attempts and timeouts
+   DEBUG Events and packets transmitted/received
+======== =============================================================
+
+Example configurations
+^^^^^^^^^^^^^^^^^^^^^^
+
+Log all messages to stderr:
+
+.. code:: python
+
+    import logging
+
+    logging.basicConfig(level=logging.DEBUG)
+
+Log berconpy warnings to ``berconpy.log``:
+
+.. code:: python
+
+    import logging
+
+    log = logging.getLogger('berconpy')
+    log.setLevel(logging.WARNING)
+    handler = logging.FileHandler('berconpy.log', 'w')
+    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+    log.addHandler(handler)
+
 Next Steps
 ----------
 

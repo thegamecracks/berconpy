@@ -19,6 +19,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx_autodoc_typehints',
+    'sphinx.ext.intersphinx',
 ]
 
 templates_path = ['_templates']
@@ -29,6 +30,11 @@ autodoc_default_options = {
     'members': True
 }
 autodoc_member_order = 'groupwise'
+
+# https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+}
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
