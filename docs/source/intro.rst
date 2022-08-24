@@ -72,29 +72,30 @@ Let's start with an example of how to send a command:
     The RCON IP address, port, and password can be found in your server's
     ``BEServer.cfg`` / ``BEServer_x64.cfg``.
 
-1. ``client = rcon.AsyncRCONClient()`` creates the client instance,
-   which doesn't require any arguments.
+1. ``client = rcon.AsyncRCONClient()`` creates the client instance.
+   No arguments are necessary, but you can set up event listeners
+   on the client before beginning any connection which will be
+   demonstrated afterwards.
 
-2. ``async with client.connect(IP_ADDR, PORT, PASSWORD):`` attempts to
-   connect and log into the RCON server. :py:meth:`~berconpy.AsyncRCONClient.connect()`
-   is (and can only be) used as an asynchronous context manager so the client
-   can disconnect if necessary and clean up afterwards.
+2. ``async with client.connect(IP_ADDR, PORT, PASSWORD)`` attempts to connect
+   and log into the RCON server. The context manager also keeps the connection
+   alive until you exit it, or an error occurs.
 
-3. ``response = await client.send_command('players')`` requests what
-   players are currently connected to the server and waits for a response.
+3. ``response = await client.send_command('players')`` requests the
+   players currently connected to the server and returns a string.
 
 :py:meth:`~berconpy.AsyncRCONClient.send_command()` provides a low-level
-method for sending commands but there are some that are already implemented
-in the client such as :py:meth:`~berconpy.AsyncRCONClient.whisper()`
-and :py:meth:`~berconpy.AsyncRCONClient.fetch_players()`.
-The `BattlEye documentation`_ describes other server-side commands that can
+method for sending commands. Certain commands are already available as methods,
+like :py:meth:`~berconpy.AsyncRCONClient.fetch_players()` and
+:py:meth:`~berconpy.AsyncRCONClient.whisper()`.
+The `BattlEye documentation`_ describes server-side commands that can
 be sent with ``send_command()``.
 
 Event listeners
 ^^^^^^^^^^^^^^^
 
-To handle messages sent by the server in real-time, there are several events
-you can listen to. Here's how to handle in-game messages from players:
+There are several events you can listen to handle messages sent by the server
+in real-time. Below is an example of displaying in-game messages from players:
 
 .. code:: python
 
@@ -136,7 +137,7 @@ Configuring Logging
 
 **berconpy** allows logging information about the protocol and the client
 during runtime with the built-in :py:mod:`logging` module. By default,
-no logging configuration is used. You can set up logging either with
+no logging configuration is used. You can set up logging either by calling
 :py:func:`logging.basicConfig()` (which configures the root logger)
 or by adding your own handlers to the ``berconpy`` logger.
 
