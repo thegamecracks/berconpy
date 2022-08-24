@@ -6,6 +6,7 @@ Client Interface
 
 .. autosummary::
    :toctree: generated
+   :nosignatures:
 
    berconpy.AsyncRCONClient
 
@@ -14,6 +15,7 @@ Data Models
 
 .. autosummary::
    :toctree: generated
+   :nosignatures:
 
    berconpy.Ban
    berconpy.Player
@@ -23,6 +25,7 @@ Protocol Message Classes
 
 .. autosummary::
    :toctree: generated
+   :nosignatures:
 
    berconpy.Packet
    berconpy.PacketType
@@ -40,6 +43,7 @@ Exceptions
 
 .. autosummary::
    :toctree: generated
+   :nosignatures:
 
    berconpy.RCONError
    berconpy.RCONCommandError
