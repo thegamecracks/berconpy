@@ -5,4 +5,4 @@ berconpy.ext.arma API Reference
    :toctree: generated
    :nosignatures:
 
-   berconpy.ext.arma.AsyncArmaRCONClient
+   ~berconpy.ext.arma.AsyncArmaRCONClient
