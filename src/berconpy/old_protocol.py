@@ -6,7 +6,7 @@ import time
 from typing import TYPE_CHECKING, Any
 
 from .errors import LoginFailure, RCONCommandError
-from .packet import *
+from .protocol.packet import *
 from .utils import EMPTY
 
 log = logging.getLogger(__name__)
