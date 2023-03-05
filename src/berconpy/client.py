@@ -9,7 +9,7 @@ import weakref
 from .ban import Ban
 from .errors import RCONCommandError
 from .player import Player
-from .protocol import RCONClientDatagramProtocol
+from .old_protocol import RCONClientDatagramProtocol
 from .utils import CoroFunc, MaybeCoroFunc, maybe_coro
 from . import utils
 
