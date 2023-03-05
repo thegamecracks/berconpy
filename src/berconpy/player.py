@@ -14,6 +14,7 @@ class Player:
         "name",
         "guid",
         "addr",
+        "ping",
         "is_guid_valid",
         "in_lobby",
     )
@@ -36,6 +37,14 @@ class Player:
     addr: str
     """The IP address and port this player connected from."""
 
+    ping: int | None
+    """The player's ping on the server.
+
+    This information may not be available or may be out-of-date
+    since it is only provided when the "players" admin command is invoked.
+
+    """
+
     is_guid_valid: bool
     """Whether the server confirmed the validity of this player's GUID."""
 
@@ -55,6 +64,7 @@ class Player:
         name: str,
         guid: str,
         addr: str,
+        ping: int | None,
         is_guid_valid: bool,
         in_lobby: bool,
     ):
@@ -63,6 +73,7 @@ class Player:
         self.name = name
         self.guid = guid
         self.addr = addr
+        self.ping = ping
         self.is_guid_valid = is_guid_valid
         self.in_lobby = in_lobby
 
@@ -85,18 +96,6 @@ class Player:
 
     def __str__(self):
         return self.name
-
-    @property
-    def ping(self) -> int:
-        """The player's ping on the server.
-
-        This information is only updated after an :py:meth:`AsyncRCONClient.fetch_players()`
-        call and defaults to ``-1`` if it is never called. However, by default,
-        the client automatically calls fetch_players() on login
-        and then periodically during the connection's lifetime.
-
-        """
-        return self.client._player_pings.get(self, -1)
 
     async def ban_guid(self, duration: int | None = None, reason: str = ""):
         """Bans the player from the server using their GUID."""

@@ -1,7 +1,6 @@
 import asyncio
 import contextlib
 import logging
-import weakref
 
 from .dispatch import AsyncEventDispatch
 from ..events import (
@@ -71,7 +70,6 @@ class AsyncRCONClient:
     _client_id: int
     _players: dict[int, Player]
     _incomplete_players: dict[int, Player]
-    _player_pings: weakref.WeakKeyDictionary[Player, int]
 
     def __init__(
         self,
@@ -92,7 +90,6 @@ class AsyncRCONClient:
     def _setup_cache(self):
         self._players = {}
         self._incomplete_players = {}
-        self._player_pings = weakref.WeakKeyDictionary()
 
     @property
     def client_id(self) -> int | None:
@@ -246,8 +243,7 @@ class AsyncRCONClient:
     async def fetch_players(self) -> list[Player]:
         """Requests a list of players from the server.
 
-        This method also updates the player cache and pings of
-        each player.
+        This method also updates the player cache.
 
         """
         response = await self.send_command("players")
@@ -366,7 +362,16 @@ class AsyncRCONClient:
 
     def _cache_player(self, payload: PlayerConnect) -> Player:
         # first message; start timer to cache
-        p = Player(self, payload.id, payload.name, "", payload.addr, False, False)
+        p = Player(
+            client=self,
+            id=payload.id,
+            name=payload.name,
+            guid="",
+            addr=payload.addr,
+            ping=None,
+            in_lobby=False,
+            is_guid_valid=False,
+        )
         self._incomplete_players[payload.id] = p
 
         asyncio.create_task(
@@ -456,6 +461,7 @@ class AsyncRCONClient:
                 "name": kwargs["name"],
                 "guid": kwargs["guid"],
                 "addr": kwargs["addr"],
+                "ping": kwargs["ping"],
                 "is_guid_valid": kwargs["guid_status"] == "OK",
                 "in_lobby": in_lobby,
             }
@@ -469,7 +475,6 @@ class AsyncRCONClient:
                 for k, v in params.items():
                     setattr(p, k, v)
 
-            self._player_pings[p] = kwargs["ping"]
             current_ids.add(kwargs["id"])
 
         # Throw away players no longer in the server
