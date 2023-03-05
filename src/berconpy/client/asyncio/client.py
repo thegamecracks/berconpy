@@ -1,10 +1,10 @@
 import asyncio
-import collections
 import contextlib
 import logging
 import weakref
 
-from .events import (
+from .dispatch import AsyncEventDispatch
+from ..events import (
     AdminConnect,
     PlayerConnect,
     PlayerGUID,
@@ -18,12 +18,11 @@ from .events import (
     parse_bans,
     parse_players,
 )
-from ..errors import RCONCommandError
-from ..ban import Ban
-from ..player import Player
-from ..old_protocol import RCONClientDatagramProtocol
-from ..utils import CoroFunc, MaybeCoroFunc, maybe_coro
-from .. import utils
+from ...ban import Ban
+from ...errors import RCONCommandError
+from ...player import Player
+from ...old_protocol import RCONClientDatagramProtocol
+from ... import utils
 
 log = logging.getLogger(__name__)
 
@@ -76,18 +75,18 @@ class AsyncRCONClient:
 
     def __init__(
         self,
+        dispatch: AsyncEventDispatch | None = None,
         protocol_cls=RCONClientDatagramProtocol,
     ):
+        if dispatch is None:
+            dispatch = AsyncEventDispatch()
+
+        self.dispatch = dispatch
         self._protocol = protocol_cls(self)
         self._protocol_task: asyncio.Task | None = None
 
-        self._event_listeners: dict[str, list[CoroFunc]] = collections.defaultdict(list)
-        self._temporary_listeners: dict[
-            str, list[tuple[asyncio.Future, MaybeCoroFunc]]
-        ] = collections.defaultdict(list)
-
-        self.add_listener("on_login", self._cache_on_login)
-        self.add_listener("on_message", self._dispatch_message)
+        self.dispatch.add_listener("on_login", self._cache_on_login)
+        self.dispatch.add_listener("on_message", self._dispatch_message)
         self._setup_cache()
 
     def _setup_cache(self):
@@ -130,161 +129,6 @@ class AsyncRCONClient:
         mean that the client is connected.
         """
         return self._protocol.is_running()
-
-    # Event handling
-
-    def add_listener(self, event: str, func: CoroFunc):
-        """Adds a listener for a given event, e.g. ``"on_login"``.
-
-        See the :doc:`/events` for a list of supported events.
-
-        :param event:
-            The event to listen for.
-        :param func:
-            The coroutine function to dispatch when the event is received.
-
-        """
-        self._event_listeners[event].append(func)
-
-    def remove_listener(self, event: str, func: CoroFunc):
-        """Removes a listener from a given event, e.g. ``"on_login"``.
-
-        This method is a no-op if the given event and function
-        does not match any registered listener.
-
-        :param event: The event used by the listener.
-        :param func: The coroutine function used by the listener.
-
-        """
-        try:
-            self._event_listeners[event].remove(func)
-        except ValueError:
-            pass
-
-    def listen(self, event: str | None = None):
-        """A decorator shorthand to add a listener for a given event,
-        e.g. ``"on_login"``.
-
-        Example usage:
-
-        >>> client = AsyncRCONClient()
-        >>> @client.listen()
-        ... async def on_login():
-        ...     print("We have logged in!")
-
-        :param event:
-            The event to listen for. If ``None``, the function name
-            is used as the event name.
-
-        """
-
-        def decorator(func: CoroFunc):
-            self._event_listeners[event or func.__name__].append(func)
-            return func
-
-        return decorator
-
-    def _add_temporary_listener(self, event: str, predicate: MaybeCoroFunc):
-        """Adds a temporary listener for an event and returns a future.
-
-        These listeners can be removed either with `_remove_temporary_listener()`
-        or by cancelling the future that is returned.
-
-        """
-        fut = asyncio.get_running_loop().create_future()
-        self._temporary_listeners[event].append((fut, predicate))
-        return fut
-
-    def _remove_temporary_listener(
-        self,
-        event: str,
-        fut: asyncio.Future,
-        pred: MaybeCoroFunc,
-    ):
-        listeners = self._temporary_listeners[event]
-        e = (fut, pred)
-
-        try:
-            listeners.remove(e)
-        except ValueError:
-            pass
-
-    async def wait_for(
-        self,
-        event: str,
-        *,
-        check: MaybeCoroFunc | None = None,
-        timeout: float | int | None = None,
-    ):
-        """Waits for a specific event to occur and returns the result.
-
-        This allows handling one-shot events in a simpler manner than
-        with persistent listeners.
-
-        :param event: The event to wait for, e.g. ``"login"`` and ``"on_login"``.
-        :param check:
-            An optional predicate function to use as a filter.
-            This can be either a regular or an asynchronous function.
-            The function should accept the same arguments that the event
-            normally takes.
-        :param timeout:
-            An optional timeout for the function. If this is provided
-            and the function times out, an :py:exc:`asyncio.TimeoutError`
-            is raised.
-        :returns: The same arguments received in the event.
-        :raises asyncio.TimeoutError:
-            The timeout was exceeded while waiting.
-
-        """
-        if not event.startswith("on_"):
-            event = "on_" + event
-        if check is None:
-            check = lambda *args: True
-
-        fut = self._add_temporary_listener(event, check)
-
-        try:
-            return await asyncio.wait_for(fut, timeout=timeout)
-        except asyncio.TimeoutError:
-            fut.cancel()
-            raise
-
-    async def _try_dispatch_temporary(
-        self, event: str, fut: asyncio.Future, pred: MaybeCoroFunc, *args
-    ):
-        if fut.done():
-            return self._remove_temporary_listener(event, fut, pred)
-
-        try:
-            result = await maybe_coro(pred, *args)
-        except Exception as e:
-            if not fut.done():
-                fut.set_exception(e)
-            self._remove_temporary_listener(event, fut, pred)
-        else:
-            if not result or fut.done():
-                return
-
-            fut.set_result(args)
-            self._remove_temporary_listener(event, fut, pred)
-
-    def _dispatch(self, event: str, *args):
-        """Dispatches a message to the corresponding event listeners.
-
-        Note that the event name should not be prefixed with "on_".
-
-        """
-        log.debug(f"dispatching event {event}")
-        event = "on_" + event
-
-        for func in self._event_listeners[event]:
-            asyncio.create_task(func(*args), name=f"berconpy-{event}")
-
-        for fut, pred in self._temporary_listeners[event]:
-            asyncio.create_task(
-                self._try_dispatch_temporary(event, fut, pred, *args),
-                name=f"berconpy-temp-{event}",
-            )
 
     # Connection methods
 
@@ -485,7 +329,7 @@ class AsyncRCONClient:
     async def _cache_on_login(self):
         self._setup_cache()
         try:
-            admin_id, addr = await self.wait_for("admin_login", timeout=10)
+            admin_id, addr = await self.dispatch.wait_for("admin_login", timeout=10)
         except asyncio.TimeoutError:
             log.warning(
                 "did not receive admin_login event within 10 seconds; "
@@ -556,46 +400,46 @@ class AsyncRCONClient:
 
     async def _dispatch_message(self, response: str):
         if m := AdminConnect.try_from_message(response):
-            self._dispatch("admin_login", m.id, m.addr)
+            self.dispatch("admin_login", m.id, m.addr)
 
         elif m := PlayerConnect.try_from_message(response):
             p = self._cache_player(m)
-            self._dispatch("player_connect", p)
+            self.dispatch("player_connect", p)
 
         elif m := PlayerGUID.try_from_message(response):
             # NOTE: it might be possible to receive these events before
             # on_player_connect, in which case we cannot get a Player
             # object to dispatch
             if p := self._cache_player_guid(m):
-                self._dispatch("player_guid", p)
+                self.dispatch("player_guid", p)
 
         elif m := PlayerVerifyGUID.try_from_message(response):
             if p := self._verify_player_guid(m):
-                self._dispatch("player_verify_guid", p)
+                self.dispatch("player_verify_guid", p)
 
         elif m := PlayerDisconnect.try_from_message(response):
             if p := self._invalidate_player(m.id):
-                self._dispatch("player_disconnect", p)
+                self.dispatch("player_disconnect", p)
 
         elif m := PlayerKick.try_from_message(response):
             if p := self._invalidate_player(m.id):
-                self._dispatch("player_kick", p, m.reason)
+                self.dispatch("player_kick", p, m.reason)
 
         elif m := RCONMessage.try_from_message(response):
-            self._dispatch("admin_message", m.id, m.channel, m.message)
+            self.dispatch("admin_message", m.id, m.channel, m.message)
 
             if m.channel == "Global":
-                self._dispatch("admin_announcement", m.id, m.message)
+                self.dispatch("admin_announcement", m.id, m.message)
             elif m.channel.startswith("To "):
                 name = m.channel.removeprefix("To ")
                 p = utils.get(self.players, name=name)
                 if p is not None:
-                    self._dispatch("admin_whisper", p, m.id, m.message)
+                    self.dispatch("admin_whisper", p, m.id, m.message)
 
         elif m := PlayerMessage.try_from_message(response):
             p = utils.get(self.players, name=m.name)
             if p is not None:
-                self._dispatch("player_message", p, m.channel, m.message)
+                self.dispatch("player_message", p, m.channel, m.message)
 
         elif not is_expected_message(response):
             raise ValueError(f"unexpected server message: {response}")
