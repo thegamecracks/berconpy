@@ -454,9 +454,9 @@ class ServerMessagePacket(ServerPacket):
         buffer.append(sequence)
         buffer.extend(message.encode("ascii"))
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+        message_bytes = bytes(buffer)
+        header = self._encode_header(message_bytes)
+        super().__init__(header + message_bytes)
 
     def __repr__(self):
         return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)

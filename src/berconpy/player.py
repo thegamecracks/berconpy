@@ -88,12 +88,12 @@ class Player:
         """
         return self.client._player_pings.get(self, -1)
 
-    async def ban_guid(self, duration: int = None, reason: str = ""):
+    async def ban_guid(self, duration: int | None = None, reason: str = ""):
         """Bans the player from the server using their GUID."""
         # NOTE: ban #ID does the same as adding the player's GUID
         await self.client.ban(self.guid, duration, reason)
 
-    async def ban_ip(self, duration: int = None, reason: str = ""):
+    async def ban_ip(self, duration: int | None = None, reason: str = ""):
         """Bans the player from the server using their IP."""
         ip = self.addr.split(":")[0]
         await self.client.ban(ip, duration, reason)

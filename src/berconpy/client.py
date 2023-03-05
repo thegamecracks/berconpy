@@ -3,6 +3,7 @@ import collections
 import contextlib
 import logging
 import re
+from typing import Collection
 import weakref
 
 from .ban import Ban
@@ -48,11 +49,11 @@ _PLAYERS_ROW = re.compile(
 )
 
 
-def _get_pattern_args(m: re.Match) -> tuple[int | str, ...]:
+def _get_pattern_args(m: re.Match) -> tuple:
     return tuple(_get_pattern_kwargs(m).values())
 
 
-def _get_pattern_kwargs(m: re.Match) -> dict[str, int | str]:
+def _get_pattern_kwargs(m: re.Match) -> dict:
     int_keys = ("id", "ping")
     kwargs = m.groupdict()
 
@@ -71,7 +72,7 @@ def _get_pattern_kwargs(m: re.Match) -> dict[str, int | str]:
 def _prepare_canceller(
     protocol: RCONClientDatagramProtocol,
     running_task: asyncio.Task,
-    current_task: asyncio.Task = None
+    current_task: asyncio.Task | None = None
 ):
     """Adds a callback to the task running the protocol to cancel
     the current task if the running task completes with an exception.
@@ -105,7 +106,7 @@ class AsyncRCONClient:
         method.
 
     """
-    _EXPECTED_MESSAGES: set[str] = frozenset(("Connected to BE Master",))
+    _EXPECTED_MESSAGES: Collection[str] = frozenset(("Connected to BE Master",))
 
     _client_id: int
     _players: dict[int, Player]
@@ -199,7 +200,7 @@ class AsyncRCONClient:
         except ValueError:
             pass
 
-    def listen(self, event: str = None):
+    def listen(self, event: str | None = None):
         """A decorator shorthand to add a listener for a given event,
         e.g. ``"on_login"``.
 
@@ -243,8 +244,8 @@ class AsyncRCONClient:
 
     async def wait_for(
         self, event: str, *,
-        check: MaybeCoroFunc = None,
-        timeout: float | int = None
+        check: MaybeCoroFunc | None = None,
+        timeout: float | int | None = None
     ):
         """Waits for a specific event to occur and returns the result.
 
@@ -362,8 +363,12 @@ class AsyncRCONClient:
             self.close()
 
             # Propagate any exception from the task
-            if self._protocol_task.done() and self._protocol_task.exception():
-                raise self._protocol_task.exception() from None
+            if not self._protocol_task.done():
+                return
+
+            exc = self._protocol_task.exception()
+            if exc is not None:
+                raise exc from None
 
     def close(self):
         """Closes the connection.
@@ -380,7 +385,12 @@ class AsyncRCONClient:
     # Commands
     # (documentation: https://www.battleye.com/support/documentation/)
 
-    async def ban(self, addr: int | str, duration: int = None, reason: str = "") -> str:
+    async def ban(
+        self,
+        addr: int | str,
+        duration: int | None = None,
+        reason: str = "",
+    ) -> str:
         """Bans a given player ID, GUID, or IP address (without port).
 
         Note that the player ID cannot be used to ban players that

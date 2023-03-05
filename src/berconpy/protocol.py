@@ -224,7 +224,7 @@ class RCONClientDatagramProtocol:
         if fut is not None:
             fut.cancel()
 
-    def _set_command(self, packet: ServerCommandPacket, message: str = None):
+    def _set_command(self, packet: ServerCommandPacket, message: str | None = None):
         """Notifies the future waiting on a command response packet.
 
         An alternative message may be given if the packet itself does
@@ -327,7 +327,7 @@ class RCONClientDatagramProtocol:
             self._transport.close()
             self._transport = None
 
-    def close(self, exc: Exception = None):
+    def close(self, exc: Exception | None = None):
         if self._is_closing is None or self._is_closing.done():
             return
         elif exc is not None:
@@ -380,9 +380,9 @@ class RCONClientDatagramProtocol:
                     if not self._is_logged_in.done():
                         log.error("failed to connect to the server")
                         raise LoginFailure("could not connect to the server")
-                    elif self._is_logged_in.exception():
+                    elif (exc := self._is_logged_in.exception()) is not None:
                         log.error("password authentication was denied")
-                        raise self._is_logged_in.exception()
+                        raise exc
 
                 if (overtime := time.monotonic() - self._last_received) > self.LAST_RECEIVED_TIMEOUT:
                     log.info(f"server has timed out (last received {overtime:.0f} seconds ago)")
@@ -420,9 +420,15 @@ class RCONClientDatagramProtocol:
             return log.debug(f"ignoring message from unknown address: {addr}")
 
         try:
-            packet: ServerPacket = Packet.from_bytes(data)
+            packet: Packet = Packet.from_bytes(data)
         except (IndexError, ValueError) as e:
             return log.debug(f"ignoring malformed data with cause: {e}")
+
+        if not isinstance(packet, ServerPacket):
+            return log.debug(
+                f"expected a {type(ServerPacket).__name__}, "
+                f"received {type(packet).__name__} instead"
+            )
 
         self._tick()
         log.debug(f"{packet.type.name} received")
