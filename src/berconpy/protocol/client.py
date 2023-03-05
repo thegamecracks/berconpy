@@ -1,8 +1,9 @@
 import enum
 from dataclasses import dataclass
-from typing import Collection, Iterable
+from typing import Iterable
 
 from .base import RCONGenericProtocol
+from .check import Check, NonceCheck
 from .errors import InvalidStateError
 from .packet import *
 
@@ -51,7 +52,10 @@ class ClientState(enum.Enum):
 class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
     """Implements the client-side portion of the protocol.
 
-    :param checks: A collection of checks to call a valid server packet is received.
+    :param message_check:
+        A :py:class:`Check` that determines if a :py:class:`ServerMessageEvent`
+        should be dispatched when a :py:class:`ServerMessagePacket` is received.
+        If ``None``, defaults to :py:class:`NonceCheck(5)`.
 
     """
 
@@ -66,7 +70,15 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
     _state: ClientState
     _to_send: list[bytes]
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        message_check: Check[ServerMessagePacket] | None = None,
+    ) -> None:
+        if message_check is None:
+            message_check = NonceCheck(5)
+
+        self.message_check = message_check
         self.reset()
 
     def __repr__(self) -> str:
@@ -144,6 +156,8 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
         self._state = ClientState.AUTHENTICATING
         self._to_send: list[bytes] = []
 
+        self.message_check.reset()
+
     def send_command(self, command: str) -> bytes:
         """Returns a payload for sending a command.
 
@@ -194,7 +208,12 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
             # Acknowledge the message
             self._assert_state(ClientState.LOGGED_IN)
 
-            return (), (ClientMessagePacket(packet.sequence).data,)
+            if self.message_check(packet):
+                events = (ServerMessageEvent(packet.message),)
+            else:
+                events = ()
+
+            return events, (ClientMessagePacket(packet.sequence).data,)
 
         raise ValueError(f"unexpected packet received: {packet}")
 
