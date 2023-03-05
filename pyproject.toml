@@ -19,6 +19,9 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: System :: Networking",
 ]
+dependencies = [
+    "typing-extensions>=4.0.0",
+]
 dynamic = ["version"]
 
 [tool.setuptools.dynamic]

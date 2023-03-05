@@ -1,5 +1,5 @@
 from .ban import Ban
-from .client import AsyncRCONClient
+from .client.asyncio import AsyncRCONClient
 from .errors import *
 from .protocol.packet import *
 from .player import Player

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from . import utils
 
 if TYPE_CHECKING:
-    from .client import AsyncRCONClient
+    from .client.asyncio import AsyncRCONClient
 
 
 @dataclass(repr=False, slots=True, unsafe_hash=True)

@@ -12,7 +12,7 @@ from .utils import EMPTY
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from .client import AsyncRCONClient
+    from .client.asyncio import AsyncRCONClient
 
 
 def should_replace_future(fut: asyncio.Future | None) -> bool:

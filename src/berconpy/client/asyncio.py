@@ -2,71 +2,30 @@ import asyncio
 import collections
 import contextlib
 import logging
-import re
-from typing import Collection
 import weakref
 
-from .ban import Ban
-from .errors import RCONCommandError
-from .player import Player
-from .old_protocol import RCONClientDatagramProtocol
-from .utils import CoroFunc, MaybeCoroFunc, maybe_coro
-from . import utils
+from .events import (
+    AdminConnect,
+    PlayerConnect,
+    PlayerGUID,
+    PlayerVerifyGUID,
+    PlayerDisconnect,
+    PlayerKick,
+    RCONMessage,
+    PlayerMessage,
+    is_expected_message,
+    parse_admins,
+    parse_bans,
+    parse_players,
+)
+from ..errors import RCONCommandError
+from ..ban import Ban
+from ..player import Player
+from ..old_protocol import RCONClientDatagramProtocol
+from ..utils import CoroFunc, MaybeCoroFunc, maybe_coro
+from .. import utils
 
 log = logging.getLogger(__name__)
-
-
-# Live messages
-_LOGIN = re.compile(r"RCon admin #(?P<id>\d+) \((?P<addr>.*?:\d+)\) logged in")
-_CONNECTED = re.compile(r"Player #(?P<id>\d+) (?P<name>.+) \((?P<addr>.*?:\d+)\) connected")
-_GUID = re.compile(r"Player #(?P<id>\d+) (?P<name>.+) - BE GUID: (?P<guid>\w+)")
-_VERIFIED_GUID = re.compile(r"Verified GUID \((?P<guid>\w+)\) of player #(?P<id>\d+) (?P<name>.+)")
-# _UNVERIFIED_GUID = ?
-_DISCONNECTED = re.compile(r"Player #(?P<id>\d+) (?P<name>.+) disconnected")
-_BATTLEYE_KICK = re.compile(
-    r"Player #(?P<id>\d+) (?P<name>.+) \((?P<guid>\w+|-)\) has been kicked "
-    r"by BattlEye: (?P<reason>.+)"
-)
-_RCON_MESSAGE = re.compile(
-    r"RCon admin #(?P<id>\d+): \((?P<channel>.+?)\) (?P<message>.+)"
-    # If whispered to player, channel would say "To NAME"
-)
-_PLAYER_MESSAGE = re.compile(
-    r"\((?P<channel>.+?)\) (?P<name>.+?): (?P<message>.+)"
-    # NOTE: if names can have colons in them, this regex by itself
-    # would be insufficient for handling ambiguity
-)
-
-# Command responses
-_ADMINS_ROW = re.compile(r"(?P<id>\d+) +(?P<addr>.*?:\d+)")
-_BANS_ROW = re.compile(
-    r"(?P<index>\d+) +(?P<ban_id>[\w.]+) +"
-    r"(?P<duration>\d+|-|perm) +(?P<reason>.*)"
-)
-_PLAYERS_ROW = re.compile(
-    r"(?P<id>\d+) +(?P<addr>.*?:\d+) +(?P<ping>\d+) +"
-    r"(?P<guid>\w+)\((?P<guid_status>\w+)\) +(?P<name>.+)"
-)
-
-
-def _get_pattern_args(m: re.Match) -> tuple:
-    return tuple(_get_pattern_kwargs(m).values())
-
-
-def _get_pattern_kwargs(m: re.Match) -> dict:
-    int_keys = ("id", "index", "ping")
-    kwargs = m.groupdict()
-
-    for k in int_keys:
-        v = kwargs.get(k)
-        if v is not None:
-            kwargs[k] = int(v)
-
-    guid_status = kwargs.pop("guid_status", None)
-    if guid_status is not None:
-        kwargs["is_guid_valid"] = guid_status == "OK"
-
-    return kwargs
 
 
 def _prepare_canceller(
@@ -106,7 +65,6 @@ class AsyncRCONClient:
         method.
 
     """
-    _EXPECTED_MESSAGES: Collection[str] = frozenset(("Connected to BE Master",))
 
     _client_id: int
     _players: dict[int, Player]
@@ -416,30 +374,16 @@ class AsyncRCONClient:
         ordered by admin ID and IP address with port.
         """
         response = await self.send_command("admins")
-        return [  # type: ignore
-            _get_pattern_args(m)
-            for m in _ADMINS_ROW.finditer(response)
-        ]
+        return [(admin["id"], admin["addr"]) for admin in parse_admins(response)]
 
     async def fetch_bans(self) -> list[Ban]:
         """Requests a list of bans on the server."""
         response = await self.send_command("bans")
 
-        bans = []
-        for m in _BANS_ROW.finditer(response):
-            index, ban_id, duration, reason = _get_pattern_args(m)
-
-            if duration == "-":
-                duration = -1
-            elif duration == "perm":
-                duration = None
-            else:
-                duration = int(duration)
-
-            b = Ban(self, index, ban_id, duration, reason)
-            bans.append(b)
-
-        return bans
+        return [
+            Ban(self, b["index"], b["ban_id"], b["duration"], b["reason"])
+            for b in parse_bans(response)
+        ]
 
     async def fetch_missions(self) -> list[str]:
         """Requests a list of mission files on the server."""
@@ -567,34 +511,34 @@ class AsyncRCONClient:
         await asyncio.sleep(5)
         self._push_to_cache(player_id)
 
-    def _cache_player(self, player_id: int, name: str, addr: str) -> Player:
+    def _cache_player(self, payload: PlayerConnect) -> Player:
         # first message; start timer to cache
-        p = Player(self, player_id, name, "", addr, False, False)
-        self._incomplete_players[player_id] = p
+        p = Player(self, payload.id, payload.name, "", payload.addr, False, False)
+        self._incomplete_players[payload.id] = p
 
         asyncio.create_task(
-            self._delayed_push_to_cache(player_id),
-            name=f"berconpy-arma-push-to-cache-{player_id}"
+            self._delayed_push_to_cache(payload.id),
+            name=f"berconpy-arma-push-to-cache-{payload.id}"
         )
 
         return p
 
-    def _cache_player_guid(self, player_id: int, name: str, guid: str) -> Player | None:
+    def _cache_player_guid(self, payload: PlayerGUID) -> Player | None:
         # second message
-        p = self._get_pending_player(player_id)
+        p = self._get_pending_player(payload.id)
         if p is not None:
-            p.guid = guid
+            p.guid = payload.guid
         return p
 
-    def _verify_player_guid(self, guid: str, player_id: int, name: str) -> Player | None:
+    def _verify_player_guid(self, payload: PlayerVerifyGUID) -> Player | None:
         # last message, can push to cache early
-        p = self._get_pending_player(player_id)
+        p = self._get_pending_player(payload.id)
         if p is not None:
             p.is_guid_valid = True
-            self._push_to_cache(player_id)
+            self._push_to_cache(payload.id)
         return p
 
-    def _invalidate_player(self, player_id: int, *args) -> Player | None:
+    def _invalidate_player(self, player_id: int) -> Player | None:
         p = self._players.pop(player_id, None)
         p = p or self._incomplete_players.pop(player_id, None)
         return p
@@ -602,79 +546,77 @@ class AsyncRCONClient:
     # Event dispatcher
 
     async def _dispatch_message(self, response: str):
-        if m := _LOGIN.fullmatch(response):
-            self._dispatch("admin_login", *_get_pattern_args(m))
+        if m := AdminConnect.try_from_message(response):
+            self._dispatch("admin_login", m.id, m.addr)
 
-        elif m := _CONNECTED.fullmatch(response):
-            args = _get_pattern_args(m)
-            p = self._cache_player(*args)
+        elif m := PlayerConnect.try_from_message(response):
+            p = self._cache_player(m)
             self._dispatch("player_connect", p)
 
-        elif m := _GUID.fullmatch(response):
-            args = _get_pattern_args(m)
+        elif m := PlayerGUID.try_from_message(response):
             # NOTE: it might be possible to receive these events before
             # on_player_connect, in which case we cannot get a Player
             # object to dispatch
-            if p := self._cache_player_guid(*args):
+            if p := self._cache_player_guid(m):
                 self._dispatch("player_guid", p)
 
-        elif m := _VERIFIED_GUID.fullmatch(response):
-            args = _get_pattern_args(m)
-            if p := self._verify_player_guid(*args):
+        elif m := PlayerVerifyGUID.try_from_message(response):
+            if p := self._verify_player_guid(m):
                 self._dispatch("player_verify_guid", p)
 
-        elif m := _DISCONNECTED.fullmatch(response):
-            args = _get_pattern_args(m)
-            if p := self._invalidate_player(*args):
+        elif m := PlayerDisconnect.try_from_message(response):
+            if p := self._invalidate_player(m.id):
                 self._dispatch("player_disconnect", p)
 
-        elif m := _BATTLEYE_KICK.fullmatch(response):
-            args = _get_pattern_args(m)
-            if p := self._invalidate_player(*args):
-                self._dispatch("player_kick", p, m["reason"])
+        elif m := PlayerKick.try_from_message(response):
+            if p := self._invalidate_player(m.id):
+                self._dispatch("player_kick", p, m.reason)
 
-        elif m := _RCON_MESSAGE.fullmatch(response):
-            admin_id, channel, message = _get_pattern_args(m)
-            self._dispatch("admin_message", admin_id, channel, message)
+        elif m := RCONMessage.try_from_message(response):
+            self._dispatch("admin_message", m.id, m.channel, m.message)
 
-            if channel == "Global":
-                self._dispatch("admin_announcement", admin_id, message)
-            elif channel.startswith("To "):
-                name = channel.removeprefix("To ")
+            if m.channel == "Global":
+                self._dispatch("admin_announcement", m.id, m.message)
+            elif m.channel.startswith("To "):
+                name = m.channel.removeprefix("To ")
                 p = utils.get(self.players, name=name)
                 if p is not None:
-                    self._dispatch("admin_whisper", p, admin_id, message)
+                    self._dispatch("admin_whisper", p, m.id, m.message)
 
-        elif m := _PLAYER_MESSAGE.fullmatch(response):
-            channel, name, message = _get_pattern_args(m)
-            p = utils.get(self.players, name=name)
+        elif m := PlayerMessage.try_from_message(response):
+            p = utils.get(self.players, name=m.name)
             if p is not None:
-                self._dispatch("player_message", p, channel, message)
+                self._dispatch("player_message", p, m.channel, m.message)
 
-        elif response not in self._EXPECTED_MESSAGES:
-            log.warning("unexpected message from server: %s", response)
+        elif not is_expected_message(response):
+            raise ValueError(f"unexpected server message: {response}")
 
     def _update_players(self, response: str):
         current_ids = set()
-        for m in _PLAYERS_ROW.finditer(response):
-            kwargs = _get_pattern_kwargs(m)
-
-            kwargs["in_lobby"] = kwargs["name"].endswith(" (Lobby)")
-            if kwargs["in_lobby"]:
+        for kwargs in parse_players(response):
+            in_lobby = kwargs["name"].endswith(" (Lobby)")
+            if in_lobby:
                 kwargs["name"] = kwargs["name"].removesuffix(" (Lobby)")
 
-            ping = kwargs.pop("ping")
+            params = {
+                "id": kwargs["id"],
+                "name": kwargs["name"],
+                "guid": kwargs["guid"],
+                "addr": kwargs["addr"],
+                "is_guid_valid": kwargs["guid_status"] == "OK",
+                "in_lobby": in_lobby,
+            }
 
             # Create new player if necessary or otherwise update in-place
             p = self._players.get(kwargs["id"])
             if p is None:
-                p = Player(client=self, **kwargs)
+                p = Player(client=self, **params)
                 self._players[kwargs["id"]] = p
             else:
-                for k, v in kwargs.items():
+                for k, v in params.items():
                     setattr(p, k, v)
 
-            self._player_pings[p] = ping
+            self._player_pings[p] = kwargs["ping"]
             current_ids.add(kwargs["id"])
 
         # Throw away players no longer in the server

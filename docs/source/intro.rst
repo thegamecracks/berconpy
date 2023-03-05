@@ -8,7 +8,6 @@ Requirements
 ------------
 
 The minimum Python version required is **3.10**.
-No other external dependencies are required.
 
 Installation
 ------------
