@@ -132,11 +132,12 @@ class ParsedBan(TypedDict):
 
 class ParsedPlayer(TypedDict):
     id: int
+    name: str
+    guid: str
     addr: str
     ping: int
-    guid: str
-    guid_status: str
-    name: str
+    is_guid_valid: bool
+    in_lobby: bool
 
 
 def _get_pattern_kwargs(m: re.Match) -> dict:
@@ -186,4 +187,10 @@ def parse_players(response: str) -> Iterator[ParsedPlayer]:
     :py:class:`ParsedPlayer` objects.
     """
     for m in _PLAYERS_ROW.finditer(response):
-        yield _get_pattern_kwargs(m)  # type: ignore
+        player = _get_pattern_kwargs(m)
+        in_lobby = player["name"].endswith(" (Lobby)")
+        if in_lobby:
+            player["name"] = player["name"].removesuffix(" (Lobby)")
+        player["is_guid_valid"] = player.pop("guid_status") == "OK"
+        player["in_lobby"] = in_lobby
+        yield player  # type: ignore

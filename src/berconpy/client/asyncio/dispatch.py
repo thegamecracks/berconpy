@@ -3,15 +3,15 @@ import collections
 import logging
 
 from ..dispatch import RCONClientDispatch
-from ...utils import CoroFunc, MaybeCoroFunc, maybe_coro
+from ...utils import MaybeCoroFunc, maybe_coro
 
 log = logging.getLogger(__name__)
 
 
-class AsyncEventDispatch(RCONClientDispatch[CoroFunc]):
+class AsyncEventDispatch(RCONClientDispatch[MaybeCoroFunc]):
     """Implements the :py:class:`RCONClientDispatch` interface for asyncio."""
 
-    _event_listeners: dict[str, list[CoroFunc]]
+    _event_listeners: dict[str, list[MaybeCoroFunc]]
     _temporary_listeners: dict[str, list[tuple[asyncio.Future, MaybeCoroFunc]]]
 
     def __init__(self) -> None:
@@ -23,7 +23,7 @@ class AsyncEventDispatch(RCONClientDispatch[CoroFunc]):
         event = "on_" + event
 
         for func in self._event_listeners[event]:
-            asyncio.create_task(func(*args), name=f"berconpy-{event}")
+            asyncio.create_task(maybe_coro(func, *args), name=f"berconpy-{event}")
 
         for fut, pred in self._temporary_listeners[event]:
             asyncio.create_task(
@@ -31,7 +31,7 @@ class AsyncEventDispatch(RCONClientDispatch[CoroFunc]):
                 name=f"berconpy-temp-{event}",
             )
 
-    def add_listener(self, event: str, func: CoroFunc):
+    def add_listener(self, event: str, func: MaybeCoroFunc):
         """Adds a listener for a given event, e.g. ``"on_login"``.
 
         See the :doc:`/events` for a list of supported events.
@@ -44,7 +44,7 @@ class AsyncEventDispatch(RCONClientDispatch[CoroFunc]):
         """
         self._event_listeners[event].append(func)
 
-    def remove_listener(self, event: str, func: CoroFunc):
+    def remove_listener(self, event: str, func: MaybeCoroFunc):
         """Removes a listener from a given event, e.g. ``"on_login"``.
 
         This method is a no-op if the given event and function

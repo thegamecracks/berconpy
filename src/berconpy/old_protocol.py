@@ -90,7 +90,7 @@ class RCONClientDatagramProtocol:
     # Event handling
 
     def _dispatch(self, event: str, *args):
-        self.client._dispatch(event, *args)
+        self.client.dispatch(event, *args)
 
     def _dispatch_packet(self, packet: ServerPacket):
         if isinstance(packet, ServerLoginPacket):
