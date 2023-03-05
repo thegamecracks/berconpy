@@ -1,11 +1,33 @@
 import binascii
 import enum
+import functools
+from typing import Type
 
 __all__ = (
     "PacketType", "Packet", "ClientPacket", "ServerPacket",
     "ClientLoginPacket", "ClientCommandPacket", "ClientMessagePacket",
     "ServerLoginPacket", "ServerCommandPacket", "ServerMessagePacket"
 )
+
+
+def _convert_exception(
+    from_exc: Type[Exception],
+    to_exc: Type[Exception],
+    message: str | None = None,
+):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except from_exc as e:
+                if message is not None:
+                    raise to_exc(message) from e
+                raise to_exc from e
+
+        return wrapper
+
+    return decorator
 
 
 class PacketType(enum.Enum):
@@ -142,6 +164,7 @@ class Packet:
         return self
 
     @classmethod
+    @_convert_exception(IndexError, ValueError, "insufficient data provided")
     def from_bytes(cls, data: bytes, from_client=False):
         """Constructs a packet from the given data.
 
@@ -150,9 +173,6 @@ class Packet:
             Whether the packet came from the server or client.
             This is required for disambiguation of data.
         :returns: The corresponding subclass of Packet.
-        :raises IndexError:
-            The given data is too short to match the packet
-            specification.
         :raises ValueError:
             The given data is malformed and does not match the
             packet specification.
