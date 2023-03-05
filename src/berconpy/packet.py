@@ -2,9 +2,9 @@ import binascii
 import enum
 
 __all__ = (
-    'PacketType', 'Packet', 'ClientPacket', 'ServerPacket',
-    'ClientLoginPacket', 'ClientCommandPacket', 'ClientMessagePacket',
-    'ServerLoginPacket', 'ServerCommandPacket', 'ServerMessagePacket'
+    "PacketType", "Packet", "ClientPacket", "ServerPacket",
+    "ClientLoginPacket", "ClientCommandPacket", "ClientMessagePacket",
+    "ServerLoginPacket", "ServerCommandPacket", "ServerMessagePacket"
 )
 
 
@@ -60,22 +60,22 @@ class Packet:
     :param data: The binary data contained by the packet.
 
     """
-    __slots__ = ('data',)
+    __slots__ = ("data",)
 
     def __init__(self, data: bytes):
         over_size = len(data) - 65507
         if over_size > 0:
-            raise ValueError(f'max packet size exceeded by {over_size} bytes')
+            raise ValueError(f"max packet size exceeded by {over_size} bytes")
 
         self.data = data
 
     def __repr__(self):
-        return '{}({!r})'.format(type(self).__name__, self.data)
+        return "{}({!r})".format(type(self).__name__, self.data)
 
     @property
     def checksum(self) -> int:
         """The CRC32 checksum included in the header."""
-        return int.from_bytes(self.data[2:6], 'little')
+        return int.from_bytes(self.data[2:6], "little")
 
     @property
     def type(self) -> PacketType:
@@ -138,7 +138,7 @@ class Packet:
 
         """
         if checksum != self.checksum:
-            raise ValueError('CRC32 checksum does not match the given data')
+            raise ValueError("CRC32 checksum does not match the given data")
         return self
 
     @classmethod
@@ -158,46 +158,46 @@ class Packet:
             packet specification.
 
         """
-        if data[:2] != b'BE':
-            raise ValueError('expected BE as start of header')
+        if data[:2] != b"BE":
+            raise ValueError("expected BE as start of header")
         elif data[6] != 255:
-            raise ValueError('expected 0xFF at end of header')
+            raise ValueError("expected 0xFF at end of header")
 
-        crc = int.from_bytes(data[2:6], 'little')
+        crc = int.from_bytes(data[2:6], "little")
 
         try:
             ptype = PacketType(data[7])
         except ValueError:
-            raise ValueError(f'unknown packet type: {data[7]}') from None
+            raise ValueError(f"unknown packet type: {data[7]}") from None
 
         if ptype is PacketType.LOGIN and from_client:
-            if b'\x00' in data[8:]:
-                raise ValueError('login password cannot have a null byte')
-            return ClientLoginPacket(data[8:].decode('ascii')).assert_checksum(crc)
+            if b"\x00" in data[8:]:
+                raise ValueError("login password cannot have a null byte")
+            return ClientLoginPacket(data[8:].decode("ascii")).assert_checksum(crc)
 
         elif ptype is PacketType.LOGIN and not from_client:
             if data[8] not in (0, 1):
-                raise ValueError('authentication byte must be 0 or 1')
+                raise ValueError("authentication byte must be 0 or 1")
             elif len(data[8:]) != 1:
-                raise ValueError('unexpected excess data after authentication byte')
+                raise ValueError("unexpected excess data after authentication byte")
             return ServerLoginPacket(bool(data[8])).assert_checksum(crc)
 
         elif ptype is PacketType.COMMAND and from_client:
             sequence = data[8]
-            command = data[9:].decode('ascii')
+            command = data[9:].decode("ascii")
             return ClientCommandPacket(sequence, command).assert_checksum(crc)
 
         elif ptype is PacketType.COMMAND and not from_client:
             sequence = data[8]
             if len(data) > 9 and data[9] == 0:
                 total, index = data[10], data[11]
-                response = data[12:].decode('ascii')
+                response = data[12:].decode("ascii")
             else:
                 total, index = 1, 0
-                response = data[9:].decode('ascii')
+                response = data[9:].decode("ascii")
 
             if index >= total:
-                raise ValueError(f'index ({index}) cannot equal or exceed total ({total})')
+                raise ValueError(f"index ({index}) cannot equal or exceed total ({total})")
             return ServerCommandPacket(sequence, total, index, response).assert_checksum(crc)
 
         elif ptype is PacketType.MESSAGE and from_client:
@@ -206,15 +206,15 @@ class Packet:
 
         elif ptype is PacketType.MESSAGE and not from_client:
             sequence = data[8]
-            message = data[9:].decode('ascii')
+            message = data[9:].decode("ascii")
             return ServerMessagePacket(sequence, message).assert_checksum(crc)
 
-        raise RuntimeError(f'unhandled PacketType enum: {ptype} (from_client: {from_client})')
+        raise RuntimeError(f"unhandled PacketType enum: {ptype} (from_client: {from_client})")
 
     @staticmethod
     def _encode_header(message: bytes):
-        crc = binascii.crc32(message).to_bytes(4, 'little')
-        return b'BE' + crc
+        crc = binascii.crc32(message).to_bytes(4, "little")
+        return b"BE" + crc
 
     @staticmethod
     def _get_initial_message(packet_type: PacketType) -> bytearray:
@@ -241,14 +241,14 @@ class ClientLoginPacket(ClientPacket):
     """
     def __init__(self, password: str):
         buffer = self._get_initial_message(PacketType.LOGIN)
-        buffer.extend(password.encode('ascii'))
+        buffer.extend(password.encode("ascii"))
 
         message = bytes(buffer)
         header = self._encode_header(message)
         super().__init__(header + message)
 
     def __repr__(self):
-        return '{}({!r})'.format(type(self).__name__, self.message)
+        return "{}({!r})".format(type(self).__name__, self.message)
 
     @property
     def login_success(self) -> None: ...
@@ -264,7 +264,7 @@ class ClientLoginPacket(ClientPacket):
 
     @property
     def message(self) -> str:
-        return self.data[8:].decode('ascii')
+        return self.data[8:].decode("ascii")
 
 
 class ClientCommandPacket(ClientPacket):
@@ -277,14 +277,14 @@ class ClientCommandPacket(ClientPacket):
     def __init__(self, sequence: int, command: str):
         buffer = self._get_initial_message(PacketType.COMMAND)
         buffer.append(sequence)
-        buffer.extend(command.encode('ascii'))
+        buffer.extend(command.encode("ascii"))
 
         message = bytes(buffer)
         header = self._encode_header(message)
         super().__init__(header + message)
 
     def __repr__(self):
-        return '{}({!r}, {!r})'.format(type(self).__name__, self.sequence, self.message)
+        return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
 
     @property
     def login_success(self) -> None: ...
@@ -301,7 +301,7 @@ class ClientCommandPacket(ClientPacket):
 
     @property
     def message(self) -> str:
-        return self.data[9:].decode('ascii')
+        return self.data[9:].decode("ascii")
 
 
 class ClientMessagePacket(ClientPacket):
@@ -319,7 +319,7 @@ class ClientMessagePacket(ClientPacket):
         super().__init__(header + message)
 
     def __repr__(self):
-        return '{}({!r})'.format(type(self).__name__, self.sequence)
+        return "{}({!r})".format(type(self).__name__, self.sequence)
 
     @property
     def login_success(self) -> None: ...
@@ -365,7 +365,7 @@ class ServerLoginPacket(ServerPacket):
         super().__init__(header + message)
 
     def __repr__(self):
-        return '{}({!r})'.format(type(self).__name__, self.login_success)
+        return "{}({!r})".format(type(self).__name__, self.login_success)
 
     @property
     def login_success(self) -> bool:
@@ -401,14 +401,14 @@ class ServerCommandPacket(ServerPacket):
         buffer.append(sequence)
         if total != 1:
             buffer.extend((0, total, index))
-        buffer.extend(response.encode('ascii'))
+        buffer.extend(response.encode("ascii"))
 
         message = bytes(buffer)
         header = self._encode_header(message)
         super().__init__(header + message)
 
     def __repr__(self):
-        return '{}({!r}, {!r}, {!r}, {!r})'.format(
+        return "{}({!r}, {!r}, {!r}, {!r})".format(
             type(self).__name__,
             self.sequence,
             self.total,
@@ -438,8 +438,8 @@ class ServerCommandPacket(ServerPacket):
     @property
     def message(self) -> str:
         if len(self.data) > 9 and self.data[9] == 0:
-            return self.data[12:].decode('ascii')
-        return self.data[9:].decode('ascii')
+            return self.data[12:].decode("ascii")
+        return self.data[9:].decode("ascii")
 
 
 class ServerMessagePacket(ServerPacket):
@@ -452,14 +452,14 @@ class ServerMessagePacket(ServerPacket):
     def __init__(self, sequence: int, message: str):
         buffer = self._get_initial_message(PacketType.MESSAGE)
         buffer.append(sequence)
-        buffer.extend(message.encode('ascii'))
+        buffer.extend(message.encode("ascii"))
 
         message = bytes(buffer)
         header = self._encode_header(message)
         super().__init__(header + message)
 
     def __repr__(self):
-        return '{}({!r}, {!r})'.format(type(self).__name__, self.sequence, self.message)
+        return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
 
     @property
     def login_success(self) -> None: ...
@@ -476,4 +476,4 @@ class ServerMessagePacket(ServerPacket):
 
     @property
     def message(self) -> str:
-        return self.data[9:].decode('ascii')
+        return self.data[9:].decode("ascii")

@@ -95,18 +95,18 @@ class RCONClientDatagramProtocol:
     def _dispatch_packet(self, packet: ServerPacket):
         if isinstance(packet, ServerLoginPacket):
             assert packet.login_success
-            self._dispatch('login')
+            self._dispatch("login")
         elif isinstance(packet, ServerCommandPacket):
             if packet.sequence in self._command_queue:
-                self._dispatch('command', packet.message)
+                self._dispatch("command", packet.message)
         elif isinstance(packet, ServerMessagePacket):
             # Ensure repeat messages are not redispatched
             if packet.sequence in self._received_sequences:
                 return
             self._received_sequences.append(packet.sequence)
-            self._dispatch('message', packet.message)
+            self._dispatch("message", packet.message)
         else:
-            raise RuntimeError(f'unhandled Packet type {type(packet)}')
+            raise RuntimeError(f"unhandled Packet type {type(packet)}")
 
     def _handle_multipart_packet(
         self, packet: ServerCommandPacket
@@ -117,7 +117,7 @@ class RCONClientDatagramProtocol:
         if len(seq) < packet.total:
             return
 
-        message = ''.join(p.message for p in seq)
+        message = "".join(p.message for p in seq)
         new_packet = ServerCommandPacket(
             packet.sequence, packet.total, packet.index, message
         )
@@ -138,7 +138,7 @@ class RCONClientDatagramProtocol:
         if addr is EMPTY:
             addr = self._addr
         self._transport.sendto(packet.data, addr)
-        log.debug(f'sent {packet.type.name} packet')
+        log.debug(f"sent {packet.type.name} packet")
 
         self._last_sent = time.monotonic()
         if isinstance(packet, ClientCommandPacket):
@@ -149,22 +149,22 @@ class RCONClientDatagramProtocol:
 
         if time.monotonic() - self._last_players > self.PLAYERS_INTERVAL:
             self._last_players = time.monotonic()
-            packet = ClientCommandPacket(sequence, 'players')
+            packet = ClientCommandPacket(sequence, "players")
             self._send(packet)
 
             asyncio.create_task(
                 self._wait_for_player_ping(sequence),
-                name=f'berconpy-ping-{sequence}'
+                name=f"berconpy-ping-{sequence}"
             )
         else:
-            packet = ClientCommandPacket(sequence, '')
+            packet = ClientCommandPacket(sequence, "")
             self._send(packet)
 
             # We don't care about the response itself, but we still
             # add it to _command_queue so `on_command` can ignore duplicates
             asyncio.create_task(
                 self._wait_for_ping(sequence),
-                name=f'berconpy-ping-{sequence}'
+                name=f"berconpy-ping-{sequence}"
             )
 
     async def _wait_for_ping(self, sequence: int):
@@ -270,8 +270,8 @@ class RCONClientDatagramProtocol:
             finally:
                 self._cancel_command(sequence)
 
-        log.warning(f'could not send command after {self.COMMAND_ATTEMPTS} attempts')
-        raise RCONCommandError(f'failed to send command: {command}')
+        log.warning(f"could not send command after {self.COMMAND_ATTEMPTS} attempts")
+        raise RCONCommandError(f"failed to send command: {command}")
 
     def _wait_for_command(self, sequence: int) -> asyncio.Future[str]:
         """Returns a future waiting for a command response with
@@ -310,7 +310,7 @@ class RCONClientDatagramProtocol:
             An error occurred while attempting to connect to the server.
 
         """
-        log.debug('attempting a new connection')
+        log.debug("attempting a new connection")
         if self.is_connected():
             self.disconnect()
 
@@ -347,8 +347,8 @@ class RCONClientDatagramProtocol:
         try:
             while not self._is_closing.done():
                 if self._is_logged_in is None or not self._is_logged_in.done():
-                    log.info('attempting to {re}connect to server'.format(
-                        re='re' * (not first_iteration)
+                    log.info("attempting to {re}connect to server".format(
+                        re="re" * (not first_iteration)
                     ))
 
                     if should_replace_future(self._is_logged_in):
@@ -369,8 +369,8 @@ class RCONClientDatagramProtocol:
                             # NOTE: we don't want to retry after a LoginFailure
                             # since that indicates invalid credentials
                             if i % 10 == 0:
-                                log.warning('failed {:,d} login attempt{s}'.format(
-                                    i + 1, s='s' * (i != 0)
+                                log.warning("failed {:,d} login attempt{s}".format(
+                                    i + 1, s="s" * (i != 0)
                                 ))
 
                             # exponential backoff
@@ -378,19 +378,19 @@ class RCONClientDatagramProtocol:
                             await asyncio.sleep(2 ** (i % 11))
 
                     if not self._is_logged_in.done():
-                        log.error('failed to connect to the server')
-                        raise LoginFailure('could not connect to the server')
+                        log.error("failed to connect to the server")
+                        raise LoginFailure("could not connect to the server")
                     elif self._is_logged_in.exception():
-                        log.error('password authentication was denied')
+                        log.error("password authentication was denied")
                         raise self._is_logged_in.exception()
 
                 if (overtime := time.monotonic() - self._last_received) > self.LAST_RECEIVED_TIMEOUT:
-                    log.info(f'server has timed out (last received {overtime:.0f} seconds ago)')
+                    log.info(f"server has timed out (last received {overtime:.0f} seconds ago)")
                     self.reset_cache()
                     self._is_logged_in = loop.create_future()
                     continue
                 elif time.monotonic() - self._last_command > self.KEEP_ALIVE_INTERVAL:
-                    log.debug('sending keep alive packet')
+                    log.debug("sending keep alive packet")
                     self._send_keep_alive()
 
                 await asyncio.sleep(self.RUN_INTERVAL)
@@ -407,26 +407,26 @@ class RCONClientDatagramProtocol:
     # DatagramProtocol
 
     def connection_made(self, transport):
-        log.debug('protocol has connected')
+        log.debug("protocol has connected")
 
     def connection_lost(self, exc: Exception | None):
         if exc:
-            log.error('protocol has disconnected with error', exc_info=exc)
+            log.error("protocol has disconnected with error", exc_info=exc)
         else:
-            log.debug('protocol has disconnected')
+            log.debug("protocol has disconnected")
 
     def datagram_received(self, data: bytes, addr):
         if addr != self._addr:
-            return log.debug(f'ignoring message from unknown address: {addr}')
+            return log.debug(f"ignoring message from unknown address: {addr}")
 
         try:
             packet: ServerPacket = Packet.from_bytes(data)
         except (IndexError, ValueError) as e:
-            return log.debug(f'ignoring malformed data with cause: {e}')
+            return log.debug(f"ignoring malformed data with cause: {e}")
 
         self._tick()
-        log.debug(f'{packet.type.name} received')
-        self._dispatch('raw_event', packet)
+        log.debug(f"{packet.type.name} received")
+        self._dispatch("raw_event", packet)
 
         if isinstance(packet, ServerLoginPacket):
             if self._is_logged_in.done():
@@ -437,7 +437,7 @@ class RCONClientDatagramProtocol:
                 self._dispatch_packet(packet)
             else:
                 self._is_logged_in.set_exception(
-                    LoginFailure('invalid password provided')
+                    LoginFailure("invalid password provided")
                 )
 
         elif isinstance(packet, ServerCommandPacket):
@@ -458,7 +458,7 @@ class RCONClientDatagramProtocol:
             self._send(ack, addr)
 
         else:
-            raise RuntimeError(f'unhandled Packet type {type(packet)}')
+            raise RuntimeError(f"unhandled Packet type {type(packet)}")
 
     def error_received(self, exc: OSError):
-        log.error('unusual error occurred during session', exc_info=exc)
+        log.error("unusual error occurred during session", exc_info=exc)

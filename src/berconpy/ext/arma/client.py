@@ -10,15 +10,15 @@ class AsyncArmaRCONClient(AsyncRCONClient):
 
     async def lock_server(self) -> str:
         """Locks the server and prevents new players from joining."""
-        return await self.send_command('#lock')
+        return await self.send_command("#lock")
 
     async def restart_and_reassign(self) -> str:
         """Restarts the mission and reassigns player roles."""
-        return await self.send_command('#reassign')
+        return await self.send_command("#reassign")
 
     async def restart_mission(self) -> str:
         """Restarts the currently running mission."""
-        return await self.send_command('#restart')
+        return await self.send_command("#restart")
 
     async def restart_server(self) -> str:
         """Tells the server to restart.
@@ -30,9 +30,9 @@ class AsyncArmaRCONClient(AsyncRCONClient):
             :py:meth:`~berconpy.AsyncRCONClient.close()` method.
 
         """
-        return await self.send_command('#restartserver')
+        return await self.send_command("#restartserver")
 
-    async def select_mission(self, mission: str, difficulty: str = '') -> str:
+    async def select_mission(self, mission: str, difficulty: str = "") -> str:
         """Selects a new mission for the server to load.
 
         :param mission:
@@ -44,7 +44,7 @@ class AsyncArmaRCONClient(AsyncRCONClient):
             difficulty is reused.
 
         """
-        return await self.send_command(f'#mission {mission} {difficulty}'.rstrip())
+        return await self.send_command(f"#mission {mission} {difficulty}".rstrip())
 
     async def shutdown_server(self) -> str:
         """Tells the server to shut down.
@@ -56,8 +56,8 @@ class AsyncArmaRCONClient(AsyncRCONClient):
             :py:meth:`~berconpy.AsyncRCONClient.close()` method.
 
         """
-        return await self.send_command('#shutdown')
+        return await self.send_command("#shutdown")
 
     async def unlock_server(self) -> str:
         """Unlocks the server and allows new players to join."""
-        return await self.send_command('#unlock')
+        return await self.send_command("#unlock")

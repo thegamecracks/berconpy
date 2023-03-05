@@ -4,14 +4,14 @@ import logging
 
 import berconpy as rcon
 
-IP_ADDR = 'XXX.XXX.XXX.XXX'
+IP_ADDR = "XXX.XXX.XXX.XXX"
 PORT = 9999
-PASSWORD = 'ASCII_PASSWORD'
+PASSWORD = "ASCII_PASSWORD"
 
-log = logging.getLogger('berconpy')
+log = logging.getLogger("berconpy")
 log.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
 log.addHandler(handler)
 
 client = rcon.AsyncRCONClient()
@@ -23,42 +23,42 @@ async def ainput():
 
 @client.listen()
 async def on_admin_login(admin_id: int, addr: str):
-    print(f'Admin #{admin_id} logged in')
+    print(f"Admin #{admin_id} logged in")
 
 
 @client.listen()
 async def on_player_connect(player: rcon.Player):
-    print(f'Player #{player.id} {player.name} connected')
+    print(f"Player #{player.id} {player.name} connected")
 
 
 @client.listen()
 async def on_player_disconnect(player: rcon.Player):
-    print(f'Player #{player.id} {player.name} disconnected')
+    print(f"Player #{player.id} {player.name} disconnected")
 
 
 @client.listen()
 async def on_player_kick(player: rcon.Player, reason: str):
-    print(f'Player #{player.id} {player.name} was kicked: {reason}')
+    print(f"Player #{player.id} {player.name} was kicked: {reason}")
 
 
 @client.listen()
 async def on_admin_message(admin_id: int, channel: str, message: str):
-    print(f'({channel}) Admin #{admin_id}: {message}')
+    print(f"({channel}) Admin #{admin_id}: {message}")
 
 
 @client.listen()
 async def on_player_message(player: rcon.Player, channel: str, message: str):
-    print(f'({channel}) {player.name}: {message}')
+    print(f"({channel}) {player.name}: {message}")
 
 
 async def main():
     async with client.connect(IP_ADDR, PORT, PASSWORD):
-        print(await client.send_command('commands'))
+        print(await client.send_command("commands"))
 
         while True:
             command = await ainput()
 
-            if command.lower() == '#players':
+            if command.lower() == "#players":
                 for p in client.players:
                     print(repr(p))
             else:
@@ -70,5 +70,5 @@ async def main():
                     print(response)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     asyncio.run(main())

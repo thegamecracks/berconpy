@@ -29,21 +29,21 @@ class RCONServerDatagramProtocol(RCONClientDatagramProtocol):
     # DatagramProtocol
 
     def connection_made(self, transport):
-        log.info(f'{self.name}: ready to accept connections')
+        log.info(f"{self.name}: ready to accept connections")
 
     def connection_lost(self, exc: Exception | None):
         if exc:
-            log.error(f'{self.name}: connection has closed with error', exc_info=exc)
+            log.error(f"{self.name}: connection has closed with error", exc_info=exc)
         else:
-            log.info(f'{self.name}: connection has been closed')
+            log.info(f"{self.name}: connection has been closed")
 
     def datagram_received(self, data: bytes, addr):
         try:
             packet: Packet = Packet.from_bytes(data, from_client=True)
         except (IndexError, ValueError) as e:
-            return log.debug(f'{self.name}: failed to decode received data: {e}')
+            return log.debug(f"{self.name}: failed to decode received data: {e}")
 
-        log.debug(f'{self.name}: {packet.type.name} packet received')
+        log.debug(f"{self.name}: {packet.type.name} packet received")
 
         if isinstance(packet, ClientLoginPacket):
             ack = ServerLoginPacket(packet.message == self.server.password)
@@ -52,7 +52,7 @@ class RCONServerDatagramProtocol(RCONClientDatagramProtocol):
             self._send(packet, addr)  # echoing technically works
 
     def error_received(self, exc: OSError):
-        log.error(f'{self.name}: unusual error occurred during session', exc_info=exc)
+        log.error(f"{self.name}: unusual error occurred during session", exc_info=exc)
 
 
 class AsyncRCONServer(AsyncRCONClient):

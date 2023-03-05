@@ -54,15 +54,15 @@ Let's start with an example of how to send a command:
     import asyncio
     import berconpy as rcon
 
-    IP_ADDR = 'XXX.XXX.XXX.XXX'
+    IP_ADDR = "XXX.XXX.XXX.XXX"
     PORT = 9999
-    PASSWORD = 'ASCII_PASSWORD'
+    PASSWORD = "ASCII_PASSWORD"
 
     client = rcon.AsyncRCONClient()
 
     async def main():
         async with client.connect(IP_ADDR, PORT, PASSWORD):
-            response = await client.send_command('players')
+            response = await client.send_command("players")
             print(response)
 
     asyncio.run(main())
@@ -81,7 +81,7 @@ Let's start with an example of how to send a command:
    and log into the RCON server. The context manager also keeps the connection
    alive until you exit it, or an error occurs.
 
-3. ``response = await client.send_command('players')`` requests the
+3. ``response = await client.send_command("players")`` requests the
    players currently connected to the server and returns a string.
 
 :py:meth:`~berconpy.AsyncRCONClient.send_command()` provides a low-level
@@ -103,15 +103,15 @@ in real-time. Below is an example of displaying in-game messages from players:
     import math
     import berconpy as rcon
 
-    IP_ADDR = 'XXX.XXX.XXX.XXX'
+    IP_ADDR = "XXX.XXX.XXX.XXX"
     PORT = 9999
-    PASSWORD = 'ASCII_PASSWORD'
+    PASSWORD = "ASCII_PASSWORD"
 
     client = rcon.AsyncRCONClient()
 
     @client.listen()
     async def on_player_message(player: rcon.Player, channel: str, message: str):
-        print(f'({channel}) {player.name}: {message}')
+        print(f"({channel}) {player.name}: {message}")
 
     async def main():
         async with client.connect(IP_ADDR, PORT, PASSWORD):
@@ -170,10 +170,10 @@ Log berconpy warnings to ``berconpy.log``:
 
     import logging
 
-    log = logging.getLogger('berconpy')
+    log = logging.getLogger("berconpy")
     log.setLevel(logging.WARNING)
-    handler = logging.FileHandler('berconpy.log', 'w')
-    handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+    handler = logging.FileHandler("berconpy.log", "w")
+    handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
     log.addHandler(handler)
 
 Next Steps

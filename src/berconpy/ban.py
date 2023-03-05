@@ -43,11 +43,11 @@ class Ban:
     def __repr__(self):
         attrs = (
             (k, repr(getattr(self, k)))
-            for k in ('id', 'duration', 'reason')
+            for k in ("id", "duration", "reason")
         )
-        return '<{} {}>'.format(
+        return "<{} {}>".format(
             type(self).__name__,
-            ' '.join('='.join(pair) for pair in attrs)
+            " ".join("=".join(pair) for pair in attrs)
         )
 
     def __str__(self):

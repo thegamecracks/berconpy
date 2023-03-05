@@ -2,7 +2,7 @@ import inspect
 from typing import Callable, Coroutine, Iterable, TypeVar
 
 EMPTY = object()
-T = TypeVar('T')
+T = TypeVar("T")
 
 CoroFunc = Callable[..., Coroutine]
 MaybeCoroFunc = CoroFunc | Callable

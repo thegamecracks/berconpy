@@ -11,8 +11,8 @@ Welcome to berconpy's documentation!
    client = AsyncRCONClient()
 
    async def main():
-       async with client.connect('ip', 9999, 'password'):
-           await client.send('Hello world!')
+       async with client.connect("ip", 9999, "password"):
+           await client.send("Hello world!")
 
    asyncio.run(main())
 

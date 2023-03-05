@@ -7,9 +7,9 @@ if TYPE_CHECKING:
 class Player:
     """Represents a player in the server."""
     __slots__ = (
-        '__weakref__',
-        'client', 'id', 'name', 'guid', 'addr',
-        'is_guid_valid', 'in_lobby'
+        "__weakref__",
+        "client", "id", "name", "guid", "addr",
+        "is_guid_valid", "in_lobby"
     )
 
     client: "AsyncRCONClient"
@@ -66,11 +66,11 @@ class Player:
     def __repr__(self):
         attrs = (
             (k, repr(getattr(self, k)))
-            for k in ('id', 'name', 'is_guid_valid', 'in_lobby')
+            for k in ("id", "name", "is_guid_valid", "in_lobby")
         )
-        return '<{} {}>'.format(
+        return "<{} {}>".format(
             type(self).__name__,
-            ' '.join('='.join(pair) for pair in attrs)
+            " ".join("=".join(pair) for pair in attrs)
         )
 
     def __str__(self):
@@ -88,21 +88,21 @@ class Player:
         """
         return self.client._player_pings.get(self, -1)
 
-    async def ban_guid(self, duration: int = None, reason: str = ''):
+    async def ban_guid(self, duration: int = None, reason: str = ""):
         """Bans the player from the server using their GUID."""
         # NOTE: ban #ID does the same as adding the player's GUID
         await self.client.ban(self.guid, duration, reason)
 
-    async def ban_ip(self, duration: int = None, reason: str = ''):
+    async def ban_ip(self, duration: int = None, reason: str = ""):
         """Bans the player from the server using their IP."""
-        ip = self.addr.split(':')[0]
+        ip = self.addr.split(":")[0]
         await self.client.ban(ip, duration, reason)
 
     def is_connected(self) -> bool:
         """Checks if the player is still in the client's cache."""
         return self.id in self.client._players
 
-    async def kick(self, reason: str = ''):
+    async def kick(self, reason: str = ""):
         """Kicks the player from the server.
 
         :param reason: An optional reason to display when kicking the player.

@@ -20,17 +20,17 @@ import berconpy
 
 client = berconpy.AsyncRCONClient()
 
-IP = 'XXX.XXX.XXX.XXX'
+IP = "XXX.XXX.XXX.XXX"
 PORT = 9999
-PASSWORD = 'ASCII_PASSWORD'
+PASSWORD = "ASCII_PASSWORD"
 
 @client.listen()
 async def on_login():
-    print('We have logged in!')
+    print("We have logged in!")
 
 async def main():
     async with client.connect(IP, PORT, PASSWORD):
-        players = await client.send_command('players')
+        players = await client.send_command("players")
         print(players)
 
 asyncio.run(main())
