@@ -50,9 +50,6 @@ class Ban:
             " ".join("=".join(pair) for pair in attrs)
         )
 
-    def __str__(self):
-        return self.name
-
     async def unban(self):
         """Removes this ban from the server."""
         # Since ban indices are non-unique, we need to match the identifier
