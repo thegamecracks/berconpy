@@ -40,7 +40,7 @@ _PLAYER_MESSAGE = re.compile(
 # Command responses
 _ADMINS_ROW = re.compile(r"(?P<id>\d+) +(?P<addr>.*?:\d+)")
 _BANS_ROW = re.compile(
-    r"(?P<index>\d+) +(?P<id>[\w.]+) +"
+    r"(?P<index>\d+) +(?P<ban_id>[\w.]+) +"
     r"(?P<duration>\d+|-|perm) +(?P<reason>.*)"
 )
 _PLAYERS_ROW = re.compile(
