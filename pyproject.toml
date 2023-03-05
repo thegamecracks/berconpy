@@ -19,9 +19,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: System :: Networking",
 ]
-dependencies = [
-    "typing-extensions>=4.0.0",
-]
 dynamic = ["version"]
 
 [tool.setuptools.dynamic]
@@ -29,6 +26,7 @@ version = {attr = "berconpy.__version__"}
 
 [project.optional-dependencies]
 docs = ["sphinx>=5.1.1", "sphinx-autodoc-typehints>=1.19.2"]
+types = ["typing-extensions>=4.0.0"]
 
 [project.urls]
 "Homepage" = "https://github.com/thegamecracks/berconpy"
