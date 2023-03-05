@@ -54,7 +54,7 @@ def _get_pattern_args(m: re.Match) -> tuple:
 
 
 def _get_pattern_kwargs(m: re.Match) -> dict:
-    int_keys = ("id", "ping")
+    int_keys = ("id", "index", "ping")
     kwargs = m.groupdict()
 
     for k in int_keys:
