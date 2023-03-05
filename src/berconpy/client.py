@@ -19,7 +19,7 @@ from .events import (
     parse_bans,
     parse_players,
 )
-from .. import utils
+from . import utils
 
 if TYPE_CHECKING:
     from typing import AsyncContextManager, Awaitable, ContextManager

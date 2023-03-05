@@ -4,13 +4,13 @@ from typing import TYPE_CHECKING
 
 from .player import Player
 from ..cache import RCONClientCache
+from ..errors import RCONCommandError
 from ..events import (
     ParsedPlayer,
     PlayerConnect,
     PlayerGUID,
     PlayerVerifyGUID,
 )
-from ...errors import RCONCommandError
 
 if TYPE_CHECKING:
     from .client import AsyncRCONClient

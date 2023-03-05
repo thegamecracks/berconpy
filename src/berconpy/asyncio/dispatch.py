@@ -3,7 +3,7 @@ import collections
 import logging
 
 from ..dispatch import RCONClientDispatch
-from ...utils import MaybeCoroFunc, maybe_coro
+from ..utils import MaybeCoroFunc, maybe_coro
 
 log = logging.getLogger(__name__)
 

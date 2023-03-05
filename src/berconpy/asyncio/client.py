@@ -8,8 +8,8 @@ from .cache import AsyncRCONClientCache
 from .dispatch import AsyncEventDispatch
 from .player import Player
 from ..client import RCONClient
-from ...errors import RCONCommandError
-from ...old_protocol import RCONClientDatagramProtocol
+from ..errors import RCONCommandError
+from ..old_protocol import RCONClientDatagramProtocol
 
 log = logging.getLogger(__name__)
 
