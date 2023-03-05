@@ -14,7 +14,7 @@ class Ban:
     client: "AsyncRCONClient" = field(compare=True, hash=True)
     """The client that created this object."""
 
-    index: int                = field(compare=True, hash=True)
+    index: int = field(compare=True, hash=True)
     """
     The index assigned to this ban by the server.
 
@@ -22,14 +22,14 @@ class Ban:
     be reliably used for unbanning.
     """
 
-    id: str                   = field(compare=False, hash=False)
+    id: str = field(compare=False, hash=False)
     """
     The player identifier this ban affects.
 
     This can be either a BattlEye GUID or an IP address.
     """
 
-    duration: int | None      = field(compare=False, hash=False)
+    duration: int | None = field(compare=False, hash=False)
     """
     The duration of the ban in minutes.
 
@@ -37,17 +37,13 @@ class Ban:
     If the ban is permanent, this will be ``None``.
     """
 
-    reason: str               = field(compare=False, hash=False)
+    reason: str = field(compare=False, hash=False)
     """The reason given for the ban."""
 
     def __repr__(self):
-        attrs = (
-            (k, repr(getattr(self, k)))
-            for k in ("id", "duration", "reason")
-        )
+        attrs = ((k, repr(getattr(self, k))) for k in ("id", "duration", "reason"))
         return "<{} {}>".format(
-            type(self).__name__,
-            " ".join("=".join(pair) for pair in attrs)
+            type(self).__name__, " ".join("=".join(pair) for pair in attrs)
         )
 
     async def unban(self):

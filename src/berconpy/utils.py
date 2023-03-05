@@ -17,6 +17,7 @@ def find(iterable: Iterable[T], predicate: Callable[[T], bool]) -> T | None:
 
 def get(iterable: Iterable[T], **attrs) -> T | None:
     """Returns the first item in the iterable that matches the given attributes."""
+
     def predicate(item: T):
         for attr, expected in attrs.items():
             value = getattr(item, attr)

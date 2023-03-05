@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 def _prepare_canceller(
     protocol: RCONClientDatagramProtocol,
     running_task: asyncio.Task,
-    current_task: asyncio.Task | None = None
+    current_task: asyncio.Task | None = None,
 ):
     """Adds a callback to the task running the protocol to cancel
     the current task if the running task completes with an exception.
@@ -40,6 +40,7 @@ def _prepare_canceller(
     closing future exists for the canceller to suppress exceptions from it.
 
     """
+
     def _actual_canceller(_):
         if closing.exception() is not None:
             current_task.cancel()
@@ -48,7 +49,9 @@ def _prepare_canceller(
     # suppress the future exception if the protocol closed with one
     closing = protocol._is_closing
     if closing is None:
-        raise RuntimeError("cannot set up canceller before/after protocol has finished running")
+        raise RuntimeError(
+            "cannot set up canceller before/after protocol has finished running"
+        )
 
     current_task = current_task or asyncio.current_task()
     running_task.add_done_callback(_actual_canceller)
@@ -73,7 +76,7 @@ class AsyncRCONClient:
 
     def __init__(
         self,
-        protocol_cls=RCONClientDatagramProtocol
+        protocol_cls=RCONClientDatagramProtocol,
     ):
         self._protocol = protocol_cls(self)
         self._protocol_task: asyncio.Task | None = None
@@ -174,6 +177,7 @@ class AsyncRCONClient:
             is used as the event name.
 
         """
+
         def decorator(func: CoroFunc):
             self._event_listeners[event or func.__name__].append(func)
             return func
@@ -191,7 +195,12 @@ class AsyncRCONClient:
         self._temporary_listeners[event].append((fut, predicate))
         return fut
 
-    def _remove_temporary_listener(self, event: str, fut: asyncio.Future, pred: MaybeCoroFunc):
+    def _remove_temporary_listener(
+        self,
+        event: str,
+        fut: asyncio.Future,
+        pred: MaybeCoroFunc,
+    ):
         listeners = self._temporary_listeners[event]
         e = (fut, pred)
 
@@ -201,9 +210,11 @@ class AsyncRCONClient:
             pass
 
     async def wait_for(
-        self, event: str, *,
+        self,
+        event: str,
+        *,
         check: MaybeCoroFunc | None = None,
-        timeout: float | int | None = None
+        timeout: float | int | None = None,
     ):
         """Waits for a specific event to occur and returns the result.
 
@@ -257,7 +268,6 @@ class AsyncRCONClient:
             fut.set_result(args)
             self._remove_temporary_listener(event, fut, pred)
 
-
     def _dispatch(self, event: str, *args):
         """Dispatches a message to the corresponding event listeners.
 
@@ -268,15 +278,12 @@ class AsyncRCONClient:
         event = "on_" + event
 
         for func in self._event_listeners[event]:
-            asyncio.create_task(
-                func(*args),
-                name=f"berconpy-{event}"
-            )
+            asyncio.create_task(func(*args), name=f"berconpy-{event}")
 
         for fut, pred in self._temporary_listeners[event]:
             asyncio.create_task(
                 self._try_dispatch_temporary(event, fut, pred, *args),
-                name=f"berconpy-temp-{event}"
+                name=f"berconpy-temp-{event}",
             )
 
     # Connection methods
@@ -490,8 +497,10 @@ class AsyncRCONClient:
             try:
                 await self.fetch_players()
             except RCONCommandError:
-                log.warning("failed to receive players from server; "
-                            "player cache will not be available")
+                log.warning(
+                    "failed to receive players from server; "
+                    "player cache will not be available"
+                )
 
     def _get_pending_player(self, player_id: int) -> Player | None:
         return self._incomplete_players.get(player_id) or self._players.get(player_id)
@@ -518,7 +527,7 @@ class AsyncRCONClient:
 
         asyncio.create_task(
             self._delayed_push_to_cache(payload.id),
-            name=f"berconpy-arma-push-to-cache-{payload.id}"
+            name=f"berconpy-arma-push-to-cache-{payload.id}",
         )
 
         return p

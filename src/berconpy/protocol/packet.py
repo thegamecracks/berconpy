@@ -11,9 +11,16 @@ import functools
 from typing import Type
 
 __all__ = (
-    "PacketType", "Packet", "ClientPacket", "ServerPacket",
-    "ClientLoginPacket", "ClientCommandPacket", "ClientMessagePacket",
-    "ServerLoginPacket", "ServerCommandPacket", "ServerMessagePacket"
+    "PacketType",
+    "Packet",
+    "ClientPacket",
+    "ServerPacket",
+    "ClientLoginPacket",
+    "ClientCommandPacket",
+    "ClientMessagePacket",
+    "ServerLoginPacket",
+    "ServerCommandPacket",
+    "ServerMessagePacket",
 )
 
 
@@ -55,6 +62,7 @@ class PacketType(enum.Enum):
     .. _typestates: https://en.wikipedia.org/wiki/Typestate_analysis
 
     """
+
     LOGIN = 0x00
     """Used for the login process initiated by the client."""
 
@@ -89,6 +97,7 @@ class Packet:
     :param data: The binary data contained by the packet.
 
     """
+
     __slots__ = ("data",)
 
     def __init__(self, data: bytes):
@@ -224,8 +233,11 @@ class Packet:
                 response = data[9:].decode("ascii")
 
             if index >= total:
-                raise ValueError(f"index ({index}) cannot equal or exceed total ({total})")
-            return ServerCommandPacket(sequence, total, index, response).assert_checksum(crc)
+                raise ValueError(
+                    f"index ({index}) cannot equal or exceed total ({total})"
+                )
+            packet = ServerCommandPacket(sequence, total, index, response)
+            return packet.assert_checksum(crc)
 
         elif ptype is PacketType.MESSAGE and from_client:
             sequence = data[8]
@@ -236,7 +248,9 @@ class Packet:
             message = data[9:].decode("ascii")
             return ServerMessagePacket(sequence, message).assert_checksum(crc)
 
-        raise RuntimeError(f"unhandled PacketType enum: {ptype} (from_client: {from_client})")
+        raise RuntimeError(
+            f"unhandled PacketType enum: {ptype} (from_client: {from_client})"
+        )
 
     @staticmethod
     def _encode_header(message: bytes):
@@ -266,6 +280,7 @@ class ClientLoginPacket(ClientPacket):
     :param password: The password to use when logging in.
 
     """
+
     def __init__(self, password: str):
         buffer = self._get_initial_message(PacketType.LOGIN)
         buffer.extend(password.encode("ascii"))
@@ -278,16 +293,20 @@ class ClientLoginPacket(ClientPacket):
         return "{}({!r})".format(type(self).__name__, self.message)
 
     @property
-    def login_success(self) -> None: ...
+    def login_success(self) -> None:
+        ...
 
     @property
-    def sequence(self) -> None: ...
+    def sequence(self) -> None:
+        ...
 
     @property
-    def total(self) -> None: ...
+    def total(self) -> None:
+        ...
 
     @property
-    def index(self) -> None: ...
+    def index(self) -> None:
+        ...
 
     @property
     def message(self) -> str:
@@ -301,6 +320,7 @@ class ClientCommandPacket(ClientPacket):
     :param command: The command to send to the server.
 
     """
+
     def __init__(self, sequence: int, command: str):
         buffer = self._get_initial_message(PacketType.COMMAND)
         buffer.append(sequence)
@@ -314,17 +334,20 @@ class ClientCommandPacket(ClientPacket):
         return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
 
     @property
-    def login_success(self) -> None: ...
+    def login_success(self) -> None:
+        ...
 
     @property
     def sequence(self) -> int:
         return self.data[8]
 
     @property
-    def total(self) -> None: ...
+    def total(self) -> None:
+        ...
 
     @property
-    def index(self) -> None: ...
+    def index(self) -> None:
+        ...
 
     @property
     def message(self) -> str:
@@ -337,6 +360,7 @@ class ClientMessagePacket(ClientPacket):
     :param sequence: The sequence number of the message being acknowledged.
 
     """
+
     def __init__(self, sequence: int):
         buffer = self._get_initial_message(PacketType.MESSAGE)
         buffer.append(sequence)
@@ -349,20 +373,24 @@ class ClientMessagePacket(ClientPacket):
         return "{}({!r})".format(type(self).__name__, self.sequence)
 
     @property
-    def login_success(self) -> None: ...
+    def login_success(self) -> None:
+        ...
 
     @property
     def sequence(self) -> int:
         return self.data[8]
 
     @property
-    def total(self) -> None: ...
+    def total(self) -> None:
+        ...
 
     @property
-    def index(self) -> None: ...
+    def index(self) -> None:
+        ...
 
     @property
-    def message(self) -> None: ...
+    def message(self) -> None:
+        ...
 
 
 class ServerPacket(Packet):
@@ -383,6 +411,7 @@ class ServerLoginPacket(ServerPacket):
     :param success: Indicates if the server has authenticated the client.
 
     """
+
     def __init__(self, success: bool):
         buffer = self._get_initial_message(PacketType.LOGIN)
         buffer.append(1 if success else 0)
@@ -399,16 +428,20 @@ class ServerLoginPacket(ServerPacket):
         return bool(self.data[8])
 
     @property
-    def sequence(self) -> None: ...
+    def sequence(self) -> None:
+        ...
 
     @property
-    def total(self) -> None: ...
+    def total(self) -> None:
+        ...
 
     @property
-    def index(self) -> None: ...
+    def index(self) -> None:
+        ...
 
     @property
-    def message(self) -> None: ...
+    def message(self) -> None:
+        ...
 
 
 class ServerCommandPacket(ServerPacket):
@@ -423,6 +456,7 @@ class ServerCommandPacket(ServerPacket):
         multiple packets.
 
     """
+
     def __init__(self, sequence: int, total: int, index: int, response: str):
         buffer = self._get_initial_message(PacketType.COMMAND)
         buffer.append(sequence)
@@ -436,15 +470,12 @@ class ServerCommandPacket(ServerPacket):
 
     def __repr__(self):
         return "{}({!r}, {!r}, {!r}, {!r})".format(
-            type(self).__name__,
-            self.sequence,
-            self.total,
-            self.index,
-            self.message
+            type(self).__name__, self.sequence, self.total, self.index, self.message
         )
 
     @property
-    def login_success(self) -> None: ...
+    def login_success(self) -> None:
+        ...
 
     @property
     def sequence(self) -> int:
@@ -476,6 +507,7 @@ class ServerMessagePacket(ServerPacket):
     :param message: The contents contained in the message.
 
     """
+
     def __init__(self, sequence: int, message: str):
         buffer = self._get_initial_message(PacketType.MESSAGE)
         buffer.append(sequence)
@@ -489,17 +521,20 @@ class ServerMessagePacket(ServerPacket):
         return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
 
     @property
-    def login_success(self) -> None: ...
+    def login_success(self) -> None:
+        ...
 
     @property
     def sequence(self) -> int:
         return self.data[8]
 
     @property
-    def total(self) -> None: ...
+    def total(self) -> None:
+        ...
 
     @property
-    def index(self) -> None: ...
+    def index(self) -> None:
+        ...
 
     @property
     def message(self) -> str:

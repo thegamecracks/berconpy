@@ -108,9 +108,7 @@ class RCONClientDatagramProtocol:
         else:
             raise RuntimeError(f"unhandled Packet type {type(packet)}")
 
-    def _handle_multipart_packet(
-        self, packet: ServerCommandPacket
-    ) -> str | None:
+    def _handle_multipart_packet(self, packet: ServerCommandPacket) -> str | None:
         seq = self._multipart_packets[packet.sequence]
         seq.append(packet)
 
@@ -154,7 +152,7 @@ class RCONClientDatagramProtocol:
 
             asyncio.create_task(
                 self._wait_for_player_ping(sequence),
-                name=f"berconpy-ping-{sequence}"
+                name=f"berconpy-ping-{sequence}",
             )
         else:
             packet = ClientCommandPacket(sequence, "")
@@ -164,14 +162,14 @@ class RCONClientDatagramProtocol:
             # add it to _command_queue so `on_command` can ignore duplicates
             asyncio.create_task(
                 self._wait_for_ping(sequence),
-                name=f"berconpy-ping-{sequence}"
+                name=f"berconpy-ping-{sequence}",
             )
 
     async def _wait_for_ping(self, sequence: int):
         try:
             return await asyncio.wait_for(
                 self._wait_for_command(sequence),
-                timeout=5
+                timeout=5,
             )
         except asyncio.TimeoutError:
             pass
@@ -207,7 +205,7 @@ class RCONClientDatagramProtocol:
 
         done, pending = await asyncio.wait(
             (self._is_logged_in, self._is_closing),
-            return_when=asyncio.FIRST_COMPLETED
+            return_when=asyncio.FIRST_COMPLETED,
         )
 
         return done.pop().result()
@@ -263,7 +261,7 @@ class RCONClientDatagramProtocol:
                 # an InvalidStateError.
                 return await asyncio.wait_for(
                     asyncio.shield(self._wait_for_command(sequence)),
-                    timeout=self.COMMAND_INTERVAL
+                    timeout=self.COMMAND_INTERVAL,
                 )
             except asyncio.TimeoutError:
                 pass
@@ -317,7 +315,7 @@ class RCONClientDatagramProtocol:
         loop = asyncio.get_running_loop()
         self._transport, _ = await loop.create_datagram_endpoint(
             lambda: self,  # type: ignore
-            remote_addr=self._addr
+            remote_addr=self._addr,
         )
 
         return await self._authenticate(password)
@@ -347,9 +345,11 @@ class RCONClientDatagramProtocol:
         try:
             while not self._is_closing.done():
                 if self._is_logged_in is None or not self._is_logged_in.done():
-                    log.info("attempting to {re}connect to server".format(
-                        re="re" * (not first_iteration)
-                    ))
+                    log.info(
+                        "attempting to {re}connect to server".format(
+                            re="re" * (not first_iteration)
+                        )
+                    )
 
                     if should_replace_future(self._is_logged_in):
                         self._is_logged_in = loop.create_future()
@@ -362,16 +362,18 @@ class RCONClientDatagramProtocol:
                         try:
                             await asyncio.wait_for(
                                 self.connect(password),
-                                timeout=self.CONNECTION_TIMEOUT
+                                timeout=self.CONNECTION_TIMEOUT,
                             )
                             break
                         except (asyncio.TimeoutError, OSError):
                             # NOTE: we don't want to retry after a LoginFailure
                             # since that indicates invalid credentials
                             if i % 10 == 0:
-                                log.warning("failed {:,d} login attempt{s}".format(
-                                    i + 1, s="s" * (i != 0)
-                                ))
+                                log.warning(
+                                    "failed {:,d} login attempt{s}".format(
+                                        i + 1, s="s" * (i != 0)
+                                    )
+                                )
 
                             # exponential backoff
                             self.disconnect()
@@ -384,8 +386,11 @@ class RCONClientDatagramProtocol:
                         log.error("password authentication was denied")
                         raise exc
 
-                if (overtime := time.monotonic() - self._last_received) > self.LAST_RECEIVED_TIMEOUT:
-                    log.info(f"server has timed out (last received {overtime:.0f} seconds ago)")
+                overtime = time.monotonic() - self._last_received
+                if overtime > self.LAST_RECEIVED_TIMEOUT:
+                    log.info(
+                        f"server has timed out (last received {overtime:.0f} seconds ago)"
+                    )
                     self.reset_cache()
                     self._is_logged_in = loop.create_future()
                     continue

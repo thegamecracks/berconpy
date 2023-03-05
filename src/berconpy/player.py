@@ -6,10 +6,16 @@ if TYPE_CHECKING:
 
 class Player:
     """Represents a player in the server."""
+
     __slots__ = (
         "__weakref__",
-        "client", "id", "name", "guid", "addr",
-        "is_guid_valid", "in_lobby"
+        "client",
+        "id",
+        "name",
+        "guid",
+        "addr",
+        "is_guid_valid",
+        "in_lobby",
     )
 
     client: "AsyncRCONClient"
@@ -43,9 +49,14 @@ class Player:
     """
 
     def __init__(
-        self, client: "AsyncRCONClient",
-        id: int, name: str, guid: str, addr: str,
-        is_guid_valid: bool, in_lobby: bool
+        self,
+        client: "AsyncRCONClient",
+        id: int,
+        name: str,
+        guid: str,
+        addr: str,
+        is_guid_valid: bool,
+        in_lobby: bool,
     ):
         self.client = client
         self.id = id
@@ -69,8 +80,7 @@ class Player:
             for k in ("id", "name", "is_guid_valid", "in_lobby")
         )
         return "<{} {}>".format(
-            type(self).__name__,
-            " ".join("=".join(pair) for pair in attrs)
+            type(self).__name__, " ".join("=".join(pair) for pair in attrs)
         )
 
     def __str__(self):
