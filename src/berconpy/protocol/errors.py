@@ -1,9 +1,11 @@
 from typing import Generic, TypeVar
 
+from ..errors import RCONError
+
 T = TypeVar("T")
 
 
-class InvalidStateError(Exception, Generic[T]):
+class InvalidStateError(RCONError, Generic[T]):
     """The current state of the protocol does not match the expected states."""
 
     def __init__(self, current_state: T, expected_states: tuple[T]):
