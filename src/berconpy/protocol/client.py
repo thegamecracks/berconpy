@@ -140,12 +140,14 @@ class RCONClientProtocol(RCONGenericProtocol):
 
         This should be called whenever a command times out.
 
+        If the command sequence was not queued before, this is a no-op.
+
         :raises InvalidStateError:
             This method can only be called after being logged in.
 
         """
         self._assert_state(ClientState.LOGGED_IN)
-        del self._command_queue[sequence]
+        self._command_queue.pop(sequence, None)
 
     def reset(self) -> None:
         """Resets the protocol to the beginning state.
