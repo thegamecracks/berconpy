@@ -37,14 +37,15 @@ class RCONClient(ABC):
     def __init__(
         self,
         *,
-        cache_cls: Type[RCONClientCache],
+        cache: RCONClientCache,
         dispatch: EventDispatcher,
     ):
         """
-        :param cache_cls: The cache class to use for the client.
+        :param cache: The cache to use for the client.
         :param dispatch: The dispatcher object to use for transmitting events.
         """
-        self.cache = cache_cls(self)
+        self.cache = cache
+        self.cache.client = self
         self.dispatch = dispatch
         self.dispatch.add_listener("on_message", self.on_message)
 

@@ -33,8 +33,17 @@ def maybe_replace_future(fut: asyncio.Future | None) -> asyncio.Future:
 class AsyncClientProtocol(ABC):
     LAST_RECEIVED_TIMEOUT = 45  # don't change, specified by protocol
 
-    def __init__(self, client: "AsyncRCONClient"):
-        self.client = client
+    _client: "AsyncRCONClient | None" = None
+
+    @property
+    def client(self) -> "AsyncRCONClient | None":
+        return self._client
+
+    @client.setter
+    def client(self, new_client: "AsyncRCONClient | None") -> None:
+        if new_client is not None:
+            new_client = weakref.proxy(new_client)
+        self._client = new_client
 
     @abstractmethod
     def close(self) -> None:
@@ -220,7 +229,6 @@ class AsyncClientConnector(AsyncClientProtocol):
 
     def __init__(
         self,
-        client: "AsyncRCONClient",
         *,
         commander: AsyncCommander | None = None,
         config: ConnectorConfig | None = None,
@@ -233,7 +241,7 @@ class AsyncClientConnector(AsyncClientProtocol):
         if commander is None:
             commander = AsyncCommander()
 
-        super().__init__(client)
+        super().__init__()
         self.commander = commander
         self.commander.io_layer = weakref.proxy(self)
         self.commander.proto_layer = weakref.proxy(protocol)
@@ -457,6 +465,8 @@ class AsyncClientConnector(AsyncClientProtocol):
         return False
 
     async def _send_keep_alive(self):
+        assert self.client is not None
+
         if time.monotonic() - self._last_players > self.config.players_interval:
             # Instead of an empty message, ask for players so we can
             # periodically update the client's cache
@@ -469,6 +479,8 @@ class AsyncClientConnector(AsyncClientProtocol):
     # RCONClientProtocol handling
 
     def _handle_event(self, event: ClientEvent) -> None:
+        assert self.client is not None
+
         if isinstance(event, ClientAuthEvent):
             assert self._is_logged_in is not None
             if self._is_logged_in.done():
@@ -504,6 +516,8 @@ class AsyncClientConnector(AsyncClientProtocol):
             log.debug("protocol has disconnected")
 
     def datagram_received(self, data: bytes, addr):
+        assert self.client is not None
+
         if addr != self._addr:
             return log.debug(f"ignoring message from unknown address: {addr}")
 

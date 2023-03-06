@@ -19,16 +19,12 @@ log = logging.getLogger(__name__)
 
 
 class AsyncRCONClientCache(RCONClientCache):
-    client: "AsyncRCONClient"
-
     _admin_id: int | None
     _players: dict[int, Player]
     _incomplete_players: dict[int, Player]
 
-    def __init__(self, client: "AsyncRCONClient") -> None:
-        super().__init__(client)
+    def __init__(self) -> None:
         self._setup_cache()
-        self.client.dispatch.add_listener("on_login", self.on_login)
 
     def _setup_cache(self) -> None:
         self._players = {}
@@ -44,6 +40,16 @@ class AsyncRCONClientCache(RCONClientCache):
         self._admin_id = val
 
     @property
+    def client(self) -> "AsyncRCONClient | None":
+        return super().client  # type: ignore
+
+    @client.setter
+    def client(self, new_client: "AsyncRCONClient | None") -> None:
+        super().client = new_client
+        if new_client is not None:
+            new_client.dispatch.add_listener("on_login", self.on_login)
+
+    @property
     def players(self) -> list[Player]:
         return list(self._players.values())
 
@@ -53,7 +59,9 @@ class AsyncRCONClientCache(RCONClientCache):
     # Cache maintenance
 
     async def on_login(self):
+        assert self.client is not None
         self._setup_cache()
+
         try:
             admin_id, addr = await self.client.dispatch.wait_for("admin_login", timeout=10)
         except asyncio.TimeoutError:

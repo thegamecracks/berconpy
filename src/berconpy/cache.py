@@ -19,10 +19,18 @@ if TYPE_CHECKING:
 class RCONClientCache(ABC):
     """The base class for implementing caching."""
 
-    client: RCONClient
+    _client: RCONClient | None = None
 
-    def __init__(self, client: RCONClient) -> None:
-        self.client = weakref.proxy(client)
+    @property
+    def client(self) -> RCONClient | None:
+        """The client this cache is assigned to."""
+        return self._client
+
+    @client.setter
+    def client(self, new_client: RCONClient | None) -> None:
+        if new_client is not None:
+            new_client = weakref.proxy(new_client)
+        self._client = new_client
 
     # Public methods
 

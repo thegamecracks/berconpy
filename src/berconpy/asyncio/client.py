@@ -22,24 +22,26 @@ class AsyncRCONClient(RCONClient):
     def __init__(
         self,
         *,
-        cache_cls: Type[AsyncRCONClientCache] | None = None,
+        cache: AsyncRCONClientCache | None = None,
         dispatch: AsyncEventDispatcher | None = None,
-        protocol_cls: Type[AsyncClientProtocol] = AsyncClientConnector,
+        protocol: AsyncClientProtocol | None = None,
     ):
         """
-        :param cache_cls: The cache class to use for the client.
+        :param cache: The cache to use for the client.
         :param dispatch: The dispatcher object to use for transmitting events.
-        :param protocol_cls:
-            The protocol class to use for handling connections.
+        :param protocol: The protocol to use for handling connections.
         """
-        if cache_cls is None:
-            cache_cls = AsyncRCONClientCache
+        if cache is None:
+            cache = AsyncRCONClientCache()
         if dispatch is None:
             dispatch = AsyncEventDispatcher()
+        if protocol is None:
+            protocol = AsyncClientConnector()
 
-        super().__init__(cache_cls=cache_cls, dispatch=dispatch)
+        super().__init__(cache=cache, dispatch=dispatch)
 
-        self.protocol = protocol_cls(self)
+        self.protocol = protocol
+        self.protocol.client = self
 
     def is_connected(self) -> bool:
         """Indicates if the client has a currently active connection

@@ -14,10 +14,12 @@ class Ban(BaseBan):
         return self._cache
 
     @property
-    def client(self) -> "AsyncRCONClient":
+    def client(self) -> "AsyncRCONClient | None":
         return self.cache.client
 
     async def unban(self) -> str:
+        assert self.client is not None
+
         # Since ban indices are non-unique, we need to match the identifier
         # and remove the corresponding index (possible race condition)
         bans = await self.client.fetch_bans()

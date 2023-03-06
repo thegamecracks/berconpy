@@ -115,7 +115,7 @@ class Player(ABC):
         return self._cache
 
     @property
-    def client(self) -> "RCONClient":
+    def client(self) -> "RCONClient | None":
         """Returns the client associated with the cache."""
         return self.cache.client
 
