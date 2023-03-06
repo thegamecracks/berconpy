@@ -71,7 +71,7 @@ class RCONClient(ABC):
     # Connection methods
 
     @abstractmethod
-    async def connect(
+    def connect(
         self,
         ip: str,
         port: int,
@@ -241,7 +241,7 @@ class RCONClient(ABC):
         """
         return self.dispatch.listen(event)
 
-    async def on_message(self, response: str):
+    def on_message(self, response: str):
         if m := AdminConnect.try_from_message(response):
             self.dispatch("admin_login", m.id, m.addr)
 
