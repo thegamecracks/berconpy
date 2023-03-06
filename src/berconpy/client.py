@@ -275,34 +275,35 @@ class RCONClient(ABC):
         """
         return self.dispatch.listen(event)
 
-    def on_message(self, response: str):
-        if m := AdminConnect.try_from_message(response):
+    def on_message(self, message: str):
+        """Parses a message sent from the server into various events."""
+        if m := AdminConnect.try_from_message(message):
             self.dispatch("admin_login", m.id, m.addr)
 
-        elif m := PlayerConnect.try_from_message(response):
+        elif m := PlayerConnect.try_from_message(message):
             p = self.cache.add_connected_player(m)
             self.dispatch("player_connect", p)
 
-        elif m := PlayerGUID.try_from_message(response):
+        elif m := PlayerGUID.try_from_message(message):
             # NOTE: it might be possible to receive these events before
             # on_player_connect, in which case we cannot get a Player
             # object to dispatch
             if p := self.cache.set_player_guid(m):
                 self.dispatch("player_guid", p)
 
-        elif m := PlayerVerifyGUID.try_from_message(response):
+        elif m := PlayerVerifyGUID.try_from_message(message):
             if p := self.cache.verify_player_guid(m):
                 self.dispatch("player_verify_guid", p)
 
-        elif m := PlayerDisconnect.try_from_message(response):
+        elif m := PlayerDisconnect.try_from_message(message):
             if p := self.cache.remove_player(m.id):
                 self.dispatch("player_disconnect", p)
 
-        elif m := PlayerKick.try_from_message(response):
+        elif m := PlayerKick.try_from_message(message):
             if p := self.cache.remove_player(m.id):
                 self.dispatch("player_kick", p, m.reason)
 
-        elif m := RCONMessage.try_from_message(response):
+        elif m := RCONMessage.try_from_message(message):
             self.dispatch("admin_message", m.id, m.channel, m.message)
 
             if m.channel == "Global":
@@ -313,13 +314,13 @@ class RCONClient(ABC):
                 if p is not None:
                     self.dispatch("admin_whisper", p, m.id, m.message)
 
-        elif m := PlayerMessage.try_from_message(response):
+        elif m := PlayerMessage.try_from_message(message):
             p = utils.get(self.cache.players, name=m.name)
             if p is not None:
                 self.dispatch("player_message", p, m.channel, m.message)
 
-        elif not is_expected_message(response):
-            raise ValueError(f"unexpected server message: {response}")
+        elif not is_expected_message(message):
+            raise ValueError(f"unexpected server message: {message}")
 
     def _update_players(self, response: str) -> None:
         """Updates the cache from a server response to the "players" RCON command."""
