@@ -2,6 +2,7 @@ import asyncio
 import itertools
 import logging
 import time
+import weakref
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -234,8 +235,8 @@ class AsyncClientConnector(AsyncClientProtocol):
 
         super().__init__(client)
         self.commander = commander
-        self.commander.io_layer = self
-        self.commander.proto_layer = protocol
+        self.commander.io_layer = weakref.proxy(self)
+        self.commander.proto_layer = weakref.proxy(protocol)
         self.config = config
         self.protocol = protocol
 
