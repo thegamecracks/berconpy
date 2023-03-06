@@ -137,7 +137,7 @@ class RCONClientProtocol(RCONGenericProtocol):
 
         """
         self._assert_state(ClientState.AUTHENTICATING)
-        return ClientLoginPacket(password)
+        return ClientLoginPacket(password.encode())
 
     def invalidate_command(self, sequence: int) -> None:
         """Invalidates any messages received for a response to a given command.
@@ -184,7 +184,7 @@ class RCONClientProtocol(RCONGenericProtocol):
         self._assert_state(ClientState.LOGGED_IN)
         sequence = self._get_next_sequence()
         self._command_queue[sequence] = {}
-        return ClientCommandPacket(sequence, command)
+        return ClientCommandPacket(sequence, command.encode())
 
     def _assert_state(self, *states: ClientState) -> None:
         if self._state not in states:
@@ -273,6 +273,7 @@ class RCONClientProtocol(RCONGenericProtocol):
         self.invalidate_command(packet.sequence)
 
         # This should be guaranteed to work
-        message = "".join(rest[i].message for i in range(packet.total))
+        message_bytes = b"".join(rest[i].message for i in range(packet.total))
+        message_str = message_bytes.decode()
 
-        return (CommandResponseEvent(packet.sequence, message),), ()
+        return (CommandResponseEvent(packet.sequence, message_str),), ()
