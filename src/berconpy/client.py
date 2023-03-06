@@ -257,6 +257,13 @@ class RCONClient(ABC):
         lines.pop(0)  # "Missions on server:"
         return lines
 
+    # Cache
+
+    @property
+    def players(self) -> "list[Player]":
+        """A shorthand for :py:attr:`RCONClientCache.players`."""
+        return self.cache.players
+
     # Event dispatcher
 
     def add_listener(self, event: str, func: Callable) -> None:

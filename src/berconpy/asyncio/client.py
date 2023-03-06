@@ -199,3 +199,9 @@ class AsyncRCONClient(RCONClient):
 
     def whisper(self, player_id: int, message: str) -> Awaitable[str]:
         return super().whisper(player_id, message)  # type: ignore
+
+    # Cache
+
+    @property
+    def players(self) -> list[Player]:
+        return super().players  # type: ignore
