@@ -160,7 +160,7 @@ class Packet:
     def message(self) -> str | None:
         """The message that was sent to the client/server.
 
-        This will always be an ASCII-compatible string.
+        This will always be an UTF-8 compatible string.
 
         For LOGIN, this would be the password sent to the server.
         For COMMAND, this would be the command string sent to the server.
@@ -209,7 +209,7 @@ class Packet:
         if ptype is PacketType.LOGIN and from_client:
             if b"\x00" in data[8:]:
                 raise ValueError("login password cannot have a null byte")
-            return ClientLoginPacket(data[8:].decode("ascii")).assert_checksum(crc)
+            return ClientLoginPacket(data[8:].decode()).assert_checksum(crc)
 
         elif ptype is PacketType.LOGIN and not from_client:
             if data[8] not in (0, 1):
@@ -220,17 +220,17 @@ class Packet:
 
         elif ptype is PacketType.COMMAND and from_client:
             sequence = data[8]
-            command = data[9:].decode("ascii")
+            command = data[9:].decode()
             return ClientCommandPacket(sequence, command).assert_checksum(crc)
 
         elif ptype is PacketType.COMMAND and not from_client:
             sequence = data[8]
             if len(data) > 9 and data[9] == 0:
                 total, index = data[10], data[11]
-                response = data[12:].decode("ascii")
+                response = data[12:].decode()
             else:
                 total, index = 1, 0
-                response = data[9:].decode("ascii")
+                response = data[9:].decode()
 
             if index >= total:
                 raise ValueError(
@@ -245,7 +245,7 @@ class Packet:
 
         elif ptype is PacketType.MESSAGE and not from_client:
             sequence = data[8]
-            message = data[9:].decode("ascii")
+            message = data[9:].decode()
             return ServerMessagePacket(sequence, message).assert_checksum(crc)
 
         raise RuntimeError(
@@ -283,7 +283,7 @@ class ClientLoginPacket(ClientPacket):
 
     def __init__(self, password: str):
         buffer = self._get_initial_message(PacketType.LOGIN)
-        buffer.extend(password.encode("ascii"))
+        buffer.extend(password.encode())
 
         message = bytes(buffer)
         header = self._encode_header(message)
@@ -310,7 +310,7 @@ class ClientLoginPacket(ClientPacket):
 
     @property
     def message(self) -> str:
-        return self.data[8:].decode("ascii")
+        return self.data[8:].decode()
 
 
 class ClientCommandPacket(ClientPacket):
@@ -324,7 +324,7 @@ class ClientCommandPacket(ClientPacket):
     def __init__(self, sequence: int, command: str):
         buffer = self._get_initial_message(PacketType.COMMAND)
         buffer.append(sequence)
-        buffer.extend(command.encode("ascii"))
+        buffer.extend(command.encode())
 
         message = bytes(buffer)
         header = self._encode_header(message)
@@ -351,7 +351,7 @@ class ClientCommandPacket(ClientPacket):
 
     @property
     def message(self) -> str:
-        return self.data[9:].decode("ascii")
+        return self.data[9:].decode()
 
 
 class ClientMessagePacket(ClientPacket):
@@ -462,7 +462,7 @@ class ServerCommandPacket(ServerPacket):
         buffer.append(sequence)
         if total != 1:
             buffer.extend((0, total, index))
-        buffer.extend(response.encode("ascii"))
+        buffer.extend(response.encode())
 
         message = bytes(buffer)
         header = self._encode_header(message)
@@ -496,8 +496,8 @@ class ServerCommandPacket(ServerPacket):
     @property
     def message(self) -> str:
         if len(self.data) > 9 and self.data[9] == 0:
-            return self.data[12:].decode("ascii")
-        return self.data[9:].decode("ascii")
+            return self.data[12:].decode()
+        return self.data[9:].decode()
 
 
 class ServerMessagePacket(ServerPacket):
@@ -511,7 +511,7 @@ class ServerMessagePacket(ServerPacket):
     def __init__(self, sequence: int, message: str):
         buffer = self._get_initial_message(PacketType.MESSAGE)
         buffer.append(sequence)
-        buffer.extend(message.encode("ascii"))
+        buffer.extend(message.encode())
 
         message_bytes = bytes(buffer)
         header = self._encode_header(message_bytes)
@@ -538,4 +538,4 @@ class ServerMessagePacket(ServerPacket):
 
     @property
     def message(self) -> str:
-        return self.data[9:].decode("ascii")
+        return self.data[9:].decode()
