@@ -27,9 +27,15 @@ class AsyncRCONClient(RCONClient):
         protocol: AsyncClientProtocol | None = None,
     ):
         """
-        :param cache: The cache to use for the client.
-        :param dispatch: The dispatcher object to use for transmitting events.
-        :param protocol: The protocol to use for handling connections.
+        :param cache:
+            The cache to use for the client.
+            Defaults to an instance of :py:class:`AsyncRCONClientCache`.
+        :param dispatch:
+            The dispatcher object to use for transmitting events.
+            Defaults to an instance of :py:class:`AsyncEventDispatcher`.
+        :param protocol:
+            The protocol to use for handling connections.
+            Defaults to an instance of :py:class:`AsyncClientConnector`.
         """
         if cache is None:
             cache = AsyncRCONClientCache()
