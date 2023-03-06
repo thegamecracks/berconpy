@@ -4,8 +4,8 @@ from .cache import AsyncRCONClientCache
 from .client import AsyncRCONClient
 from .dispatch import AsyncEventDispatcher
 from .io import (
-    AsyncClientProtocol,
     AsyncClientConnector,
+    AsyncClientProtocol,
     AsyncCommander,
     ConnectorConfig,
 )
