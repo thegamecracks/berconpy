@@ -36,9 +36,6 @@ def _add_cancel_callback(
 class AsyncRCONClient(RCONClient):
     """An implementation of the RCON client protocol using asyncio."""
 
-    cache: AsyncRCONClientCache
-    dispatch: AsyncEventDispatcher
-
     def __init__(
         self,
         *,
@@ -203,5 +200,23 @@ class AsyncRCONClient(RCONClient):
     # Cache
 
     @property
+    def cache(self) -> AsyncRCONClientCache:
+        return super().cache  # type: ignore
+
+    @cache.setter
+    def cache(self, new_cache: AsyncRCONClientCache) -> None:
+        super().cache = new_cache
+
+    @property
     def players(self) -> list[Player]:
         return super().players  # type: ignore
+
+    # Event dispatcher
+
+    @property
+    def dispatch(self) -> AsyncEventDispatcher:
+        return super().dispatch  # type: ignore
+
+    @dispatch.setter
+    def dispatch(self, new_dispatch: AsyncEventDispatcher) -> None:
+        super().dispatch = new_dispatch

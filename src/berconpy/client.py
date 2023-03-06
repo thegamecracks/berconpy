@@ -265,11 +265,29 @@ class RCONClient(ABC):
         return self.cache.admin_id
 
     @property
+    def cache(self) -> RCONClientCache:
+        """The cache used by the client."""
+        return self._cache
+
+    @cache.setter
+    def cache(self, new_cache: RCONClientCache) -> None:
+        self._cache = new_cache
+
+    @property
     def players(self) -> "list[Player]":
         """A shorthand for :py:attr:`RCONClientCache.players`."""
         return self.cache.players
 
     # Event dispatcher
+
+    @property
+    def dispatch(self) -> EventDispatcher:
+        """The event dispatcher used by the client."""
+        return self._dispatch
+
+    @dispatch.setter
+    def dispatch(self, new_dispatch: EventDispatcher) -> None:
+        self._dispatch = new_dispatch
 
     def add_listener(self, event: str, func: Callable) -> None:
         """A shorthand for the :py:meth:`EventDispatcher.add_listener()` method.
