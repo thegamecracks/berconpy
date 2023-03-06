@@ -68,7 +68,7 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
     store the appropriate responses. Once all expected responses are received,"""
     _next_sequence: int
     _state: ClientState
-    _to_send: list[bytes]
+    _to_send: list[ClientPacket]
 
     def __init__(
         self,
@@ -115,14 +115,14 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
         self._events = []
         return current_events
 
-    def datagrams_to_send(self) -> list[bytes]:
+    def packets_to_send(self) -> list[ClientPacket]:
         current_datagrams = self._to_send
         self._to_send = []
         return current_datagrams
 
     # Utility methods
 
-    def authenticate(self, password: str) -> bytes:
+    def authenticate(self, password: str) -> ClientLoginPacket:
         """Returns the payload needed to authenticate with the server.
 
         :raises InvalidStateError:
@@ -130,7 +130,7 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
 
         """
         self._assert_state(ClientState.AUTHENTICATING)
-        return ClientLoginPacket(password).data
+        return ClientLoginPacket(password)
 
     def invalidate_command(self, sequence: int) -> None:
         """Invalidates any messages received for a response to a given command.
@@ -154,11 +154,11 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
         self._multipart_packets = {}
         self._next_sequence = 0
         self._state = ClientState.AUTHENTICATING
-        self._to_send: list[bytes] = []
+        self._to_send = []
 
         self.message_check.reset()
 
-    def send_command(self, command: str) -> bytes:
+    def send_command(self, command: str) -> ClientCommandPacket:
         """Returns a payload for sending a command.
 
         Each invocation of this method increments an internal sequence
@@ -172,7 +172,7 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
         self._assert_state(ClientState.LOGGED_IN)
         sequence = self._get_next_sequence()
         self._multipart_packets[sequence] = {}
-        return ClientCommandPacket(sequence, command).data
+        return ClientCommandPacket(sequence, command)
 
     def _assert_state(self, *states: ClientState) -> None:
         if self._state not in states:
@@ -186,7 +186,7 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
     def _handle_packet(
         self,
         packet: ServerPacket,
-    ) -> tuple[Iterable[ClientEvent], Iterable[bytes]]:
+    ) -> tuple[Iterable[ClientEvent], Iterable[ClientPacket]]:
         """Handles the given :py:class:`ServerPacket`.
 
         :returns: A tuple containing the events and payloads to send.
@@ -213,14 +213,14 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
             else:
                 events = ()
 
-            return events, (ClientMessagePacket(packet.sequence).data,)
+            return events, (ClientMessagePacket(packet.sequence),)
 
         raise ValueError(f"unexpected packet received: {packet}")
 
     def _handle_command_packet(
         self,
         packet: ServerCommandPacket,
-    ) -> tuple[Iterable[ClientEvent], Iterable[bytes]]:
+    ) -> tuple[Iterable[ClientEvent], Iterable[ClientPacket]]:
         """Specifically handles a :py:class:`ServerCommandPacket`.
 
         :returns: A tuple containing the events and payloads to send.

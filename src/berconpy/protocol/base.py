@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
+from .packet import Packet
+
 __all__ = ("RCONGenericProtocol",)
 
 T_co = TypeVar("T_co", covariant=True)
@@ -23,5 +25,5 @@ class RCONGenericProtocol(ABC, Generic[T_co]):
         """Retrieves all events that have been parsed since this was last called."""
 
     @abstractmethod
-    def datagrams_to_send(self) -> list[bytes]:
+    def packets_to_send(self) -> list[Packet]:
         """Returns a list of payloads that should be sent to the remote computer."""
