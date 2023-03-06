@@ -11,7 +11,8 @@ method or the :py:meth:`~berconpy.AsyncRCONClient.listen()` decorator.
 
     :param ServerPacket packet:
         The packet that was received.
-        This will be one of the three subclasses of :py:class:`~berconpy.ServerPacket`.
+        This will be one of the three subclasses of
+        :py:class:`~berconpy.protocol.ServerPacket`.
 
 .. py:function:: on_login()
 
@@ -48,7 +49,7 @@ method or the :py:meth:`~berconpy.AsyncRCONClient.listen()` decorator.
     :param int admin_id: The ID of the admin that logged into the server.
     :param str addr: The admin's IP and port.
 
-.. py:function:: on_player_connect(player: Player)
+.. py:function:: on_player_connect(player: berconpy.Player)
 
     Fired when a player connects to a server.
 
@@ -59,23 +60,23 @@ method or the :py:meth:`~berconpy.AsyncRCONClient.listen()` decorator.
         a separate message briefly afterwards. To wait for the GUID
         to be provided, see the :py:func:`on_player_guid` event.
 
-    :param Player player: The player that connected to the server.
+    :param berconpy.Player player: The player that connected to the server.
 
-.. py:function:: on_player_guid(player: Player)
+.. py:function:: on_player_guid(player: berconpy.Player)
 
     Fired when receiving the BattlEye GUID for a connecting player.
     The given player object will have the updated GUID.
 
-    :param Player player: The player whose GUID was updated.
+    :param berconpy.Player player: The player whose GUID was updated.
 
-.. py:function:: on_player_verify_guid(player: Player)
+.. py:function:: on_player_verify_guid(player: berconpy.Player)
 
     Fired when the server has verified the BattlEye GUID
     for a connecting player.
 
-    :param Player player: The player whose GUID was verified.
+    :param berconpy.Player player: The player whose GUID was verified.
 
-.. py:function:: on_player_disconnect(player: Player)
+.. py:function:: on_player_disconnect(player: berconpy.Player)
 
     Fired when a player manually disconnects from the server.
 
@@ -85,9 +86,9 @@ method or the :py:meth:`~berconpy.AsyncRCONClient.listen()` decorator.
     This event does not fire when BattlEye kicks the player;
     for that, see the following event :py:func:`on_player_kick()`.
 
-    :param Player player: The player that disconnected.
+    :param berconpy.Player player: The player that disconnected.
 
-.. py:function:: on_player_kick(player: Player, reason: str)
+.. py:function:: on_player_kick(player: berconpy.Player, reason: str)
 
     Fired when BattlEye kicks a player either automatically
     (e.g. ``"Client not responding"``) or by an admin (i.e. ``"Admin Kick"``).
@@ -95,7 +96,7 @@ method or the :py:meth:`~berconpy.AsyncRCONClient.listen()` decorator.
     The :py:attr:`~berconpy.AsyncRCONClient.players` list will
     no longer contain the player provided here.
 
-    :param Player player: The player that was kicked.
+    :param berconpy.Player player: The player that was kicked.
     :param str reason: The reason for the player being kicked.
 
 .. py:function:: on_admin_message(admin_id: int, channel: str, message: str)
@@ -119,7 +120,7 @@ method or the :py:meth:`~berconpy.AsyncRCONClient.listen()` decorator.
     :param int admin_id: The ID of the admin that sent the message.
     :param str message: The message that was sent by the admin.
 
-.. py:function:: on_admin_whisper(player: Player, admin_id: int, message: str)
+.. py:function:: on_admin_whisper(player: berconpy.Player, admin_id: int, message: str)
 
     Fired when an RCON admin sends a message to a specific player.
 
@@ -128,14 +129,14 @@ method or the :py:meth:`~berconpy.AsyncRCONClient.listen()` decorator.
         This event may potentially not get dispatched if the player's name
         could not be found in the client's cache.
 
-    :param Player player: The player that the message was directed towards.
+    :param berconpy.Player player: The player that the message was directed towards.
     :param int admin_id: The ID of the admin that sent the message.
     :param str message: The message that was sent by the admin.
 
-.. py:function:: on_player_message(player: Player, channel: str, message: str)
+.. py:function:: on_player_message(player: berconpy.Player, channel: str, message: str)
 
     Fired when a player sends a message.
 
-    :param Player player: The player that the message was directed towards.
+    :param berconpy.Player player: The player that the message was directed towards.
     :param str channel: The name of the channel the message was sent to.
     :param str message: The message that was sent by the admin.
