@@ -1,0 +1,460 @@
+import asyncio
+import itertools
+import logging
+import time
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Any
+
+
+from ..errors import LoginFailure, RCONCommandError
+from ..protocol import (
+    AuthEvent,
+    ClientEvent,
+    ClientCommandPacket,
+    ClientPacket,
+    CommandResponseEvent,
+    RCONClientProtocol,
+    ServerMessageEvent,
+)
+from ..utils import EMPTY
+
+log = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from .client import AsyncRCONClient
+
+
+def maybe_replace_future(fut: asyncio.Future | None) -> asyncio.Future:
+    if fut is None or fut.done():
+        return asyncio.get_running_loop().create_future()
+    return fut
+
+
+class AsyncRCONClientProtocol(ABC):
+    def __init__(self, client: "AsyncRCONClient"):
+        self.client = client
+
+    @abstractmethod
+    def close(self) -> None:
+        """Notifies the protocol that it should begin closing."""
+
+    @abstractmethod
+    def is_connected(self) -> bool:
+        """Indicates if the client has a currently active connection
+        with the server.
+        """
+
+    @abstractmethod
+    def is_logged_in(self) -> bool | None:
+        """Indicates if the client is currently authenticated with the server.
+
+        :returns:
+            True if authenticated or None if no
+            response has been received from the server.
+        :raises LoginFailure:
+            The password given to the server was denied.
+
+        """
+
+    @abstractmethod
+    def is_running(self) -> bool:
+        """Indicates if the client is running. This may not necessarily
+        mean that the client is connected.
+        """
+
+    @abstractmethod
+    def run(self, ip: str, port: int, password: str) -> asyncio.Task[None]:
+        """Starts maintaining a connection to the given server."""
+
+    @abstractmethod
+    async def send_command(self, command: str) -> str:
+        """Attempts to send a command to the server and
+        read the server's response.
+
+        :param command: The ASCII command string to send.
+        :returns: The server's response as a string.
+        :raises RuntimeError:
+            The server failed to respond to all attempts
+
+        """
+
+    @abstractmethod
+    async def wait_for_login(self) -> bool | None:
+        """Waits indefinitely until the client has received a login response
+        or the connection has closed.
+
+        This can also raise any exception when the connection finishes closing.
+
+        :returns:
+            True if authenticated or None if the connection closed
+            without an error.
+        :raises LoginFailure:
+            The password given to the server was denied.
+
+        """
+
+
+class AsyncRCONClientTransport(AsyncRCONClientProtocol):
+    RUN_INTERVAL = 1
+    KEEP_ALIVE_INTERVAL = 30
+    PLAYERS_INTERVAL = 60
+    LAST_RECEIVED_TIMEOUT = 45  # don't change, specified by protocol
+
+    COMMAND_ATTEMPTS = 3
+    COMMAND_INTERVAL = 1
+
+    INITIAL_CONNECT_ATTEMPTS = 3
+    CONNECTION_TIMEOUT = 3
+
+    RECEIVED_SEQUENCES_SIZE = 5
+
+    _command_futures: dict[int, asyncio.Future[str]]
+
+    _addr: tuple[str, int] | None
+    _last_command: float
+    _last_received: float
+    _last_sent: float  # NOTE: unused
+    _last_players: float
+
+    _is_logged_in: asyncio.Future[bool] | None
+    _close_event: asyncio.Event
+    _task: asyncio.Task | None
+
+    def __init__(
+        self,
+        client: "AsyncRCONClient",
+        protocol: RCONClientProtocol | None = None,
+    ):
+        if protocol is None:
+            protocol = RCONClientProtocol()
+
+        self.client = client
+        self.protocol = protocol
+
+        self._running_event = asyncio.Event()
+        self._close_event = asyncio.Event()
+        self._transport: asyncio.DatagramTransport | None = None
+        self.reset()
+
+    def reset_cache(self):
+        self._command_futures = {}
+
+    def reset(self):
+        self.reset_cache()
+
+        mono = time.monotonic()
+        self._addr = None
+        self._last_command = mono
+        self._last_received = mono
+        self._last_sent = mono
+        self._last_players = mono
+
+        self._is_logged_in = None
+        self._close_event.clear()
+        self._task = None
+
+        self._running_event.clear()
+
+    def is_logged_in(self) -> bool | None:
+        if self._is_logged_in is not None and self._is_logged_in.done():
+            return self._is_logged_in.result()
+        return None
+
+    def is_connected(self) -> bool:
+        return self._transport is not None
+
+    def is_running(self) -> bool:
+        return self._running_event.is_set()
+
+    # Helper methods
+
+    def _send(self, packet: ClientPacket, addr: Any = EMPTY):
+        if addr is EMPTY:
+            addr = self._addr
+        self._transport.sendto(packet.data, addr)
+        log.debug(f"sent {packet.type.name} packet")
+
+        self._last_sent = time.monotonic()
+        if isinstance(packet, ClientCommandPacket):
+            self._last_command = self._last_sent
+
+    async def _send_keep_alive(self):
+        if time.monotonic() - self._last_players > self.PLAYERS_INTERVAL:
+            # Instead of an empty message, ask for players so we can
+            # periodically update the client's cache
+            self._last_players = time.monotonic()
+            response = await self.send_command("players")
+            self.client._update_players(response)
+        else:
+            await self.send_command("")
+
+    def _tick(self):
+        self._last_received = time.monotonic()
+
+    async def wait_for_login(self) -> bool | None:
+        # This method may be called before run() so we need to
+        # make sure the futures are initialized with something
+        loop = asyncio.get_running_loop()
+        if self._is_logged_in is None:
+            self._is_logged_in = loop.create_future()
+
+        close_task = asyncio.create_task(self._close_event.wait())
+        done, _ = await asyncio.wait(
+            (self._is_logged_in, close_task),
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+
+        fut = done.pop()
+        if fut is self._is_logged_in:
+            close_task.cancel()
+            return self._is_logged_in.result()
+        else:
+            # Closed without having connected
+            return None
+
+    # Command methods
+
+    def _cancel_command(self, sequence: int):
+        """Cancels a command in the protocol along with its associated future.
+
+        If the command sequence was not queued before, this is a no-op.
+
+        """
+        self.protocol.invalidate_command(sequence)
+        fut = self._command_futures.pop(sequence, None)
+        if fut is not None:
+            fut.cancel()
+
+    def _set_command(self, sequence: int, message: str):
+        """Notifies the future waiting on a command response packet.
+
+        An alternative message may be given if the packet itself does
+        not contain the full message (i.e. multipart packet).
+
+        If no future was created for the packet, this is a no-op.
+
+        """
+        fut = self._command_futures.pop(sequence, None)
+        if fut is not None:
+            fut.set_result(message)
+
+    async def send_command(self, command: str) -> str:
+        packet = self.protocol.send_command(command)
+
+        for _ in range(self.COMMAND_ATTEMPTS):
+            self._send(packet)
+
+            try:
+                # NOTE: if we let wait_for() cancel the future, it is possible
+                # for _set_command() to be called just before our finally
+                # statement is reached, allowing _set_command() to throw
+                # an InvalidStateError.
+                return await asyncio.wait_for(
+                    asyncio.shield(self._wait_for_command(packet.sequence)),
+                    timeout=self.COMMAND_INTERVAL,
+                )
+            except asyncio.TimeoutError:
+                pass
+            finally:
+                self._cancel_command(packet.sequence)
+
+        log.warning(f"could not send command after {self.COMMAND_ATTEMPTS} attempts")
+        raise RCONCommandError(f"failed to send command: {command}")
+
+    def _wait_for_command(self, sequence: int) -> asyncio.Future[str]:
+        """Returns a future waiting for a command response with
+        the given sequence number.
+        """
+        fut = self._command_futures.get(sequence)
+        if fut is None:
+            loop = asyncio.get_running_loop()
+            self._command_futures[sequence] = fut = loop.create_future()
+
+        return fut
+
+    # Connection methods
+
+    async def _authenticate(self, password: str) -> bool | None:
+        """Sends an authentication packet to the server and waits
+        for a response.
+        """
+        packet = self.protocol.authenticate(password)
+        self._send(packet)
+
+        return await self.wait_for_login()
+
+    async def connect(self, password: str) -> bool | None:
+        """Creates a connection to the given address.
+
+        If necessary, any previous connection will be closed
+        before creating a new connection.
+
+        :returns:
+            True if authenticated or None if the connection closed
+            without an error.
+        :raises LoginFailure:
+            The password given to the server was denied.
+        :raises OSError:
+            An error occurred while attempting to connect to the server.
+
+        """
+        log.debug("attempting a new connection")
+        if self.is_connected():
+            self.disconnect()
+
+        loop = asyncio.get_running_loop()
+        self._transport, _ = await loop.create_datagram_endpoint(
+            lambda: self,  # type: ignore
+            remote_addr=self._addr,
+        )
+
+        return await self._authenticate(password)
+
+    def disconnect(self):
+        if self._transport is not None:
+            self._transport.close()
+            self._transport = None
+
+    def close(self) -> None:
+        self._close_event.set()
+
+    def run(self, ip: str, port: int, password: str) -> asyncio.Task[None]:
+        self._task = asyncio.create_task(self._run_and_handle(ip, port, password))
+        return self._task
+
+    async def _run_and_handle(self, ip: str, port: int, password: str) -> None:
+        self._addr = (ip, port)
+        self._running_event.set()
+        self._close_event.clear()
+
+        try:
+            await self._run_loop(password)
+        finally:
+            self.disconnect()
+            self.reset()
+
+    async def _run_loop(self, password: str) -> None:
+        loop = asyncio.get_running_loop()
+        first_iteration = True
+
+        while not self._close_event.is_set():
+            if self._is_logged_in is None or not self._is_logged_in.done():
+                await self._try_connect(password, first_iteration=first_iteration)
+
+                if not self._is_logged_in.done():
+                    log.error("failed to connect to the server")
+                    raise LoginFailure("could not connect to the server")
+                elif (exc := self._is_logged_in.exception()) is not None:
+                    log.error("password authentication was denied")
+                    raise exc
+
+            overtime = time.monotonic() - self._last_received
+            if overtime > self.LAST_RECEIVED_TIMEOUT:
+                log.info(
+                    f"server has timed out (last received {overtime:.0f} seconds ago)"
+                )
+                self.reset_cache()
+                self._is_logged_in = loop.create_future()
+                continue
+            elif time.monotonic() - self._last_command > self.KEEP_ALIVE_INTERVAL:
+                log.debug("sending keep alive packet")
+                asyncio.create_task(self._send_keep_alive())
+
+            try:
+                coro = self._close_event.wait()
+                await asyncio.wait_for(coro, timeout=self.RUN_INTERVAL)
+            except asyncio.TimeoutError:
+                pass
+
+            first_iteration = False
+
+    async def _try_connect(
+        self,
+        password: str,
+        *,
+        first_iteration: bool,
+    ) -> None:
+        log.info(
+            "attempting to {re}connect to server".format(
+                re="re" * (not first_iteration)
+            )
+        )
+        self._is_logged_in = maybe_replace_future(self._is_logged_in)
+
+        attempts = itertools.count()
+        if first_iteration:
+            attempts = range(self.INITIAL_CONNECT_ATTEMPTS)
+
+        for i in attempts:
+            try:
+                timeout = self.CONNECTION_TIMEOUT
+                await asyncio.wait_for(self.connect(password), timeout=timeout)
+                break
+            except LoginFailure:
+                raise  # credentials may be invalid, or server changed it
+            except (asyncio.TimeoutError, OSError):
+                if i % 10 == 0:
+                    log.warning(
+                        "failed {:,d} login attempt{s}".format(i + 1, s="s" * (i != 0))
+                    )
+
+                # exponential backoff
+                self.disconnect()
+                await asyncio.sleep(2 ** (i % 11))
+
+    # RCONClientProtocol handling
+
+    def _handle_event(self, event: ClientEvent) -> None:
+        if isinstance(event, AuthEvent):
+            if self._is_logged_in.done():
+                return
+
+            if event.success:
+                self._is_logged_in.set_result(True)
+                self.client.dispatch("login")
+            else:
+                self._is_logged_in.set_exception(
+                    LoginFailure("invalid password provided")
+                )
+
+        elif isinstance(event, CommandResponseEvent):
+            self._set_command(event.sequence, event.message)
+            self.client.dispatch("command", event.message)
+
+        elif isinstance(event, ServerMessageEvent):
+            self.client.dispatch("message", event.message)
+
+        else:
+            raise RuntimeError(f"unhandled event type {type(event)}")
+
+    # DatagramProtocol
+
+    def connection_made(self, transport):
+        log.debug("protocol has connected")
+
+    def connection_lost(self, exc: Exception | None):
+        if exc:
+            log.error("protocol has disconnected with error", exc_info=exc)
+        else:
+            log.debug("protocol has disconnected")
+
+    def datagram_received(self, data: bytes, addr):
+        if addr != self._addr:
+            return log.debug(f"ignoring message from unknown address: {addr}")
+
+        try:
+            packet = self.protocol.receive_datagram(data)
+        except ValueError as e:
+            return log.debug(f"ignoring malformed data with cause: {e}")
+
+        log.debug(f"{packet.type.name} received")
+        self._tick()
+        self.client.dispatch("raw_event", packet)
+
+        for event in self.protocol.events_received():
+            self._handle_event(event)
+        for packet in self.protocol.packets_to_send():
+            self._send(packet)
+
+    def error_received(self, exc: OSError):
+        log.error("unusual error occurred during session", exc_info=exc)

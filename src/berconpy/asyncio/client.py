@@ -6,41 +6,12 @@ from typing import Awaitable, Type
 from .ban import Ban
 from .cache import AsyncRCONClientCache
 from .dispatch import AsyncEventDispatch
+from .io import AsyncRCONClientProtocol, AsyncRCONClientTransport
 from .player import Player
 from ..client import RCONClient
 from ..errors import RCONCommandError
-from ..old_protocol import RCONClientDatagramProtocol
 
 log = logging.getLogger(__name__)
-
-
-def _prepare_canceller(
-    protocol: RCONClientDatagramProtocol,
-    running_task: asyncio.Task,
-    current_task: asyncio.Task | None = None,
-):
-    """Adds a callback to the task running the protocol to cancel
-    the current task if the running task completes with an exception.
-
-    This should *only* be called after waiting for login, which is when the
-    closing future exists for the canceller to suppress exceptions from it.
-
-    """
-
-    def _actual_canceller(_):
-        if closing.exception() is not None:
-            current_task.cancel()
-
-    # We need to cache the closing future here, so we're still able to
-    # suppress the future exception if the protocol closed with one
-    closing = protocol._is_closing
-    if closing is None:
-        raise RuntimeError(
-            "cannot set up canceller before/after protocol has finished running"
-        )
-
-    current_task = current_task or asyncio.current_task()
-    running_task.add_done_callback(_actual_canceller)
 
 
 class AsyncRCONClient(RCONClient):
@@ -63,7 +34,7 @@ class AsyncRCONClient(RCONClient):
         *,
         cache_cls: Type[AsyncRCONClientCache] | None = None,
         dispatch: AsyncEventDispatch | None = None,
-        protocol_cls=RCONClientDatagramProtocol,
+        protocol_cls: Type[AsyncRCONClientProtocol] = AsyncRCONClientTransport,
     ):
         if cache_cls is None:
             cache_cls = AsyncRCONClientCache
@@ -73,8 +44,13 @@ class AsyncRCONClient(RCONClient):
         super().__init__(cache_cls=cache_cls, dispatch=dispatch)
         self.dispatch.add_listener("on_login", self.cache.on_login)
 
-        self._protocol = protocol_cls(self)
-        self._protocol_task: asyncio.Task | None = None
+        self.protocol = protocol_cls(self)
+
+    def is_connected(self) -> bool:
+        """Indicates if the client has a currently active connection
+        with the server.
+        """
+        return self.protocol.is_connected()
 
     def is_logged_in(self) -> bool | None:
         """Indicates if the client is currently authenticated with the server.
@@ -86,19 +62,13 @@ class AsyncRCONClient(RCONClient):
             The password given to the server was denied.
 
         """
-        return self._protocol.is_logged_in()
-
-    def is_connected(self) -> bool:
-        """Indicates if the client has a currently active connection
-        with the server.
-        """
-        return self._protocol.is_connected()
+        return self.protocol.is_logged_in()
 
     def is_running(self) -> bool:
         """Indicates if the client is running. This may not necessarily
         mean that the client is connected.
         """
-        return self._protocol.is_running()
+        return self.protocol.is_running()
 
     # Connection methods
 
@@ -128,26 +98,21 @@ class AsyncRCONClient(RCONClient):
             raise RuntimeError("connection is already running")
 
         # Establish connection
+        task = None
         try:
-            self._protocol_task = asyncio.create_task(
-                self._protocol.run(ip, port, password)
-            )
+            task = self.protocol.run(ip, port, password)
 
-            # it's important we wait for login here, otherwise the user
-            # could attempt sending commands before a connection was made
-            await self._protocol.wait_for_login()
-            _prepare_canceller(self._protocol, self._protocol_task)
+            # Wait for login here to avoid any commands being sent
+            # by the user before a connection was made
+            await self.protocol.wait_for_login()
             yield self
         finally:
             self.close()
 
-            # Propagate any exception from the task
-            if not self._protocol_task.done():
-                return
-
-            exc = self._protocol_task.exception()
-            if exc is not None:
-                raise exc from None
+            # Wait for the protocol to cleanly disconnect,
+            # and also to propagate any exception
+            if task is not None:
+                await task
 
     def close(self):
         """Closes the connection.
@@ -159,16 +124,16 @@ class AsyncRCONClient(RCONClient):
             This method no longer causes the current task to be cancelled.
 
         """
-        self._protocol.close()
+        self.protocol.close()
 
     # Commands
     # (documentation: https://www.battleye.com/support/documentation/)
 
     async def send_command(self, command: str) -> str:
-        if not self._protocol.is_running():
+        if not self.protocol.is_running():
             raise RuntimeError("cannot send command when not connected")
 
-        response = await self._protocol._send_command(command)
+        response = await self.protocol.send_command(command)
         if self._is_disallowed_command(response):
             raise RCONCommandError("server has disabled this command")
 
