@@ -508,7 +508,7 @@ class AsyncClientConnector(AsyncClientProtocol):
         try:
             packet = self.protocol.receive_datagram(data)
         except ValueError as e:
-            return log.debug(f"ignoring malformed data with cause: {e}")
+            return log.debug(f"ignoring malformed data with cause:", exc_info=e)
 
         log.debug(f"{packet.type.name} received")
         self._last_received = time.monotonic()
