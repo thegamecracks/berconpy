@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Type, TypeVar
+from typing import TYPE_CHECKING, Callable, Type, TypeVar
 
 from .cache import RCONClientCache
-from .dispatch import EventDispatcher
+from .dispatch import EventDispatcher, Hook
 from .events import (
     AdminConnect,
     PlayerConnect,
@@ -222,6 +222,23 @@ class RCONClient(ABC):
         return lines
 
     # Event dispatcher
+
+    def listen(self, event: str | None = None) -> Callable[[Hook], Hook]:
+        """A shorthand for the :py:meth:`EventDispatcher.listen()` decorator.
+
+        Example usage::
+
+            >>> client = AsyncRCONClient()
+            >>> @client.listen()
+            ... async def on_login():
+            ...     print("We have logged in!")
+
+        :param event:
+            The event to listen for. If ``None``, the function name
+            is used as the event name.
+
+        """
+        return self.dispatch.listen(event)
 
     async def on_message(self, response: str):
         if m := AdminConnect.try_from_message(response):

@@ -44,20 +44,13 @@ class EventDispatcher(ABC):
         """A decorator shorthand to add a listener for a given event,
         e.g. ``"on_login"``.
 
-        Example usage::
-
-            >>> client = AsyncRCONClient()
-            >>> @client.listen()
-            ... async def on_login():
-            ...     print("We have logged in!")
-
         :param event:
             The event to listen for. If ``None``, the function name
             is used as the event name.
 
         """
 
-        def decorator(func: Hook):
+        def decorator(func: Hook) -> Hook:
             self.add_listener(event or func.__name__, func)
             return func
 
