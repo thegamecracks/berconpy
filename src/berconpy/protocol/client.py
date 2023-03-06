@@ -61,7 +61,7 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
 
     _events: list[ClientEvent]
     """A list of events waiting to be collected."""
-    _multipart_packets: dict[int, dict[int, ServerCommandPacket]]
+    _command_queue: dict[int, dict[int, ServerCommandPacket]]
     """A mapping of command sequences to mappings of command indexes to their packets.
 
     When :py:meth:`send_command()` is used, an entry is added here to
@@ -144,7 +144,7 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
 
         """
         self._assert_state(ClientState.LOGGED_IN)
-        del self._multipart_packets[sequence]
+        del self._command_queue[sequence]
 
     def reset(self) -> None:
         """Resets the protocol to the beginning state.
@@ -153,7 +153,7 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
 
         """
         self._events: list[ClientEvent] = []
-        self._multipart_packets = {}
+        self._command_queue = {}
         self._next_sequence = 0
         self._state = ClientState.AUTHENTICATING
         self._to_send = []
@@ -173,7 +173,7 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
         """
         self._assert_state(ClientState.LOGGED_IN)
         sequence = self._get_next_sequence()
-        self._multipart_packets[sequence] = {}
+        self._command_queue[sequence] = {}
         return ClientCommandPacket(sequence, command)
 
     def _assert_state(self, *states: ClientState) -> None:
@@ -231,7 +231,7 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
         """
         self._assert_state(ClientState.LOGGED_IN)
 
-        rest = self._multipart_packets.get(packet.sequence)
+        rest = self._command_queue.get(packet.sequence)
         if rest is None:
             raise ValueError(
                 f"Unexpected command response (sequence {packet.sequence})"
