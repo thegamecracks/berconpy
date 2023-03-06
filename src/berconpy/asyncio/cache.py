@@ -22,7 +22,6 @@ class AsyncRCONClientCache(RCONClientCache):
     client: "AsyncRCONClient"
 
     _admin_id: int | None
-    _client_id: int
     _players: dict[int, Player]
     _incomplete_players: dict[int, Player]
 
@@ -63,7 +62,7 @@ class AsyncRCONClientCache(RCONClientCache):
                 "client id will not be available"
             )
         else:
-            self._client_id = admin_id
+            self.admin_id = admin_id
 
             try:
                 await self.client.fetch_players()
