@@ -59,7 +59,7 @@ async def main():
             command = await ainput()
 
             if command.lower() == "#players":
-                for p in client.players:
+                for p in client.cache.players:
                     print(repr(p))
             else:
                 try:
