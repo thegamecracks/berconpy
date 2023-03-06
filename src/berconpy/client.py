@@ -260,6 +260,11 @@ class RCONClient(ABC):
     # Cache
 
     @property
+    def admin_id(self) -> int | None:
+        """A shorthand for :py:attr:`RCONClientCache.admin_id`."""
+        return self.cache.admin_id
+
+    @property
     def players(self) -> "list[Player]":
         """A shorthand for :py:attr:`RCONClientCache.players`."""
         return self.cache.players
