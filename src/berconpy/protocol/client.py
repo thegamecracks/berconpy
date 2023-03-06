@@ -99,7 +99,7 @@ class RCONClientProtocol(RCONGenericProtocol):
         try:
             packet: Packet = Packet.from_bytes(data)
         except (IndexError, ValueError) as e:
-            raise ValueError(f"Malformed data") from e
+            raise ValueError(str(e)) from e
 
         if not isinstance(packet, ServerPacket):
             raise ValueError(
