@@ -42,7 +42,7 @@ class NonceCheck:
         if packet.sequence in self.deque:
             return False
 
-        self.deque.append(packet.index)
+        self.deque.append(packet.sequence)
         return True
 
     def reset(self) -> None:
