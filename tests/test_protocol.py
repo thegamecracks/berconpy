@@ -1,4 +1,4 @@
-from typing import Any, overload
+from typing import Any, Type, TypeVar, overload
 
 import pytest
 
@@ -7,6 +7,7 @@ from berconpy.protocol import (
     ClientCommandEvent,
     ClientEvent,
     ClientMessageEvent,
+    ClientMessagePacket,
     ClientPacket,
     ClientState,
     Packet,
@@ -23,6 +24,8 @@ from berconpy.protocol import (
 
 expected_password = "foobar2000"
 incorrect_password = "abc123"
+
+T = TypeVar("T")
 
 
 @pytest.fixture
@@ -98,6 +101,14 @@ def authenticate(
         assert not server_event.success
 
 
+def first_and_only_packet(proto_a: RCONGenericProtocol, packet_cls: Type[T]) -> T:
+    packets = proto_a.packets_to_send()
+    assert len(packets) == 1
+    first_packet = packets[0]
+    assert isinstance(first_packet, packet_cls)
+    return first_packet
+
+
 def test_auth_failure(client: RCONClientProtocol, server: RCONServerProtocol):
     """Asserts that the client and server correctly recognize when
     authentication is incorrect.
@@ -106,27 +117,28 @@ def test_auth_failure(client: RCONClientProtocol, server: RCONServerProtocol):
 
 
 def test_nonce_check(client: RCONClientProtocol, server: RCONServerProtocol):
-    """Asserts that both the client and the server do not respond to repeated
-    messages and commands respectively.
+    """Asserts that both the client and the server do not dispatch
+    repeated events for messages and commands respectively.
     """
     authenticate(client, server, expected_password)
 
     # Normal commands
-    payload = client.send_command("first")
-    assert isinstance(communicate(client, server, payload)[0], ServerCommandEvent)
-    payload = client.send_command("second")
-    assert isinstance(communicate(client, server, payload)[0], ServerCommandEvent)
-    # Repeat commands
-    for i in range(10):
+    #
+    # The sequence number only goes up to 256 before overflowing
+    # so the nonce check must be able to forget older sequences.
+    for i in range(2 ** 9):
+        payload = client.send_command(str(i))
+        assert isinstance(communicate(client, server, payload)[0], ServerCommandEvent)
         assert len(communicate(client, server, payload)) == 0
 
-    # NOTE: No need to followup with responses
-
     # Normal messages
-    payload = server.send_message("first")
-    assert isinstance(communicate(server, client, payload)[0], ClientMessageEvent)
-    payload = server.send_message("second")
-    assert isinstance(communicate(server, client, payload)[0], ClientMessageEvent)
-    # Repeat messages
-    for i in range(10):
+    #
+    # Here we also verify that the client acknowledges each message,
+    # even when the nonce check is preventing repeated events.
+    for i in range(2 ** 9):
+        payload = server.send_message(str(i))
+        assert isinstance(communicate(server, client, payload)[0], ClientMessageEvent)
+        assert first_and_only_packet(client, ClientMessagePacket)
+
         assert len(communicate(server, client, payload)) == 0
+        assert first_and_only_packet(client, ClientMessagePacket)
