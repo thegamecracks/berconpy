@@ -27,6 +27,7 @@ from .protocol import (
     RCONGenericProtocol,
     RCONServerProtocol,
     ServerAuthEvent,
+    ServerCommandEvent,
     ServerEvent,
     ServerMessageEvent,
     ServerState,
