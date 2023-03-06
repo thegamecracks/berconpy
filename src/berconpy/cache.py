@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 import weakref
@@ -17,9 +19,9 @@ if TYPE_CHECKING:
 class RCONClientCache(ABC):
     """A standard interface for implementing caching."""
 
-    client: "RCONClient"
+    client: RCONClient
 
-    def __init__(self, client: "RCONClient") -> None:
+    def __init__(self, client: RCONClient) -> None:
         self.client = weakref.proxy(client)
 
     # Public methods

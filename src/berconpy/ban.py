@@ -46,7 +46,7 @@ class Ban(ABC):
 
     def __init__(
         self,
-        cache: RCONClientCache,
+        cache: "RCONClientCache",
         index: int,
         id: str,
         duration: int | None,
