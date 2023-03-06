@@ -540,5 +540,5 @@ class ServerMessagePacket(ServerPacket):
         ...
 
     @property
-    def message(self) -> str:
-        return self.data[9:].decode()
+    def message(self) -> bytes:
+        return self.data[9:]
