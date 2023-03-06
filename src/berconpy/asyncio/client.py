@@ -41,7 +41,6 @@ class AsyncRCONClient(RCONClient):
             dispatch = AsyncEventDispatcher()
 
         super().__init__(cache_cls=cache_cls, dispatch=dispatch)
-        self.dispatch.add_listener("on_login", self.cache.on_login)
 
         self.protocol = protocol_cls(self)
 

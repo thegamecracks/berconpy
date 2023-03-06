@@ -28,6 +28,7 @@ class AsyncRCONClientCache(RCONClientCache):
     def __init__(self, client: "AsyncRCONClient") -> None:
         super().__init__(client)
         self._setup_cache()
+        self.client.dispatch.add_listener("on_login", self.on_login)
 
     def _setup_cache(self) -> None:
         self._players = {}
@@ -52,7 +53,6 @@ class AsyncRCONClientCache(RCONClientCache):
     # Cache maintenance
 
     async def on_login(self):
-        # NOTE: AsyncRCONClient should add this as a listener
         self._setup_cache()
         try:
             admin_id, addr = await self.client.dispatch.wait_for("admin_login", timeout=10)
