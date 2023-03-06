@@ -212,7 +212,7 @@ class RCONClientProtocol(RCONGenericProtocol):
             self._assert_state(ClientState.LOGGED_IN)
 
             if self.message_check(packet):
-                events = (ClientMessageEvent(packet.message),)
+                events = (ClientMessageEvent(packet.message.decode()),)
             else:
                 events = ()
 
