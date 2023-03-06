@@ -89,7 +89,7 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
 
     # Required methods
 
-    def receive_datagram(self, data: bytes) -> None:
+    def receive_datagram(self, data: bytes) -> ServerPacket:
         """Handles a packet received by the server.
 
         :raises ValueError: Handling failed due to a malformed packet.
@@ -109,6 +109,8 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
         events, to_send = self._handle_packet(packet)
         self._events.extend(events)
         self._to_send.extend(to_send)
+
+        return packet
 
     def events_received(self) -> list[ClientEvent]:
         current_events = self._events

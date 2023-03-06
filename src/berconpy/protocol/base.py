@@ -12,7 +12,7 @@ class RCONGenericProtocol(ABC, Generic[T_co]):
     """The base class for handling the RCON protocol between two computers."""
 
     @abstractmethod
-    def receive_datagram(self, data: bytes) -> None:
+    def receive_datagram(self, data: bytes) -> Packet:
         """Provides a packet from the remote computer to potentially
         be parsed into an event.
 
