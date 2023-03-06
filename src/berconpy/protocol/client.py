@@ -159,7 +159,7 @@ class RCONClientProtocol(RCONGenericProtocol):
         This method should be invoked when the connection has timed out.
 
         """
-        self._events: list[ClientEvent] = []
+        self._events = []
         self._command_queue = {}
         self._next_sequence = 0
         self._state = ClientState.AUTHENTICATING
