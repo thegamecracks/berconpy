@@ -124,7 +124,7 @@ class RCONClient(ABC):
     def send_command(self, command: str) -> str | Awaitable[str]:
         """Sends a command to the server and waits for a response.
 
-        :param command: The command to send. Only ASCII characters are allowed.
+        :param command: The command to send.
         :returns: The server's response as a string.
         :raises RCONCommandError:
             The server has either disabled this command or failed to
@@ -178,7 +178,7 @@ class RCONClient(ABC):
     def send(self, message: str) -> str | Awaitable[str]:
         """Sends a message to all players in the server.
 
-        :param message: The message to send. Only ASCII characters are allowed.
+        :param message: The message to send.
         :returns: The response from the server, if any.
 
         """
@@ -199,7 +199,7 @@ class RCONClient(ABC):
         :py:meth:`Player.send()` is a shorthand for calling this method.
 
         :param player_id: The ID of the player to send to.
-        :param message: The message to send. Only ASCII characters are allowed.
+        :param message: The message to send.
         :returns: The response from the server, if any.
 
         """

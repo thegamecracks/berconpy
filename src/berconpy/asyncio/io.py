@@ -82,7 +82,7 @@ class AsyncClientProtocol(ABC):
         """Attempts to send a command to the server and
         read the server's response.
 
-        :param command: The ASCII command string to send.
+        :param command: The command string to send.
         :returns: The server's response as a string.
         :raises RCONCommandError: The server failed to respond to all attempts.
 
