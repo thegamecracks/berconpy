@@ -259,6 +259,31 @@ class RCONClient(ABC):
 
     # Event dispatcher
 
+    def add_listener(self, event: str, func: Callable) -> None:
+        """A shorthand for the :py:meth:`EventDispatcher.add_listener()` method.
+
+        See the :doc:`/events` for a list of supported events.
+
+        :param event:
+            The event to listen for.
+        :param func:
+            The function to dispatch when the event is received.
+
+        """
+        return self.dispatch.add_listener(event, func)
+
+    def remove_listener(self, event: str, func: Callable) -> None:
+        """A shorthand for the :py:meth:`EventDispatcher.remove_listener()` method.
+
+        This method should be a no-op if the given event and function
+        does not match any registered listener.
+
+        :param event: The event used by the listener.
+        :param func: The function used by the listener.
+
+        """
+        return self.dispatch.remove_listener(event, func)
+
     def listen(self, event: str | None = None) -> Callable[[T], T]:
         """A shorthand for the :py:meth:`EventDispatcher.listen()` decorator.
 
