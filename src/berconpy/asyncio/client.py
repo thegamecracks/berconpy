@@ -6,7 +6,7 @@ from typing import Awaitable, Type
 from .ban import Ban
 from .cache import AsyncRCONClientCache
 from .dispatch import AsyncEventDispatch
-from .io import AsyncRCONClientProtocol, AsyncRCONClientTransport
+from .io import AsyncClientProtocol, AsyncClientConnector
 from .player import Player
 from ..client import RCONClient
 from ..errors import RCONCommandError
@@ -34,7 +34,7 @@ class AsyncRCONClient(RCONClient):
         *,
         cache_cls: Type[AsyncRCONClientCache] | None = None,
         dispatch: AsyncEventDispatch | None = None,
-        protocol_cls: Type[AsyncRCONClientProtocol] = AsyncRCONClientTransport,
+        protocol_cls: Type[AsyncClientProtocol] = AsyncClientConnector,
     ):
         if cache_cls is None:
             cache_cls = AsyncRCONClientCache
