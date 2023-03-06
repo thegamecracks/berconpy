@@ -93,10 +93,7 @@ class RCONClientProtocol(RCONGenericProtocol):
         :raises ValueError: Handling failed due to a malformed packet.
 
         """
-        try:
-            packet: Packet = Packet.from_bytes(data, from_client=False)
-        except (IndexError, ValueError) as e:
-            raise ValueError(str(e)) from e
+        packet = Packet.from_bytes(data, from_client=False)
 
         if not isinstance(packet, ServerPacket):
             raise ValueError(
