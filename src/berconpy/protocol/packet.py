@@ -288,9 +288,9 @@ class ClientLoginPacket(ClientPacket):
         buffer = self._get_initial_message(PacketType.LOGIN)
         buffer.extend(password)
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r})".format(type(self).__name__, self.message)
@@ -329,9 +329,9 @@ class ClientCommandPacket(ClientPacket):
         buffer.append(sequence)
         buffer.extend(command)
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
@@ -368,9 +368,9 @@ class ClientMessagePacket(ClientPacket):
         buffer = self._get_initial_message(PacketType.MESSAGE)
         buffer.append(sequence)
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r})".format(type(self).__name__, self.sequence)
@@ -419,9 +419,9 @@ class ServerLoginPacket(ServerPacket):
         buffer = self._get_initial_message(PacketType.LOGIN)
         buffer.append(1 if success else 0)
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r})".format(type(self).__name__, self.login_success)
@@ -467,9 +467,9 @@ class ServerCommandPacket(ServerPacket):
             buffer.extend((0, total, index))
         buffer.extend(response)
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r}, {!r}, {!r}, {!r})".format(
@@ -516,9 +516,9 @@ class ServerMessagePacket(ServerPacket):
         buffer.append(sequence)
         buffer.extend(message)
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
