@@ -50,7 +50,7 @@ class ClientState(enum.Enum):
     LOGGED_IN = enum.auto()
 
 
-class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
+class RCONClientProtocol(RCONGenericProtocol):
     """Implements the client-side portion of the protocol.
 
     :param message_check:

@@ -1,14 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import Any
 
 from .packet import Packet
 
 __all__ = ("RCONGenericProtocol",)
 
-T_co = TypeVar("T_co", covariant=True)
 
-
-class RCONGenericProtocol(ABC, Generic[T_co]):
+class RCONGenericProtocol(ABC):
     """The base class for handling the RCON protocol between two computers."""
 
     @abstractmethod
@@ -21,7 +19,7 @@ class RCONGenericProtocol(ABC, Generic[T_co]):
         """
 
     @abstractmethod
-    def events_received(self) -> list[T_co]:
+    def events_received(self) -> list[Any]:
         """Retrieves all events that have been parsed since this was last called."""
 
     @abstractmethod
