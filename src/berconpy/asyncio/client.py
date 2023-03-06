@@ -14,16 +14,7 @@ log = logging.getLogger(__name__)
 
 
 class AsyncRCONClient(RCONClient):
-    """An implementation of the RCON client protocol using asyncio.
-
-    .. note::
-
-        Most of this class's methods for sending commands like
-        :py:meth:`kick()` may raise :py:exc:`RCONCommandError` or
-        :py:exc:`RuntimeError` since they rely on the :py:meth:`send_command()`
-        method.
-
-    """
+    """An implementation of the RCON client protocol using asyncio."""
 
     cache: AsyncRCONClientCache
     dispatch: AsyncEventDispatcher
@@ -35,6 +26,12 @@ class AsyncRCONClient(RCONClient):
         dispatch: AsyncEventDispatcher | None = None,
         protocol_cls: Type[AsyncClientProtocol] = AsyncClientConnector,
     ):
+        """
+        :param cache_cls: The cache class to use for the client.
+        :param dispatch: The dispatcher object to use for transmitting events.
+        :param protocol_cls:
+            The protocol class to use for handling connections.
+        """
         if cache_cls is None:
             cache_cls = AsyncRCONClientCache
         if dispatch is None:

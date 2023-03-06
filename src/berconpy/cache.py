@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class RCONClientCache(ABC):
-    """A standard interface for implementing caching."""
+    """The base class for implementing caching."""
 
     client: RCONClient
 

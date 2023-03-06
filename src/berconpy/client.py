@@ -40,6 +40,10 @@ class RCONClient(ABC):
         cache_cls: Type[RCONClientCache],
         dispatch: EventDispatcher,
     ):
+        """
+        :param cache_cls: The cache class to use for the client.
+        :param dispatch: The dispatcher object to use for transmitting events.
+        """
         self.cache = cache_cls(self)
         self.dispatch = dispatch
         self.dispatch.add_listener("on_message", self.on_message)
@@ -155,6 +159,12 @@ class RCONClient(ABC):
             will be permanent.
         :param reason: An optional reason to include with the ban.
         :returns: The response from the server, if any.
+        :raises RCONCommandError:
+            The server has either disabled this command or failed to
+            respond to our command.
+        :raises RuntimeError:
+            The client is either not connected or the server
+            could/would not respond to the command.
 
         """
         command = "ban" if isinstance(addr, int) else "addBan"
@@ -171,6 +181,12 @@ class RCONClient(ABC):
         :param player_id: The ID of the player.
         :param reason: An optional reason to show when kicking.
         :returns: The response from the server, if any.
+        :raises RCONCommandError:
+            The server has either disabled this command or failed to
+            respond to our command.
+        :raises RuntimeError:
+            The client is either not connected or the server
+            could/would not respond to the command.
 
         """
         return self.send_command(f"kick {player_id:d} {reason}".rstrip())
@@ -180,6 +196,12 @@ class RCONClient(ABC):
 
         :param message: The message to send.
         :returns: The response from the server, if any.
+        :raises RCONCommandError:
+            The server has either disabled this command or failed to
+            respond to our command.
+        :raises RuntimeError:
+            The client is either not connected or the server
+            could/would not respond to the command.
 
         """
         return self.send_command(f"say -1 {message}")
@@ -189,6 +211,12 @@ class RCONClient(ABC):
 
         :param ban_id: The ID of the ban to remove.
         :returns: The response from the server, if any.
+        :raises RCONCommandError:
+            The server has either disabled this command or failed to
+            respond to our command.
+        :raises RuntimeError:
+            The client is either not connected or the server
+            could/would not respond to the command.
 
         """
         return self.send_command(f"removeBan {ban_id:d}")
@@ -201,6 +229,12 @@ class RCONClient(ABC):
         :param player_id: The ID of the player to send to.
         :param message: The message to send.
         :returns: The response from the server, if any.
+        :raises RCONCommandError:
+            The server has either disabled this command or failed to
+            respond to our command.
+        :raises RuntimeError:
+            The client is either not connected or the server
+            could/would not respond to the command.
 
         """
         return self.send_command(f"say {player_id:d} {message}")
@@ -288,7 +322,7 @@ class RCONClient(ABC):
             raise ValueError(f"unexpected server message: {response}")
 
     def _update_players(self, response: str) -> None:
-        """Updates the cache from a server response to the "players" admin command."""
+        """Updates the cache from a server response to the "players" RCON command."""
         current_ids = set()
         for player in parse_players(response):
             p = self.cache.get_player(player["id"])
