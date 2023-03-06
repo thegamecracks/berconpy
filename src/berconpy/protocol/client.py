@@ -66,7 +66,11 @@ class RCONClientProtocol(RCONGenericProtocol):
     """A mapping of command sequences to mappings of command indexes to their packets.
 
     When :py:meth:`send_command()` is used, an entry is added here to
-    store the appropriate responses. Once all expected responses are received,"""
+    store the appropriate responses. Once all expected responses are
+    received, they are joined into a single message and converted into
+    a :py:class:`CommandResponseEvent`.
+
+    """
     _next_sequence: int
     _state: ClientState
     _to_send: list[ClientPacket]
