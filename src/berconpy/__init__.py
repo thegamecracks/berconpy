@@ -1,8 +1,12 @@
 from .asyncio import (
+    AsyncClientConnector,
+    AsyncClientProtocol,
+    AsyncCommander,
     AsyncEventDispatcher,
     AsyncRCONClientCache,
     AsyncRCONClient,
     Ban,
+    ConnectorConfig,
     Player,
 )
 from .errors import *
