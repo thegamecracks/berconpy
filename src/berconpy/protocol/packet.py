@@ -184,7 +184,7 @@ class Packet:
 
     @classmethod
     @_convert_exception(IndexError, ValueError, "insufficient data provided")
-    def from_bytes(cls, data: bytes, from_client=False):
+    def from_bytes(cls, data: bytes, *, from_client: bool):
         """Constructs a packet from the given data.
 
         :param data: The data to parse.
