@@ -56,8 +56,8 @@ Packet Checks
    :toctree: generated
    :nosignatures:
 
-   berconpy.protocol.check.Check
-   berconpy.protocol.check.NonceCheck
+   berconpy.Check
+   berconpy.NonceCheck
 
 Exceptions
 ----------
@@ -66,4 +66,4 @@ Exceptions
    :toctree: generated
    :nosignatures:
 
-   berconpy.protocol.errors.InvalidStateError
+   berconpy.InvalidStateError
