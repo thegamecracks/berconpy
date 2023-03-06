@@ -31,7 +31,7 @@ BanT = TypeVar("BanT", bound="Ban")
 
 
 class RCONClient(ABC):
-    """The base interface for all client implementations of the RCON protocol."""
+    """The base class for all client implementations of the RCON protocol."""
 
     def __init__(
         self,

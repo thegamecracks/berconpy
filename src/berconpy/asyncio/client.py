@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 class AsyncRCONClient(RCONClient):
-    """An asynchronous interface for connecting to an BattlEye RCON server.
+    """An implementation of the RCON client protocol using asyncio.
 
     .. note::
 
