@@ -32,6 +32,7 @@ Reference
    :glob:
 
    asyncio
+   client
    protocol
    events
    ext/*

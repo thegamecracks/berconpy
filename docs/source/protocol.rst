@@ -1,27 +1,6 @@
 Sans-IO API Reference
 =====================
 
-RCON Client
------------
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   berconpy.client.RCONClient
-   berconpy.cache.RCONClientCache
-   berconpy.dispatch.EventDispatcher
-
-Data Models
-^^^^^^^^^^^
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   berconpy.ban.Ban
-   berconpy.player.Player
-
 Protocol Interface
 ------------------
 
@@ -32,7 +11,7 @@ Protocol Interface
    berconpy.RCONGenericProtocol
 
 Protocol Implementations
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 .. autosummary::
    :toctree: generated
@@ -53,7 +32,7 @@ Protocol Implementations
    berconpy.ServerState
 
 Packet Messages
-^^^^^^^^^^^^^^^
+---------------
 
 .. autosummary::
    :toctree: generated
@@ -71,7 +50,7 @@ Packet Messages
    berconpy.protocol.ServerMessagePacket
 
 Packet Checks
-^^^^^^^^^^^^^
+-------------
 
 .. autosummary::
    :toctree: generated
