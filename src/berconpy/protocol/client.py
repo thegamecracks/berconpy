@@ -7,29 +7,20 @@ from .check import Check, NonceCheck
 from .errors import InvalidStateError
 from .packet import *
 
-__all__ = (
-    "ClientEvent",
-    "AuthEvent",
-    "CommandResponseEvent",
-    "ServerMessageEvent",
-    "ClientState",
-    "RCONClientProtocol",
-)
-
 
 class ClientEvent:
     """The base class for events received by the client from the server."""
 
 
 @dataclass
-class AuthEvent(ClientEvent):
+class ClientAuthEvent(ClientEvent):
     """Indicates if an authentication request was successful."""
 
     success: bool
 
 
 @dataclass
-class CommandResponseEvent(ClientEvent):
+class ClientCommandEvent(ClientEvent):
     """Represents the response to a given command."""
 
     sequence: int
@@ -37,7 +28,7 @@ class CommandResponseEvent(ClientEvent):
 
 
 @dataclass
-class ServerMessageEvent(ClientEvent):
+class ClientMessageEvent(ClientEvent):
     """Represents a message sent by the server."""
 
     message: str
@@ -211,7 +202,7 @@ class RCONClientProtocol(RCONGenericProtocol):
             if packet.login_success:
                 self._state = ClientState.LOGGED_IN
 
-            return (AuthEvent(packet.login_success),), ()
+            return (ClientAuthEvent(packet.login_success),), ()
 
         elif isinstance(packet, ServerCommandPacket):
             return self._handle_command_packet(packet)
@@ -221,7 +212,7 @@ class RCONClientProtocol(RCONGenericProtocol):
             self._assert_state(ClientState.LOGGED_IN)
 
             if self.message_check(packet):
-                events = (ServerMessageEvent(packet.message),)
+                events = (ClientMessageEvent(packet.message),)
             else:
                 events = ()
 
@@ -276,4 +267,4 @@ class RCONClientProtocol(RCONGenericProtocol):
         message_bytes = b"".join(rest[i].message for i in range(packet.total))
         message_str = message_bytes.decode()
 
-        return (CommandResponseEvent(packet.sequence, message_str),), ()
+        return (ClientCommandEvent(packet.sequence, message_str),), ()

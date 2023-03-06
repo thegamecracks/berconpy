@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING
 
 from ..errors import LoginFailure, RCONCommandError
 from ..protocol import (
-    AuthEvent,
+    ClientAuthEvent,
     ClientEvent,
     ClientCommandPacket,
     ClientPacket,
-    CommandResponseEvent,
+    ClientCommandEvent,
     RCONClientProtocol,
-    ServerMessageEvent,
+    ClientMessageEvent,
 )
 
 log = logging.getLogger(__name__)
@@ -468,7 +468,7 @@ class AsyncClientConnector(AsyncClientProtocol):
     # RCONClientProtocol handling
 
     def _handle_event(self, event: ClientEvent) -> None:
-        if isinstance(event, AuthEvent):
+        if isinstance(event, ClientAuthEvent):
             assert self._is_logged_in is not None
             if self._is_logged_in.done():
                 return
@@ -481,11 +481,11 @@ class AsyncClientConnector(AsyncClientProtocol):
                     LoginFailure("invalid password provided")
                 )
 
-        elif isinstance(event, CommandResponseEvent):
+        elif isinstance(event, ClientCommandEvent):
             self.commander.set_command(event.sequence, event.message)
             self.client.dispatch("command", event.message)
 
-        elif isinstance(event, ServerMessageEvent):
+        elif isinstance(event, ClientMessageEvent):
             self.client.dispatch("message", event.message)
 
         else:

@@ -8,10 +8,10 @@ Suggested reading about sansio:
 from .base import RCONGenericProtocol
 from .check import Check, NonceCheck
 from .client import (
+    ClientAuthEvent,
+    ClientCommandEvent,
     ClientEvent,
-    AuthEvent,
-    CommandResponseEvent,
-    ServerMessageEvent,
+    ClientMessageEvent,
     ClientState,
     RCONClientProtocol,
 )
