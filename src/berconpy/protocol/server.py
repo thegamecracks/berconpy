@@ -75,7 +75,7 @@ class RCONServerProtocol(RCONGenericProtocol):
     def __init__(
         self,
         *,
-        command_check: Check[ServerCommandPacket] | None = None,
+        command_check: Check[ClientCommandPacket] | None = None,
         password: str,
         response_chunk_size: int = 512,
     ) -> None:
@@ -217,7 +217,13 @@ class RCONServerProtocol(RCONGenericProtocol):
 
         elif isinstance(packet, ClientCommandPacket):
             self._assert_state(ServerState.LOGGED_IN)
-            return (ServerCommandEvent(packet.sequence, packet.message.decode()),), ()
+
+            if self.command_check(packet):
+                events = (ServerCommandEvent(packet.sequence, packet.message.decode()),)
+            else:
+                events = ()
+
+            return events, ()
 
         elif isinstance(packet, ClientMessagePacket):
             self._assert_state(ServerState.LOGGED_IN)
