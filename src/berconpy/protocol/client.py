@@ -32,6 +32,7 @@ class AuthEvent(ClientEvent):
 class CommandResponseEvent(ClientEvent):
     """Represents the response to a given command."""
 
+    sequence: int
     message: str
 
 
@@ -265,4 +266,4 @@ class RCONClientProtocol(RCONGenericProtocol[ClientEvent]):
         # This should be guaranteed to work
         message = "".join(rest[i].message for i in range(packet.total))
 
-        return (CommandResponseEvent(message),), ()
+        return (CommandResponseEvent(packet.sequence, message),), ()
