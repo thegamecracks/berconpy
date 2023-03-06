@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod
 from typing import Callable, TypeVar
 
-Hook = TypeVar("Hook", bound=Callable)
+T = TypeVar("T")
 
 
 class EventDispatcher(ABC):
     """A standard interface for implementing an event handler system."""
 
     @abstractmethod
-    def add_listener(self, event: str, func: Hook, /):
+    def add_listener(self, event: str, func: Callable, /):
         """Adds a listener for a given event, e.g. ``"on_login"``.
 
         See the :doc:`/events` for a list of supported events.
@@ -21,7 +21,7 @@ class EventDispatcher(ABC):
         """
 
     @abstractmethod
-    def remove_listener(self, event: str, func: Hook):
+    def remove_listener(self, event: str, func: Callable):
         """Removes a listener from a given event, e.g. ``"on_login"``.
 
         This method should be a no-op if the given event and function
@@ -40,7 +40,7 @@ class EventDispatcher(ABC):
 
         """
 
-    def listen(self, event: str | None = None) -> Callable[[Hook], Hook]:
+    def listen(self, event: str | None = None) -> Callable[[T], T]:
         """A decorator shorthand to add a listener for a given event,
         e.g. ``"on_login"``.
 
@@ -50,7 +50,7 @@ class EventDispatcher(ABC):
 
         """
 
-        def decorator(func: Hook) -> Hook:
+        def decorator(func):
             self.add_listener(event or func.__name__, func)
             return func
 

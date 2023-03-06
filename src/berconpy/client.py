@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Callable, Type, TypeVar
 
 from .cache import RCONClientCache
-from .dispatch import EventDispatcher, Hook
+from .dispatch import EventDispatcher
 from .events import (
     AdminConnect,
     PlayerConnect,
@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from .player import Player
 
 BanT = TypeVar("BanT", bound="Ban")
+T = TypeVar("T")
 
 
 class RCONClient(ABC):
@@ -223,7 +224,7 @@ class RCONClient(ABC):
 
     # Event dispatcher
 
-    def listen(self, event: str | None = None) -> Callable[[Hook], Hook]:
+    def listen(self, event: str | None = None) -> Callable[[T], T]:
         """A shorthand for the :py:meth:`EventDispatcher.listen()` decorator.
 
         Example usage::
