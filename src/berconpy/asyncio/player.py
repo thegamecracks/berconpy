@@ -8,7 +8,9 @@ if TYPE_CHECKING:
 
 
 class Player(BasePlayer):
-    """Represents a player in the server."""
+    """
+    An asynchronous implemenation of the :py:class:`~berconpy.player.Player` class.
+    """
 
     @property
     def cache(self) -> "AsyncRCONClientCache":
