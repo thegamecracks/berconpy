@@ -1,6 +1,7 @@
+import asyncio
 import contextlib
 import logging
-from typing import Awaitable, Type
+from typing import Awaitable
 
 from .ban import Ban
 from .cache import AsyncRCONClientCache
@@ -11,6 +12,25 @@ from ..client import RCONClient
 from ..errors import RCONCommandError
 
 log = logging.getLogger(__name__)
+
+
+def _add_cancel_callback(
+    fut: asyncio.Future,
+    current_task: asyncio.Task | None = None,
+):
+    """Adds a callback to a future to cancel the current task
+    if the future completes with an exception.
+    """
+    def _actual_canceller(_):
+        assert current_task is not None
+        if fut.exception() is not None:
+            current_task.cancel()
+
+    # We need to cache the closing future here, so we're still able to
+    # suppress the future exception if the protocol closed with one
+
+    current_task = current_task or asyncio.current_task()
+    fut.add_done_callback(_actual_canceller)
 
 
 class AsyncRCONClient(RCONClient):
@@ -105,6 +125,10 @@ class AsyncRCONClient(RCONClient):
             # Wait for login here to avoid any commands being sent
             # by the user before a connection was made
             await self.protocol.wait_for_login()
+
+            # Interrupt the current task if a fatal error occurs in the protocol
+            _add_cancel_callback(task)
+
             yield self
         finally:
             self.close()
