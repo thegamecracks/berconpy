@@ -156,7 +156,10 @@ class RCONClientProtocol(RCONGenericProtocol):
     def reset(self) -> None:
         """Resets the protocol to the beginning state.
 
-        This method should be invoked when the connection has timed out.
+        This method should be invoked when the connection has timed out,
+        meaning the client has either not sent a command within the last
+        45 seconds, or the client has failed to acknowledge 5 repeats of
+        the same message within 10 seconds.
 
         """
         self._events = []

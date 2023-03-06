@@ -298,7 +298,7 @@ class AsyncClientConnector(AsyncClientProtocol):
             return False
 
     def _reset(self):
-        self._reset_cache()
+        self._reset_protocol()
 
         mono = time.monotonic()
         self._addr = None
@@ -311,8 +311,9 @@ class AsyncClientConnector(AsyncClientProtocol):
         self._close_event.clear()
         self._task = None
 
-    def _reset_cache(self):
+    def _reset_protocol(self):
         self.commander.reset()
+        self.protocol.reset()
 
     # Connection methods
 
@@ -387,7 +388,7 @@ class AsyncClientConnector(AsyncClientProtocol):
                 log.info(
                     f"server has timed out (last received {elapsed_time:.0f} seconds ago)"
                 )
-                self._reset_cache()
+                self._reset_protocol()
                 self._is_logged_in = loop.create_future()
                 continue
 
