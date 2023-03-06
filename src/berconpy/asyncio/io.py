@@ -64,7 +64,13 @@ class AsyncRCONClientProtocol(ABC):
 
     @abstractmethod
     def run(self, ip: str, port: int, password: str) -> asyncio.Task[None]:
-        """Starts maintaining a connection to the given server."""
+        """Starts maintaining a connection to the given server.
+
+        :returns: A task that will handle connections to the server.
+        :raises RuntimeError:
+            This method was called while the protocol was already connected.
+
+        """
 
     @abstractmethod
     async def send_command(self, command: str) -> str:
@@ -79,15 +85,13 @@ class AsyncRCONClientProtocol(ABC):
         """
 
     @abstractmethod
-    async def wait_for_login(self) -> bool | None:
+    async def wait_for_login(self) -> bool:
         """Waits indefinitely until the client has received a login response
         or the connection has closed.
 
         This can also raise any exception when the connection finishes closing.
 
-        :returns:
-            True if authenticated or None if the connection closed
-            without an error.
+        :returns: True if authenticated, False otherwise.
         :raises LoginFailure:
             The password given to the server was denied.
 
@@ -117,7 +121,6 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
     _last_players: float
 
     _is_logged_in: asyncio.Future[bool] | None
-    _close_event: asyncio.Event
     _task: asyncio.Task | None
 
     def __init__(
@@ -131,7 +134,6 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
         self.client = client
         self.protocol = protocol
 
-        self._running_event = asyncio.Event()
         self._close_event = asyncio.Event()
         self._transport: asyncio.DatagramTransport | None = None
         self.reset()
@@ -153,18 +155,16 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
         self._close_event.clear()
         self._task = None
 
-        self._running_event.clear()
-
-    def is_logged_in(self) -> bool | None:
+    def is_logged_in(self) -> bool:
         if self._is_logged_in is not None and self._is_logged_in.done():
             return self._is_logged_in.result()
-        return None
+        return False
 
     def is_connected(self) -> bool:
         return self._transport is not None
 
     def is_running(self) -> bool:
-        return self._running_event.is_set()
+        return self._task is not None and not self._task.done()
 
     # Helper methods
 
@@ -191,7 +191,7 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
     def _tick(self):
         self._last_received = time.monotonic()
 
-    async def wait_for_login(self) -> bool | None:
+    async def wait_for_login(self) -> bool:
         # This method may be called before run() so we need to
         # make sure the futures are initialized with something
         loop = asyncio.get_running_loop()
@@ -210,7 +210,7 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
             return self._is_logged_in.result()
         else:
             # Closed without having connected
-            return None
+            return False
 
     # Command methods
 
@@ -274,16 +274,7 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
 
     # Connection methods
 
-    async def _authenticate(self, password: str) -> bool | None:
-        """Sends an authentication packet to the server and waits
-        for a response.
-        """
-        packet = self.protocol.authenticate(password)
-        self._send(packet)
-
-        return await self.wait_for_login()
-
-    async def connect(self, password: str) -> bool | None:
+    async def connect(self, password: str) -> bool:
         """Creates a connection to the given address.
 
         If necessary, any previous connection will be closed
@@ -308,7 +299,10 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
             remote_addr=self._addr,
         )
 
-        return await self._authenticate(password)
+        packet = self.protocol.authenticate(password)
+        self._send(packet)
+
+        return await self.wait_for_login()
 
     def disconnect(self):
         if self._transport is not None:
@@ -319,12 +313,14 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
         self._close_event.set()
 
     def run(self, ip: str, port: int, password: str) -> asyncio.Task[None]:
+        if self.is_running():
+            raise RuntimeError("connection is already running")
+
         self._task = asyncio.create_task(self._run_and_handle(ip, port, password))
         return self._task
 
     async def _run_and_handle(self, ip: str, port: int, password: str) -> None:
         self._addr = (ip, port)
-        self._running_event.set()
         self._close_event.clear()
 
         try:
@@ -338,10 +334,15 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
         first_iteration = True
 
         while not self._close_event.is_set():
-            if self._is_logged_in is None or not self._is_logged_in.done():
-                await self._try_connect(password, first_iteration=first_iteration)
+            if not self.is_logged_in():
+                logged_in = await self._try_connect(
+                    password,
+                    first_iteration=first_iteration,
+                )
 
-                if not self._is_logged_in.done():
+                if not logged_in and self._close_event.is_set():
+                    return
+                elif not logged_in:
                     log.error("failed to connect to the server")
                     raise LoginFailure("could not connect to the server")
                 elif (exc := self._is_logged_in.exception()) is not None:
@@ -373,7 +374,22 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
         password: str,
         *,
         first_iteration: bool,
-    ) -> None:
+    ) -> bool:
+        """Attempts to connect to the server, potentially multiple times.
+
+        Connection attempts are spaced out using an exponential backoff
+        algorithm.
+
+        :param password: The password to use when authenticating.
+        :param first_iteration:
+            If ``True``, the number of connection attempts will be limited
+            to :py:attr:`INITIAL_CONNECT_ATTEMPTS`. Otherwise, this method
+            will attempt to connect indefinitely.
+        :returns:
+            True if successfully authenticated, and False if all connection
+            attempts failed or the protocol was asked to close itself.
+
+        """
         log.info(
             "attempting to {re}connect to server".format(
                 re="re" * (not first_iteration)
@@ -388,8 +404,7 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
         for i in attempts:
             try:
                 timeout = self.CONNECTION_TIMEOUT
-                await asyncio.wait_for(self.connect(password), timeout=timeout)
-                break
+                return await asyncio.wait_for(self.connect(password), timeout=timeout)
             except LoginFailure:
                 raise  # credentials may be invalid, or server changed it
             except (asyncio.TimeoutError, OSError):
@@ -401,6 +416,8 @@ class AsyncRCONClientTransport(AsyncRCONClientProtocol):
                 # exponential backoff
                 self.disconnect()
                 await asyncio.sleep(2 ** (i % 11))
+
+        return False
 
     # RCONClientProtocol handling
 

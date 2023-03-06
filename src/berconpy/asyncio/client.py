@@ -94,9 +94,6 @@ class AsyncRCONClient(RCONClient):
             This method was called while the client is already connected.
 
         """
-        if self._protocol.is_running():
-            raise RuntimeError("connection is already running")
-
         # Establish connection
         task = None
         try:
