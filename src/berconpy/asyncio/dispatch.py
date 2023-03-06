@@ -2,14 +2,14 @@ import asyncio
 import collections
 import logging
 
-from ..dispatch import RCONClientDispatch
+from ..dispatch import EventDispatcher
 from ..utils import MaybeCoroFunc, maybe_coro
 
 log = logging.getLogger(__name__)
 
 
-class AsyncEventDispatch(RCONClientDispatch):
-    """Implements the :py:class:`RCONClientDispatch` interface for asyncio."""
+class AsyncEventDispatcher(EventDispatcher):
+    """Implements the :py:class:`EventDispatcher` interface for asyncio."""
 
     _event_listeners: dict[str, list[MaybeCoroFunc]]
     _temporary_listeners: dict[str, list[tuple[asyncio.Future, MaybeCoroFunc]]]

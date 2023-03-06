@@ -1,5 +1,5 @@
 from .asyncio import (
-    AsyncEventDispatch,
+    AsyncEventDispatcher,
     AsyncRCONClientCache,
     AsyncRCONClient,
     Ban,

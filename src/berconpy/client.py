@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Type, TypeVar
 
 from .cache import RCONClientCache
-from .dispatch import RCONClientDispatch
+from .dispatch import EventDispatcher
 from .events import (
     AdminConnect,
     PlayerConnect,
@@ -37,7 +37,7 @@ class RCONClient(ABC):
         self,
         *,
         cache_cls: Type[RCONClientCache],
-        dispatch: RCONClientDispatch,
+        dispatch: EventDispatcher,
     ):
         self.cache = cache_cls(self)
         self.dispatch = dispatch

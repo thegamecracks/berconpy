@@ -4,7 +4,7 @@ from typing import Callable, TypeVar
 Hook = TypeVar("Hook", bound=Callable)
 
 
-class RCONClientDispatch(ABC):
+class EventDispatcher(ABC):
     """A standard interface for implementing an event handler system."""
 
     @abstractmethod

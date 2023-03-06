@@ -4,7 +4,7 @@ from typing import Awaitable, Type
 
 from .ban import Ban
 from .cache import AsyncRCONClientCache
-from .dispatch import AsyncEventDispatch
+from .dispatch import AsyncEventDispatcher
 from .io import AsyncClientProtocol, AsyncClientConnector
 from .player import Player
 from ..client import RCONClient
@@ -26,19 +26,19 @@ class AsyncRCONClient(RCONClient):
     """
 
     cache: AsyncRCONClientCache
-    dispatch: AsyncEventDispatch
+    dispatch: AsyncEventDispatcher
 
     def __init__(
         self,
         *,
         cache_cls: Type[AsyncRCONClientCache] | None = None,
-        dispatch: AsyncEventDispatch | None = None,
+        dispatch: AsyncEventDispatcher | None = None,
         protocol_cls: Type[AsyncClientProtocol] = AsyncClientConnector,
     ):
         if cache_cls is None:
             cache_cls = AsyncRCONClientCache
         if dispatch is None:
-            dispatch = AsyncEventDispatch()
+            dispatch = AsyncEventDispatcher()
 
         super().__init__(cache_cls=cache_cls, dispatch=dispatch)
         self.dispatch.add_listener("on_login", self.cache.on_login)
