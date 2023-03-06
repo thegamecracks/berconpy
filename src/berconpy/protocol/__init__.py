@@ -6,6 +6,7 @@ Suggested reading about sansio:
 
 """
 from .base import RCONGenericProtocol
+from .check import Check, NonceCheck
 from .client import (
     ClientEvent,
     AuthEvent,
