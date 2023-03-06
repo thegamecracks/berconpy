@@ -94,7 +94,7 @@ class RCONServerProtocol(RCONGenericProtocol):
 
         """
         try:
-            packet: Packet = Packet.from_bytes(data)
+            packet: Packet = Packet.from_bytes(data, from_client=True)
         except (IndexError, ValueError) as e:
             raise ValueError(str(e)) from e
 
