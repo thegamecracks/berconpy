@@ -62,12 +62,14 @@ class RCONServerProtocol(RCONGenericProtocol):
         or more packets to be returned by :py:meth:`respond_to_command()`.
     """
 
+    state: ServerState
+    """The current state of the protocol."""
+
     _events: list[ServerEvent]
     """A list of events waiting to be collected."""
     _message_queue: set[int]
     """A set of message sequences waiting to be acknowledged."""
     _next_sequence: int
-    _state: ServerState
     _to_send: list[ServerPacket]
 
     def __init__(
@@ -132,7 +134,7 @@ class RCONServerProtocol(RCONGenericProtocol):
         self._events = []
         self._message_queue = set()
         self._next_sequence = 0
-        self._state = ServerState.AUTHENTICATING
+        self.state = ServerState.AUTHENTICATING
         self._to_send = []
 
     def respond_to_command(
@@ -184,13 +186,13 @@ class RCONServerProtocol(RCONGenericProtocol):
         self._assert_state(ServerState.AUTHENTICATING)
         success = secrets.compare_digest(password, self.password.encode())
         if success:
-            self._state = ServerState.LOGGED_IN
+            self.state = ServerState.LOGGED_IN
 
         return ServerLoginPacket(success)
 
     def _assert_state(self, *states: ServerState) -> None:
-        if self._state not in states:
-            raise InvalidStateError(self._state, states)
+        if self.state not in states:
+            raise InvalidStateError(self.state, states)
 
     def _get_next_sequence(self) -> int:
         sequence = self._next_sequence

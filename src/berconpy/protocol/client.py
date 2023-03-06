@@ -51,6 +51,9 @@ class RCONClientProtocol(RCONGenericProtocol):
 
     """
 
+    state: ClientState
+    """The current state of the protocol."""
+
     _events: list[ClientEvent]
     """A list of events waiting to be collected."""
     _command_queue: dict[int, dict[int, ServerCommandPacket]]
@@ -63,7 +66,6 @@ class RCONClientProtocol(RCONGenericProtocol):
 
     """
     _next_sequence: int
-    _state: ClientState
     _to_send: list[ClientPacket]
 
     def __init__(
@@ -80,7 +82,7 @@ class RCONClientProtocol(RCONGenericProtocol):
     def __repr__(self) -> str:
         return "<{} {}, {} event(s), {} packet(s) to send>".format(
             type(self).__name__,
-            self._state.name.lower().replace("_", " "),
+            self.state.name.lower().replace("_", " "),
         )
 
     # Required methods
@@ -156,7 +158,7 @@ class RCONClientProtocol(RCONGenericProtocol):
         self._events = []
         self._command_queue = {}
         self._next_sequence = 0
-        self._state = ClientState.AUTHENTICATING
+        self.state = ClientState.AUTHENTICATING
         self._to_send = []
 
         self.message_check.reset()
@@ -178,8 +180,8 @@ class RCONClientProtocol(RCONGenericProtocol):
         return ClientCommandPacket(sequence, command.encode())
 
     def _assert_state(self, *states: ClientState) -> None:
-        if self._state not in states:
-            raise InvalidStateError(self._state, states)
+        if self.state not in states:
+            raise InvalidStateError(self.state, states)
 
     def _get_next_sequence(self) -> int:
         sequence = self._next_sequence
@@ -200,7 +202,7 @@ class RCONClientProtocol(RCONGenericProtocol):
             self._assert_state(ClientState.AUTHENTICATING)
 
             if packet.login_success:
-                self._state = ClientState.LOGGED_IN
+                self.state = ClientState.LOGGED_IN
 
             return (ClientAuthEvent(packet.login_success),), ()
 
