@@ -1,8 +1,6 @@
 import collections
 from typing import Generic, Protocol, TypeVar
 
-from .packet import Packet
-
 __all__ = (
     "Check",
     "NonceCheck",
@@ -22,6 +20,14 @@ class Check(Protocol, Generic[P_contra]):
         raise NotImplementedError
 
 
+class Sequential(Protocol):
+    """An object that has a "sequence" integer attribute."""
+
+    @property
+    def sequence(self) -> int:
+        ...
+
+
 class NonceCheck:
     """A simple check that verifies the :py:attr:`Packet.sequence`
     has not been recently seen before.
@@ -38,7 +44,7 @@ class NonceCheck:
     def __init__(self, max_size: int):
         self.deque = collections.deque((), max_size)
 
-    def __call__(self, packet: Packet) -> bool:
+    def __call__(self, packet: Sequential) -> bool:
         if packet.sequence in self.deque:
             return False
 
