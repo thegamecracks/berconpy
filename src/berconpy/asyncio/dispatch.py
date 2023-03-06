@@ -8,7 +8,7 @@ from ..utils import MaybeCoroFunc, maybe_coro
 log = logging.getLogger(__name__)
 
 
-class AsyncEventDispatch(RCONClientDispatch[MaybeCoroFunc]):
+class AsyncEventDispatch(RCONClientDispatch):
     """Implements the :py:class:`RCONClientDispatch` interface for asyncio."""
 
     _event_listeners: dict[str, list[MaybeCoroFunc]]

@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Generic, TypeVar
+from typing import Callable, TypeVar
 
 Hook = TypeVar("Hook", bound=Callable)
 
 
-class RCONClientDispatch(ABC, Generic[Hook]):
+class RCONClientDispatch(ABC):
     """A standard interface for implementing an event handler system."""
 
     @abstractmethod
