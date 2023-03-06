@@ -3,4 +3,10 @@ from .ban import Ban
 from .cache import AsyncRCONClientCache
 from .client import AsyncRCONClient
 from .dispatch import AsyncEventDispatch
+from .io import (
+    AsyncClientProtocol,
+    AsyncClientConnector,
+    AsyncCommander,
+    ConnectorConfig,
+)
 from .player import Player
