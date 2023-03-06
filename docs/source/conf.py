@@ -27,7 +27,9 @@ exclude_patterns = []
 
 # https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html#configuration
 autodoc_default_options = {
-    "members": True
+    "inherited-members": True,
+    "show-inheritance": True,
+    "members": True,
 }
 autodoc_member_order = "groupwise"
 
