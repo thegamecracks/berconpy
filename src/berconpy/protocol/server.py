@@ -161,6 +161,8 @@ class RCONServerProtocol(RCONGenericProtocol):
         success = secrets.compare_digest(password, self.password.encode())
         if success:
             self.state = ServerState.LOGGED_IN
+        else:
+            self.state = ServerState.AUTHENTICATING
 
         return ServerLoginPacket(success)
 
@@ -184,7 +186,8 @@ class RCONServerProtocol(RCONGenericProtocol):
 
         """
         if isinstance(packet, ClientLoginPacket):
-            self._assert_state(ServerState.AUTHENTICATING)
+            # self._assert_state(ServerState.AUTHENTICATING)
+            # Client may authenticate multiple times
 
             payload = self.try_authenticate(packet.message)
             return (ServerAuthEvent(payload.login_success),), (payload,)
