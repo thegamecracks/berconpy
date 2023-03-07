@@ -10,6 +10,7 @@ from .io import AsyncClientProtocol, AsyncClientConnector
 from .player import Player
 from ..client import RCONClient
 from ..errors import RCONCommandError
+from ..utils import MaybeCoroFunc
 
 log = logging.getLogger(__name__)
 
@@ -220,3 +221,13 @@ class AsyncRCONClient(RCONClient):
     @dispatch.setter
     def dispatch(self, new_dispatch: AsyncEventDispatcher) -> None:
         super().dispatch = new_dispatch
+
+    async def wait_for(
+        self,
+        event: str,
+        *,
+        check: MaybeCoroFunc | None = None,
+        timeout: float | int | None = None,
+    ):
+        """A shorthand for :py:class:`AsyncEventDispatcher.wait_for()`."""
+        return await self.dispatch.wait_for(event, check=check, timeout=timeout)

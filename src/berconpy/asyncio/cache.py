@@ -58,7 +58,7 @@ class AsyncRCONClientCache(RCONClientCache):
         self._setup_cache()
 
         try:
-            admin_id, addr = await self.client.dispatch.wait_for("admin_login", timeout=10)
+            admin_id, addr = await self.client.wait_for("admin_login", timeout=10)
         except asyncio.TimeoutError:
             log.warning(
                 "did not receive admin_login event within 10 seconds; "
