@@ -20,6 +20,7 @@ class RCONClientCache(ABC):
     """The base class for implementing caching."""
 
     _client: RCONClient | None = None
+    _admin_id: int | None = None
 
     @property
     def client(self) -> RCONClient | None:
@@ -35,16 +36,15 @@ class RCONClientCache(ABC):
     # Public methods
 
     @property
-    @abstractmethod
     def admin_id(self) -> int | None:
         """The RCON admin ID this client was given or None
         if the client has not logged in.
         """
+        return self._admin_id
 
     @admin_id.setter
-    @abstractmethod
-    def admin_id(self, val: int | None) -> None:
-        ...
+    def admin_id(self, new_id: int | None) -> None:
+        self._admin_id = new_id
 
     @property
     @abstractmethod

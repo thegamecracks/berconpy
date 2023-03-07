@@ -19,7 +19,6 @@ log = logging.getLogger(__name__)
 
 
 class AsyncRCONClientCache(RCONClientCache):
-    _admin_id: int | None
     _players: dict[int, Player]
     _incomplete_players: dict[int, Player]
 
@@ -29,15 +28,7 @@ class AsyncRCONClientCache(RCONClientCache):
     def _setup_cache(self) -> None:
         self._players = {}
         self._incomplete_players = {}
-        self._admin_id = None
-
-    @property
-    def admin_id(self) -> int | None:
-        return self._admin_id
-
-    @admin_id.setter
-    def admin_id(self, val: int | None) -> None:
-        self._admin_id = val
+        self.admin_id = None
 
     @property
     def client(self) -> "AsyncRCONClient | None":
