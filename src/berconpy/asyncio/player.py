@@ -15,7 +15,7 @@ class Player(BasePlayer):
     @property
     def cache(self) -> "AsyncRCONClientCache":
         """The cache that created this object."""
-        return self._cache
+        return super().cache  # type: ignore
 
     @property
     def client(self) -> "AsyncRCONClient | None":
