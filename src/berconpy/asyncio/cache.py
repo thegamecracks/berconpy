@@ -26,6 +26,7 @@ class AsyncRCONClientCache(RCONClientCache):
     to quickly update itself.
 
     """
+
     _players: dict[int, Player]
     _incomplete_players: dict[int, Player]
 
@@ -49,7 +50,8 @@ class AsyncRCONClientCache(RCONClientCache):
             if old_client is not None:
                 old_client.remove_listener("on_login", self.on_login)
 
-        super().client = new_client
+        # super().client doesn't work so we're invoking the descriptor directly
+        super(AsyncRCONClientCache, type(self)).client.__set__(self, new_client)  # type: ignore
 
     @property
     def players(self) -> list[Player]:

@@ -206,7 +206,8 @@ class AsyncRCONClient(RCONClient):
 
     @cache.setter
     def cache(self, new_cache: AsyncRCONClientCache) -> None:
-        super().cache = new_cache
+        # super().cache doesn't work so we're invoking the descriptor directly
+        super(AsyncRCONClient, type(self)).cache.__set__(self, new_cache)  # type: ignore
 
     @property
     def players(self) -> list[Player]:
@@ -220,7 +221,8 @@ class AsyncRCONClient(RCONClient):
 
     @dispatch.setter
     def dispatch(self, new_dispatch: AsyncEventDispatcher) -> None:
-        super().dispatch = new_dispatch
+        # super().dispatch doesn't work so we're invoking the descriptor directly
+        super(AsyncRCONClient, type(self)).dispatch.__set__(self, new_dispatch)  # type: ignore
 
     async def wait_for(
         self,
