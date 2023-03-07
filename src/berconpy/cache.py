@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 import weakref
 
-from .events import (
+from .parser import (
     ParsedPlayer,
     PlayerConnect,
     PlayerGUID,

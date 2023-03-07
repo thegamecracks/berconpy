@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from .player import Player
 from ..cache import RCONClientCache
 from ..errors import RCONCommandError
-from ..events import (
+from ..parser import (
     ParsedPlayer,
     PlayerConnect,
     PlayerGUID,

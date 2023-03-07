@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Callable, Type, TypeVar
 
 from .cache import RCONClientCache
 from .dispatch import EventDispatcher
-from .events import (
+from .parser import (
     AdminConnect,
     PlayerConnect,
     PlayerGUID,
