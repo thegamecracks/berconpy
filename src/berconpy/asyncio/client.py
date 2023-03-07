@@ -156,22 +156,21 @@ class AsyncRCONClient(RCONClient):
             raise RuntimeError("cannot send command when not connected")
 
         response = await self.protocol.send_command(command)
-        if self._is_disallowed_command(response):
-            raise RCONCommandError("server has disabled this command")
+        self.check_disallowed_command(response)
 
         return response
 
     async def fetch_admins(self) -> list[tuple[int, str]]:
         response = await self.send_command("admins")
-        return self._parse_admins(response)
+        return self.parse_admins(response)
 
     async def fetch_bans(self) -> list[Ban]:
         response = await self.send_command("bans")
-        return self._parse_bans(response, cls=Ban)
+        return self.parse_bans(response, cls=Ban)
 
     async def fetch_missions(self) -> list[str]:
         response = await self.send_command("missions")
-        return self._parse_missions(response)
+        return self.parse_missions(response)
 
     async def fetch_players(self) -> list[Player]:
         response = await self.send_command("players")

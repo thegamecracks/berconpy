@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Callable, Sequence, Type, TypeVar
 
 from .cache import RCONClientCache
 from .dispatch import EventDispatcher
+from .errors import RCONCommandError
 from .parser import (
     AdminConnect,
     PlayerConnect,
@@ -243,19 +244,47 @@ class RCONClient(ABC):
         """
         return self.send_command(f"say {player_id:d} {message}")
 
-    def _is_disallowed_command(self, response: str) -> bool:
-        return response == "Disallowed command"
+    # Utilities
 
-    def _parse_admins(self, response: str) -> list[tuple[int, str]]:
+    def check_disallowed_command(self, response: str) -> None:
+        """Raises :py:exc:`RCONCommandError` if the server responded
+        with "Disallowed command".
+
+        This method should be used when implementing :py:meth:`send_command()`.
+
+        """
+        if response == "Disallowed command":
+            raise RCONCommandError("server has disabled this command")
+
+    def parse_admins(self, response: str) -> list[tuple[int, str]]:
+        """Parses an "admins" command response into a list of (IP, port) tuples.
+
+        This method should be used when implementing :py:meth:`fetch_admins()`.
+
+        """
         return [(admin["id"], admin["addr"]) for admin in parse_admins(response)]
 
-    def _parse_bans(self, response: str, *, cls: Type[BanT]) -> list[BanT]:
+    def parse_bans(self, response: str, *, cls: Type[BanT]) -> list[BanT]:
+        """Parses a "bans" command response into a list of
+        :py:class:`~berconpy.ban.Ban` objects.
+
+        This method should be used when implementing :py:meth:`fetch_bans()`.
+
+        :param response: The server response to parse.
+        :param cls: The :py:class:`~berconpy.ban.Ban` subclass to use.
+
+        """
         return [
             cls(self.cache, b["index"], b["ban_id"], b["duration"], b["reason"])
             for b in parse_bans(response)
         ]
 
-    def _parse_missions(self, response: str) -> list[str]:
+    def parse_missions(self, response: str) -> list[str]:
+        """Parses a "missions" command response into a list of mission files.
+
+        This method should be used when implementing :py:meth:`fetch_missions()`.
+
+        """
         lines = response.splitlines()
         lines.pop(0)  # "Missions on server:"
         return lines
@@ -335,7 +364,11 @@ class RCONClient(ABC):
         return self.dispatch.listen(event)
 
     def on_message(self, message: str):
-        """Parses a message sent from the server into various events."""
+        """Parses a message sent from the server into various events.
+
+        This method is automatically added as a listener on initialization.
+
+        """
         if m := AdminConnect.try_from_message(message):
             self.dispatch("admin_login", m.id, m.addr)
 
