@@ -64,6 +64,8 @@ class RCONClientProtocol(RCONGenericProtocol):
         return "<{} {}, {} event(s), {} packet(s) to send>".format(
             type(self).__name__,
             self.state.name.lower().replace("_", " "),
+            len(self._events),
+            len(self._to_send),
         )
 
     # Required methods
