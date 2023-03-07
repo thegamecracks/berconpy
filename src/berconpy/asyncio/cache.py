@@ -38,7 +38,7 @@ class AsyncRCONClientCache(RCONClientCache):
     def client(self, new_client: "AsyncRCONClient | None") -> None:
         old_client = super().client
         if new_client is not None:
-            new_client.dispatch.add_listener("on_login", self.on_login)
+            new_client.add_listener("on_login", self.on_login)
             if old_client is not None:
                 old_client.remove_listener("on_login", self.on_login)
 

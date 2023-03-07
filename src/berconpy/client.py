@@ -366,12 +366,12 @@ class RCONClient(ABC):
                 self.dispatch("admin_announcement", m.id, m.message)
             elif m.channel.startswith("To "):
                 name = m.channel.removeprefix("To ")
-                p = utils.get(self.cache.players, name=name)
+                p = utils.get(self.players, name=name)
                 if p is not None:
                     self.dispatch("admin_whisper", p, m.id, m.message)
 
         elif m := PlayerMessage.try_from_message(message):
-            p = utils.get(self.cache.players, name=m.name)
+            p = utils.get(self.players, name=m.name)
             if p is not None:
                 self.dispatch("player_message", p, m.channel, m.message)
 
@@ -391,6 +391,6 @@ class RCONClient(ABC):
             current_ids.add(player["id"])
 
         # Throw away players no longer in the server
-        previous_ids = set(p.id for p in self.cache.players)
+        previous_ids = set(p.id for p in self.players)
         for missing in previous_ids - current_ids:
             self.cache.remove_player(missing)

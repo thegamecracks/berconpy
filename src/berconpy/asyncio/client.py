@@ -175,7 +175,7 @@ class AsyncRCONClient(RCONClient):
     async def fetch_players(self) -> list[Player]:
         response = await self.send_command("players")
         self._update_players(response)
-        return self.cache.players
+        return self.players
 
     def ban(
         self,
