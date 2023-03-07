@@ -37,6 +37,14 @@ Reference
    events
    ext/*
 
+Meta
+----
+
+.. toctree::
+   :maxdepth: 1
+
+   changelog
+
 Indices and tables
 ==================
 
