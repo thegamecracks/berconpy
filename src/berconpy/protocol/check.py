@@ -41,6 +41,8 @@ class NonceCheck:
 
     """
 
+    deque: collections.deque[int]
+
     def __init__(self, max_size: int):
         self.deque = collections.deque((), max_size)
 

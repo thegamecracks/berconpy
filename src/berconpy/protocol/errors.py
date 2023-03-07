@@ -13,7 +13,7 @@ class InvalidStateError(RCONError, Generic[T]):
     expected_states: tuple[T]
     """A tuple of states that the protocol was expecting to be in."""
 
-    def __init__(self, current_state: T, expected_states: tuple[T]):
+    def __init__(self, current_state: T, expected_states: tuple[T, ...]):
         self.current_state = current_state
         self.expected_states = expected_states
         super().__init__(
