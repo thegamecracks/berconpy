@@ -31,7 +31,9 @@ Reference
    :maxdepth: 1
    :glob:
 
-   api
+   asyncio
+   client
+   protocol
    events
    ext/*
 

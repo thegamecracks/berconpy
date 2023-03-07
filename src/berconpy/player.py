@@ -1,19 +1,25 @@
-from typing import TYPE_CHECKING
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Awaitable
+import weakref
 
 if TYPE_CHECKING:
-    from .client import AsyncRCONClient
+    from .cache import RCONClientCache
+    from .client import RCONClient
 
 
-class Player:
+class Player(ABC):
     """Represents a player in the server."""
-    __slots__ = (
-        "__weakref__",
-        "client", "id", "name", "guid", "addr",
-        "is_guid_valid", "in_lobby"
-    )
 
-    client: "AsyncRCONClient"
-    """The client that created this object."""
+    __slots__ = (
+        "_cache",
+        "id",
+        "name",
+        "guid",
+        "addr",
+        "ping",
+        "is_guid_valid",
+        "in_lobby",
+    )
 
     id: int
     """The ID assigned to this player by the server."""
@@ -30,90 +36,142 @@ class Player:
     addr: str
     """The IP address and port this player connected from."""
 
+    ping: int | None
+    """The player's ping on the server.
+
+    This data may not be available or may be out-of-date since it is
+    only provided when the :py:meth:`RCONClient.fetch_players()` is called.
+
+    """
+
     is_guid_valid: bool
-    """Whether the server confirmed the validity of this player's GUID."""
+    """Whether the server has confirmed the validity of this player's GUID."""
 
     in_lobby: bool
     """
     Whether the player is in the server lobby or not.
 
-    This data is only accurate after calling the client's
-    :py:meth:`~AsyncRCONClient.fetch_players()` method since it cannot be
-    determined during connection.
+    This data is only accurate after calling the :py:meth:`RCONClient.fetch_players()`
+    method since it cannot be determined during connection.
+
     """
 
     def __init__(
-        self, client: "AsyncRCONClient",
-        id: int, name: str, guid: str, addr: str,
-        is_guid_valid: bool, in_lobby: bool
+        self,
+        cache: "RCONClientCache",
+        id: int,
+        name: str,
+        guid: str,
+        addr: str,
+        ping: int | None,
+        is_guid_valid: bool,
+        in_lobby: bool,
     ):
-        self.client = client
+        self._cache = weakref.proxy(cache)
+        self._update(id, name, guid, addr, ping, is_guid_valid, in_lobby)
+
+    def _update(
+        self,
+        id: int,
+        name: str,
+        guid: str,
+        addr: str,
+        ping: int | None,
+        is_guid_valid: bool,
+        in_lobby: bool,
+    ):
         self.id = id
         self.name = name
         self.guid = guid
         self.addr = addr
+        self.ping = ping
         self.is_guid_valid = is_guid_valid
         self.in_lobby = in_lobby
 
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return False
-        return (self.client, self.id) == (other.client, other.id)
-
-    def __hash__(self):
-        return hash((self.client, self.id))
-
     def __repr__(self):
-        attrs = (
-            (k, repr(getattr(self, k)))
-            for k in ("id", "name", "is_guid_valid", "in_lobby")
-        )
-        return "<{} {}>".format(
+        return "<{} id={!r} name={!r} is_guid_valid={!r} in_lobby={!r}>".format(
             type(self).__name__,
-            " ".join("=".join(pair) for pair in attrs)
+            self.id,
+            self.name,
+            self.is_guid_valid,
+            self.in_lobby,
         )
 
     def __str__(self):
         return self.name
 
     @property
-    def ping(self) -> int:
-        """The player's ping on the server.
+    def ip(self) -> str:
+        """Returns the IP address of the player.
 
-        This information is only updated after an :py:meth:`AsyncRCONClient.fetch_players()`
-        call and defaults to ``-1`` if it is never called. However, by default,
-        the client automatically calls fetch_players() on login
-        and then periodically during the connection's lifetime.
+        This property is derived from :py:attr:`addr`.
 
         """
-        return self.client._player_pings.get(self, -1)
+        return self.addr.split(":")[0]
 
-    async def ban_guid(self, duration: int | None = None, reason: str = ""):
-        """Bans the player from the server using their GUID."""
+    @property
+    def cache(self) -> "RCONClientCache":
+        """The cache that created this object."""
+        return self._cache
+
+    @property
+    def client(self) -> "RCONClient | None":
+        """Returns the client associated with the cache."""
+        return self.cache.client
+
+    @abstractmethod
+    def ban_guid(
+        self,
+        duration: int | None = None,
+        reason: str = "",
+    ) -> str | Awaitable[str]:
+        """Bans this player from the server using their GUID.
+
+        :param duration:
+            How long the player should be banned.
+            Can be ``None`` to indicate a permanent ban.
+        :param reason:
+            The reason to display when the player is banned.
+        :returns: The response from the server, if any.
+
+        """
         # NOTE: ban #ID does the same as adding the player's GUID
-        await self.client.ban(self.guid, duration, reason)
 
-    async def ban_ip(self, duration: int | None = None, reason: str = ""):
-        """Bans the player from the server using their IP."""
-        ip = self.addr.split(":")[0]
-        await self.client.ban(ip, duration, reason)
+    @abstractmethod
+    def ban_ip(
+        self,
+        duration: int | None = None,
+        reason: str = "",
+    ) -> str | Awaitable[str]:
+        """Bans this player from the server using their IP.
 
-    def is_connected(self) -> bool:
-        """Checks if the player is still in the client's cache."""
-        return self.id in self.client._players
-
-    async def kick(self, reason: str = ""):
-        """Kicks the player from the server.
-
-        :param reason: An optional reason to display when kicking the player.
+        :param duration:
+            How long the player should be banned.
+            Can be ``None`` to indicate a permanent ban.
+        :param reason:
+            The reason to display when the player is banned.
+        :returns: The response from the server, if any.
 
         """
-        await self.client.kick(self.id, reason)
 
-    async def send(self, message: str):
-        """Sends a message to the player.
+    @abstractmethod
+    def is_connected(self) -> bool:
+        """Checks if this player is still in the client's cache."""
+
+    @abstractmethod
+    def kick(self, reason: str = "") -> str | Awaitable[str]:
+        """Kicks this player from the server.
+
+        :param reason: The reason to display when kicking the player.
+        :returns: The response from the server, if any.
+
+        """
+
+    @abstractmethod
+    def send(self, message: str) -> str | Awaitable[str]:
+        """Sends a message to this player.
 
         :param message: The string to use as the message.
+        :returns: The response from the server, if any.
 
         """
-        await self.client.whisper(self.id, message)

@@ -1,11 +1,48 @@
+"""
+Defines the various packets that can be sent and received between
+the client and server.
+
+This is not meant to be directly used outside of the Sans-IO protocol
+classes.
+
+"""
 import binascii
 import enum
+import functools
+from typing import Literal, Type, overload
 
 __all__ = (
-    "PacketType", "Packet", "ClientPacket", "ServerPacket",
-    "ClientLoginPacket", "ClientCommandPacket", "ClientMessagePacket",
-    "ServerLoginPacket", "ServerCommandPacket", "ServerMessagePacket"
+    "PacketType",
+    "Packet",
+    "ClientPacket",
+    "ServerPacket",
+    "ClientLoginPacket",
+    "ClientCommandPacket",
+    "ClientMessagePacket",
+    "ServerLoginPacket",
+    "ServerCommandPacket",
+    "ServerMessagePacket",
 )
+
+
+def _convert_exception(
+    from_exc: Type[Exception],
+    to_exc: Type[Exception],
+    message: str | None = None,
+):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except from_exc as e:
+                if message is not None:
+                    raise to_exc(message) from e
+                raise to_exc from e
+
+        return wrapper
+
+    return decorator
 
 
 class PacketType(enum.Enum):
@@ -26,6 +63,7 @@ class PacketType(enum.Enum):
     .. _typestates: https://en.wikipedia.org/wiki/Typestate_analysis
 
     """
+
     LOGIN = 0x00
     """Used for the login process initiated by the client."""
 
@@ -60,6 +98,7 @@ class Packet:
     :param data: The binary data contained by the packet.
 
     """
+
     __slots__ = ("data",)
 
     def __init__(self, data: bytes):
@@ -119,10 +158,13 @@ class Packet:
         """
 
     @property
-    def message(self) -> str | None:
+    def message(self) -> bytes | None:
         """The message that was sent to the client/server.
 
-        This will always be an ASCII-compatible string.
+        While returned as bytes, this should be decodable as a UTF-8
+        string, with the exception of :py:class:`ServerMessagePacket`
+        objects which only need to be decodable when all of the messages
+        are joined together.
 
         For LOGIN, this would be the password sent to the server.
         For COMMAND, this would be the command string sent to the server.
@@ -142,7 +184,18 @@ class Packet:
         return self
 
     @classmethod
-    def from_bytes(cls, data: bytes, from_client=False):
+    @overload
+    def from_bytes(cls, data: bytes, *, from_client: Literal[True]) -> "ClientPacket":
+        ...
+
+    @classmethod
+    @overload
+    def from_bytes(cls, data: bytes, *, from_client: Literal[False]) -> "ServerPacket":
+        ...
+
+    @classmethod
+    @_convert_exception(IndexError, ValueError, "insufficient data provided")
+    def from_bytes(cls, data: bytes, *, from_client: bool) -> "Packet":
         """Constructs a packet from the given data.
 
         :param data: The data to parse.
@@ -150,9 +203,6 @@ class Packet:
             Whether the packet came from the server or client.
             This is required for disambiguation of data.
         :returns: The corresponding subclass of Packet.
-        :raises IndexError:
-            The given data is too short to match the packet
-            specification.
         :raises ValueError:
             The given data is malformed and does not match the
             packet specification.
@@ -173,7 +223,7 @@ class Packet:
         if ptype is PacketType.LOGIN and from_client:
             if b"\x00" in data[8:]:
                 raise ValueError("login password cannot have a null byte")
-            return ClientLoginPacket(data[8:].decode("ascii")).assert_checksum(crc)
+            return ClientLoginPacket(data[8:]).assert_checksum(crc)
 
         elif ptype is PacketType.LOGIN and not from_client:
             if data[8] not in (0, 1):
@@ -184,21 +234,24 @@ class Packet:
 
         elif ptype is PacketType.COMMAND and from_client:
             sequence = data[8]
-            command = data[9:].decode("ascii")
+            command = data[9:]
             return ClientCommandPacket(sequence, command).assert_checksum(crc)
 
         elif ptype is PacketType.COMMAND and not from_client:
             sequence = data[8]
             if len(data) > 9 and data[9] == 0:
                 total, index = data[10], data[11]
-                response = data[12:].decode("ascii")
+                response = data[12:]
             else:
                 total, index = 1, 0
-                response = data[9:].decode("ascii")
+                response = data[9:]
 
             if index >= total:
-                raise ValueError(f"index ({index}) cannot equal or exceed total ({total})")
-            return ServerCommandPacket(sequence, total, index, response).assert_checksum(crc)
+                raise ValueError(
+                    f"index ({index}) cannot equal or exceed total ({total})"
+                )
+            packet = ServerCommandPacket(sequence, total, index, response)
+            return packet.assert_checksum(crc)
 
         elif ptype is PacketType.MESSAGE and from_client:
             sequence = data[8]
@@ -206,10 +259,12 @@ class Packet:
 
         elif ptype is PacketType.MESSAGE and not from_client:
             sequence = data[8]
-            message = data[9:].decode("ascii")
+            message = data[9:]
             return ServerMessagePacket(sequence, message).assert_checksum(crc)
 
-        raise RuntimeError(f"unhandled PacketType enum: {ptype} (from_client: {from_client})")
+        raise RuntimeError(
+            f"unhandled PacketType enum: {ptype} (from_client: {from_client})"
+        )
 
     @staticmethod
     def _encode_header(message: bytes):
@@ -239,32 +294,37 @@ class ClientLoginPacket(ClientPacket):
     :param password: The password to use when logging in.
 
     """
-    def __init__(self, password: str):
-        buffer = self._get_initial_message(PacketType.LOGIN)
-        buffer.extend(password.encode("ascii"))
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+    def __init__(self, password: bytes):
+        buffer = self._get_initial_message(PacketType.LOGIN)
+        buffer.extend(password)
+
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r})".format(type(self).__name__, self.message)
 
     @property
-    def login_success(self) -> None: ...
+    def login_success(self) -> None:
+        ...
 
     @property
-    def sequence(self) -> None: ...
+    def sequence(self) -> None:
+        ...
 
     @property
-    def total(self) -> None: ...
+    def total(self) -> None:
+        ...
 
     @property
-    def index(self) -> None: ...
+    def index(self) -> None:
+        ...
 
     @property
-    def message(self) -> str:
-        return self.data[8:].decode("ascii")
+    def message(self) -> bytes:
+        return self.data[8:]
 
 
 class ClientCommandPacket(ClientPacket):
@@ -274,34 +334,38 @@ class ClientCommandPacket(ClientPacket):
     :param command: The command to send to the server.
 
     """
-    def __init__(self, sequence: int, command: str):
+
+    def __init__(self, sequence: int, command: bytes):
         buffer = self._get_initial_message(PacketType.COMMAND)
         buffer.append(sequence)
-        buffer.extend(command.encode("ascii"))
+        buffer.extend(command)
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
 
     @property
-    def login_success(self) -> None: ...
+    def login_success(self) -> None:
+        ...
 
     @property
     def sequence(self) -> int:
         return self.data[8]
 
     @property
-    def total(self) -> None: ...
+    def total(self) -> None:
+        ...
 
     @property
-    def index(self) -> None: ...
+    def index(self) -> None:
+        ...
 
     @property
-    def message(self) -> str:
-        return self.data[9:].decode("ascii")
+    def message(self) -> bytes:
+        return self.data[9:]
 
 
 class ClientMessagePacket(ClientPacket):
@@ -310,32 +374,37 @@ class ClientMessagePacket(ClientPacket):
     :param sequence: The sequence number of the message being acknowledged.
 
     """
+
     def __init__(self, sequence: int):
         buffer = self._get_initial_message(PacketType.MESSAGE)
         buffer.append(sequence)
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r})".format(type(self).__name__, self.sequence)
 
     @property
-    def login_success(self) -> None: ...
+    def login_success(self) -> None:
+        ...
 
     @property
     def sequence(self) -> int:
         return self.data[8]
 
     @property
-    def total(self) -> None: ...
+    def total(self) -> None:
+        ...
 
     @property
-    def index(self) -> None: ...
+    def index(self) -> None:
+        ...
 
     @property
-    def message(self) -> None: ...
+    def message(self) -> None:
+        ...
 
 
 class ServerPacket(Packet):
@@ -356,13 +425,14 @@ class ServerLoginPacket(ServerPacket):
     :param success: Indicates if the server has authenticated the client.
 
     """
+
     def __init__(self, success: bool):
         buffer = self._get_initial_message(PacketType.LOGIN)
         buffer.append(1 if success else 0)
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r})".format(type(self).__name__, self.login_success)
@@ -372,16 +442,20 @@ class ServerLoginPacket(ServerPacket):
         return bool(self.data[8])
 
     @property
-    def sequence(self) -> None: ...
+    def sequence(self) -> None:
+        ...
 
     @property
-    def total(self) -> None: ...
+    def total(self) -> None:
+        ...
 
     @property
-    def index(self) -> None: ...
+    def index(self) -> None:
+        ...
 
     @property
-    def message(self) -> None: ...
+    def message(self) -> None:
+        ...
 
 
 class ServerCommandPacket(ServerPacket):
@@ -396,28 +470,26 @@ class ServerCommandPacket(ServerPacket):
         multiple packets.
 
     """
-    def __init__(self, sequence: int, total: int, index: int, response: str):
+
+    def __init__(self, sequence: int, total: int, index: int, response: bytes):
         buffer = self._get_initial_message(PacketType.COMMAND)
         buffer.append(sequence)
         if total != 1:
             buffer.extend((0, total, index))
-        buffer.extend(response.encode("ascii"))
+        buffer.extend(response)
 
-        message = bytes(buffer)
-        header = self._encode_header(message)
-        super().__init__(header + message)
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r}, {!r}, {!r}, {!r})".format(
-            type(self).__name__,
-            self.sequence,
-            self.total,
-            self.index,
-            self.message
+            type(self).__name__, self.sequence, self.total, self.index, self.message
         )
 
     @property
-    def login_success(self) -> None: ...
+    def login_success(self) -> None:
+        ...
 
     @property
     def sequence(self) -> int:
@@ -436,10 +508,10 @@ class ServerCommandPacket(ServerPacket):
         return 0
 
     @property
-    def message(self) -> str:
+    def message(self) -> bytes:
         if len(self.data) > 9 and self.data[9] == 0:
-            return self.data[12:].decode("ascii")
-        return self.data[9:].decode("ascii")
+            return self.data[12:]
+        return self.data[9:]
 
 
 class ServerMessagePacket(ServerPacket):
@@ -449,31 +521,35 @@ class ServerMessagePacket(ServerPacket):
     :param message: The contents contained in the message.
 
     """
-    def __init__(self, sequence: int, message: str):
+
+    def __init__(self, sequence: int, message: bytes):
         buffer = self._get_initial_message(PacketType.MESSAGE)
         buffer.append(sequence)
-        buffer.extend(message.encode("ascii"))
+        buffer.extend(message)
 
-        message_bytes = bytes(buffer)
-        header = self._encode_header(message_bytes)
-        super().__init__(header + message_bytes)
+        payload = bytes(buffer)
+        header = self._encode_header(payload)
+        super().__init__(header + payload)
 
     def __repr__(self):
         return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
 
     @property
-    def login_success(self) -> None: ...
+    def login_success(self) -> None:
+        ...
 
     @property
     def sequence(self) -> int:
         return self.data[8]
 
     @property
-    def total(self) -> None: ...
+    def total(self) -> None:
+        ...
 
     @property
-    def index(self) -> None: ...
+    def index(self) -> None:
+        ...
 
     @property
-    def message(self) -> str:
-        return self.data[9:].decode("ascii")
+    def message(self) -> bytes:
+        return self.data[9:]

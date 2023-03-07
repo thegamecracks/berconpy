@@ -1,20 +1,24 @@
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
-
-from . import utils
+from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING, Awaitable
+import weakref
 
 if TYPE_CHECKING:
-    from .client import AsyncRCONClient
+    from .cache import RCONClientCache
+    from .client import RCONClient
 
 
-@dataclass(repr=False, slots=True, unsafe_hash=True)
-class Ban:
+class Ban(ABC):
     """Represents a GUID/IP ban on the server."""
 
-    client: "AsyncRCONClient" = field(compare=True, hash=True)
-    """The client that created this object."""
+    __slots__ = (
+        "_cache",
+        "index",
+        "id",
+        "duration",
+        "reason",
+    )
 
-    index: int                = field(compare=True, hash=True)
+    index: int
     """
     The index assigned to this ban by the server.
 
@@ -22,14 +26,14 @@ class Ban:
     be reliably used for unbanning.
     """
 
-    id: str                   = field(compare=False, hash=False)
+    id: str
     """
     The player identifier this ban affects.
 
     This can be either a BattlEye GUID or an IP address.
     """
 
-    duration: int | None      = field(compare=False, hash=False)
+    duration: int | None
     """
     The duration of the ban in minutes.
 
@@ -37,24 +41,45 @@ class Ban:
     If the ban is permanent, this will be ``None``.
     """
 
-    reason: str               = field(compare=False, hash=False)
+    reason: str
     """The reason given for the ban."""
 
+    def __init__(
+        self,
+        cache: "RCONClientCache",
+        index: int,
+        id: str,
+        duration: int | None,
+        reason: str,
+    ) -> None:
+        self._cache = weakref.proxy(cache)
+        self.index = index
+        self.id = id
+        self.duration = duration
+        self.reason = reason
+
     def __repr__(self):
-        attrs = (
-            (k, repr(getattr(self, k)))
-            for k in ("id", "duration", "reason")
-        )
-        return "<{} {}>".format(
+        return "<{} id={!r} duration={!r} reason={!r}>".format(
             type(self).__name__,
-            " ".join("=".join(pair) for pair in attrs)
+            self.id,
+            self.duration,
+            self.reason,
         )
 
-    async def unban(self):
-        """Removes this ban from the server."""
-        # Since ban indices are non-unique, we need to match the identifier
-        # and remove the corresponding index (possible race condition)
-        bans = await self.client.fetch_bans()
-        b = utils.get(bans, id=self.id)
-        if b is not None:
-            await self.client.unban(b.index)
+    @property
+    def cache(self) -> "RCONClientCache":
+        """The cache that created this object."""
+        return self._cache
+
+    @property
+    def client(self) -> "RCONClient | None":
+        """Returns the client associated with the cache."""
+        return self.cache.client
+
+    @abstractmethod
+    def unban(self) -> str | Awaitable[str]:
+        """Removes this ban from the server.
+
+        :returns: The response from the server, if any.
+
+        """

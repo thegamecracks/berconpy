@@ -180,7 +180,7 @@ Next Steps
 ----------
 
 This has covered the fundamentals of using berconpy. You can learn more about
-the available methods by checking the :doc:`/api`, or if you're interested
+the available methods by checking the :doc:`/asyncio`, or if you're interested
 in the technical details you can `check the source code`_.
 
 .. _BattlEye documentation: https://www.battleye.com/support/documentation/
