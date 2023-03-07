@@ -63,6 +63,14 @@ class RCONServerProtocol(RCONGenericProtocol):
         self.password = password
         self.reset()
 
+    def __repr__(self) -> str:
+        return "<{} {}, {} event(s), {} packet(s) to send>".format(
+            type(self).__name__,
+            self.state.name.lower().replace("_", " "),
+            len(self._events),
+            len(self._to_send),
+        )
+
     def receive_datagram(self, data: bytes) -> ClientPacket:
         """Handles a packet received by the server.
 
