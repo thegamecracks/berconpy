@@ -45,8 +45,12 @@ class RCONClient(ABC):
         :param dispatch: The dispatcher object to use for transmitting events.
         """
         self.cache = cache
-        self.cache.client = self
         self.dispatch = dispatch
+
+        # Side effects may occur while providing references to self
+        # so all attributes need to be defined above
+        self.cache.client = self
+
         self.dispatch.add_listener("on_message", self.on_message)
 
     @abstractmethod
