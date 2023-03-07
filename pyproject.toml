@@ -26,13 +26,25 @@ version = {attr = "berconpy.__version__"}
 
 [project.optional-dependencies]
 docs = ["sphinx>=5.1.1", "sphinx-autodoc-typehints>=1.19.2"]
-tests = ["pytest>=7.2.2"]
+tests = ["pytest>=7.2.2", "pytest-cov>=4.0.0"]
 types = ["typing-extensions>=4.0.0"]
 
 [project.urls]
 "Homepage" = "https://github.com/thegamecracks/berconpy"
 "Documentation" = "http://berconpy.readthedocs.io/"
 "Issue Tracker" = "https://github.com/thegamecracks/berconpy/issues"
+
+[tool.coverage.run]
+branch = true
+source_pkgs = ["berconpy"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if (typing\\.)?TYPE_CHECKING:",
+    "if __name__ == \"__main__\":",
+]
+include_namespace_packages = true
 
 [tool.mypy]
 allow_redefinition = true
