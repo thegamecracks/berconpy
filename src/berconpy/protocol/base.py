@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Sequence
 
 from .packet import Packet
 
@@ -19,9 +19,9 @@ class RCONGenericProtocol(ABC):
         """
 
     @abstractmethod
-    def events_received(self) -> list[Any]:
+    def events_received(self) -> Sequence[Any]:
         """Retrieves all events that have been parsed since this was last called."""
 
     @abstractmethod
-    def packets_to_send(self) -> list[Packet]:
+    def packets_to_send(self) -> Sequence[Packet]:
         """Returns a list of payloads that should be sent to the remote computer."""

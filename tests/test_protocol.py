@@ -1,4 +1,4 @@
-from typing import Any, Type, TypeVar, overload
+from typing import Any, Sequence, Type, TypeVar, overload
 
 import pytest
 
@@ -43,7 +43,7 @@ def communicate(
     proto_a: RCONClientProtocol,
     proto_b: RCONServerProtocol,
     *packets: ClientPacket,
-) -> list[ServerEvent]:
+) -> Sequence[ServerEvent]:
     ...
 
 
@@ -52,7 +52,7 @@ def communicate(
     proto_a: RCONServerProtocol,
     proto_b: RCONClientProtocol,
     *packets: ServerPacket,
-) -> list[ClientEvent]:
+) -> Sequence[ClientEvent]:
     ...
 
 
@@ -60,7 +60,7 @@ def communicate(
     proto_a: RCONGenericProtocol,
     proto_b: RCONGenericProtocol,
     *packets: Packet,
-) -> list[Any]:
+) -> Sequence[Any]:
     """Sends the given packets alongside the packets returned from
     :py:meth:`RCONGenericProtocol.packets_to_send()` from one protocol
     to the other and returns the events received by the second protocol.

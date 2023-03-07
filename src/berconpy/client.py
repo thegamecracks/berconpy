@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Callable, Type, TypeVar
+from typing import TYPE_CHECKING, Callable, Sequence, Type, TypeVar
 
 from .cache import RCONClientCache
 from .dispatch import EventDispatcher
@@ -104,21 +104,21 @@ class RCONClient(ABC):
     # (documentation: https://www.battleye.com/support/documentation/)
 
     @abstractmethod
-    def fetch_admins(self) -> list[tuple[int, str]] | Awaitable[list[tuple[int, str]]]:
+    def fetch_admins(self) -> Sequence[tuple[int, str]] | Awaitable[Sequence[tuple[int, str]]]:
         """Requests a list of RCON admins connected to the server,
         ordered by admin ID and IP address with port.
         """
 
     @abstractmethod
-    def fetch_bans(self) -> list[Ban] | Awaitable[list[Ban]]:
+    def fetch_bans(self) -> Sequence[Ban] | Awaitable[Sequence[Ban]]:
         """Requests a list of bans on the server."""
 
     @abstractmethod
-    def fetch_missions(self) -> list[str] | Awaitable[list[str]]:
+    def fetch_missions(self) -> Sequence[str] | Awaitable[Sequence[str]]:
         """Requests a list of mission files on the server."""
 
     @abstractmethod
-    def fetch_players(self) -> list[Player] | Awaitable[Player]:
+    def fetch_players(self) -> Sequence[Player] | Awaitable[Sequence[Player]]:
         """Requests a list of players from the server.
 
         This method also updates the player cache.
@@ -274,7 +274,7 @@ class RCONClient(ABC):
         self._cache = new_cache
 
     @property
-    def players(self) -> "list[Player]":
+    def players(self) -> "Sequence[Player]":
         """A shorthand for :py:attr:`RCONClientCache.players`."""
         return self.cache.players
 

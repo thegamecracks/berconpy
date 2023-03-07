@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 import weakref
 
 from .parser import (
@@ -48,7 +48,7 @@ class RCONClientCache(ABC):
 
     @property
     @abstractmethod
-    def players(self) -> list[Player]:
+    def players(self) -> Sequence[Player]:
         """A list of players in the server."""
 
     @abstractmethod
