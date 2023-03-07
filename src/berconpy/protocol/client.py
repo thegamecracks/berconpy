@@ -17,7 +17,9 @@ class ClientState(enum.Enum):
     """Defines the current state of the protocol."""
 
     AUTHENTICATING = enum.auto()
+    """The client currently needs to be authenticated by the server."""
     LOGGED_IN = enum.auto()
+    """The client is logged in and able to send/receive messages."""
 
 
 class RCONClientProtocol(RCONGenericProtocol):

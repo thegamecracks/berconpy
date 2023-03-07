@@ -56,5 +56,6 @@ class NonceCheck:
 
     @property
     def max_size(self) -> int:
+        """The maximum number of sequences that the check can keep track of."""
         assert self.deque.maxlen is not None
         return self.deque.maxlen

@@ -60,7 +60,7 @@ class RCONClientCache(ABC):
 
         """
 
-    # Cache maintenance
+    # Cache maintenance (template methods)
 
     @abstractmethod
     def add_connected_player(self, payload: PlayerConnect) -> Player:

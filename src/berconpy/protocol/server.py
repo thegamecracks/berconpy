@@ -18,7 +18,9 @@ class ServerState(enum.Enum):
     """Defines the current authentication state."""
 
     AUTHENTICATING = enum.auto()
+    """The server is waiting for the client to authenticate itself."""
     LOGGED_IN = enum.auto()
+    """The server has authenticated the client and can send/receive messages."""
 
 
 class RCONServerProtocol(RCONGenericProtocol):

@@ -31,6 +31,11 @@ def maybe_replace_future(fut: asyncio.Future | None) -> asyncio.Future:
 
 
 class AsyncClientProtocol(ABC):
+    """
+    Provides a bridge between :py:class:`AsyncRCONClient` and the underlying
+    I/O implementations.
+    """
+
     LAST_RECEIVED_TIMEOUT = 45  # don't change, specified by protocol
 
     _client: "AsyncRCONClient | None" = None
@@ -208,11 +213,39 @@ class ConnectorConfig:
     """Specifies the configuration used for the :py:class:`AsyncClientConnector`."""
 
     run_interval: float = 1.0
+    """
+    The amount of time in seconds to wait between each run loop iteration
+    (which handles re-connecting and sending keep alive packets).
+    """
     keep_alive_interval: float = 30.0
+    """
+    The amount of time in seconds should the connection wait from the last
+    command before sending another command to keep the connection alive.
+
+    For optimal stability, this interval should be below 45 seconds.
+    """
     players_interval: float = 60.0
+    """
+    The amount of time in seconds from the last keep alive command
+    before it should be replaced with a "players" RCON command to
+    update the client's cache.
+
+    When set to a value less than :py:attr:`keep_alive_interval`,
+    keep alive will always be used to update the cache.
+    """
 
     initial_connect_attempts: int = 3
+    """
+    The number of attempts that should be done when the RCON client is
+    first connecting.
+
+    After a successful connection, this value is ignored and the connector
+    will indefinitely attempt to reconnect unless authentication is denied.
+    """
     connection_timeout: float = 3.0
+    """
+    The amount of time in seconds to wait after a login attempt before retrying.
+    """
 
 
 class AsyncClientConnector(AsyncClientProtocol):
@@ -356,7 +389,8 @@ class AsyncClientConnector(AsyncClientProtocol):
 
         return await self.wait_for_login()
 
-    def disconnect(self):
+    def disconnect(self) -> None:
+        """Disconnects the protocol from the server."""
         if self._transport is not None:
             self._transport.close()
             self._transport = None
@@ -507,15 +541,30 @@ class AsyncClientConnector(AsyncClientProtocol):
     # DatagramProtocol
 
     def connection_made(self, transport):
+        """Logs when the protocol has connected.
+
+        .. seealso:: :py:meth:`asyncio.BaseProtocol.connection_made()`
+
+        """
         log.debug("protocol has connected")
 
     def connection_lost(self, exc: Exception | None):
+        """Logs when the protocol has disconnected.
+
+        .. seealso:: :py:meth:`asyncio.BaseProtocol.connection_lost()`
+
+        """
         if exc:
             log.error("protocol has disconnected with error", exc_info=exc)
         else:
             log.debug("protocol has disconnected")
 
     def datagram_received(self, data: bytes, addr):
+        """Handles a datagram from the server.
+
+        .. seealso:: :py:meth:`asyncio.DatagramProtocol.datagram_received()`
+
+        """
         assert self.client is not None
 
         if addr != self._addr:
@@ -536,4 +585,9 @@ class AsyncClientConnector(AsyncClientProtocol):
             self.send(packet)
 
     def error_received(self, exc: OSError):
+        """Handles an exceptional error from the protocol.
+
+        .. seealso:: :py:meth:`asyncio.DatagramProtocol.error_received()`
+
+        """
         log.error("unusual error occurred during session", exc_info=exc)

@@ -19,6 +19,13 @@ log = logging.getLogger(__name__)
 
 
 class AsyncRCONClientCache(RCONClientCache):
+    """A basic cache implementation for :py:class:`AsyncRCONClient`.
+
+    When a :py:attr:`client` is set, this will add an ``on_login`` listener
+    which queries the :py:attr:`admin_id` and fetches the current player list
+    to quickly update itself.
+
+    """
     _players: dict[int, Player]
     _incomplete_players: dict[int, Player]
 
