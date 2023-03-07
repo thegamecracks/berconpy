@@ -34,5 +34,8 @@ types = ["typing-extensions>=4.0.0"]
 "Documentation" = "http://berconpy.readthedocs.io/"
 "Issue Tracker" = "https://github.com/thegamecracks/berconpy/issues"
 
+[tool.mypy]
+allow_redefinition = true
+
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
