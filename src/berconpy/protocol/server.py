@@ -1,43 +1,17 @@
 import enum
 import secrets
-from dataclasses import dataclass
 from typing import Iterable
 
 from .base import RCONGenericProtocol
 from .check import Check, NonceCheck
 from .errors import InvalidStateError
+from .events import (
+    ServerAuthEvent,
+    ServerCommandEvent,
+    ServerEvent,
+    ServerMessageEvent,
+)
 from .packet import *
-
-
-class ServerEvent:
-    """The base class for events received by the server from the client."""
-
-
-@dataclass
-class ServerAuthEvent(ServerEvent):
-    """Indicates if an authentication request was successful.
-
-    The protocol automatically generates an acknowledgement packet
-    so nothing else needs to be done here.
-
-    """
-
-    success: bool
-
-
-@dataclass
-class ServerCommandEvent(ServerEvent):
-    """Represents a command sent by the client."""
-
-    sequence: int
-    message: str
-
-
-@dataclass
-class ServerMessageEvent(ServerEvent):
-    """Represents an acknowledgement of a message sent by the server."""
-
-    sequence: int
 
 
 class ServerState(enum.Enum):

@@ -1,37 +1,16 @@
 import enum
-from dataclasses import dataclass
 from typing import Iterable
 
 from .base import RCONGenericProtocol
 from .check import Check, NonceCheck
 from .errors import InvalidStateError
+from .events import (
+    ClientAuthEvent,
+    ClientCommandEvent,
+    ClientEvent,
+    ClientMessageEvent,
+)
 from .packet import *
-
-
-class ClientEvent:
-    """The base class for events received by the client from the server."""
-
-
-@dataclass
-class ClientAuthEvent(ClientEvent):
-    """Indicates if an authentication request was successful."""
-
-    success: bool
-
-
-@dataclass
-class ClientCommandEvent(ClientEvent):
-    """Represents the response to a given command."""
-
-    sequence: int
-    message: str
-
-
-@dataclass
-class ClientMessageEvent(ClientEvent):
-    """Represents a message sent by the server."""
-
-    message: str
 
 
 class ClientState(enum.Enum):

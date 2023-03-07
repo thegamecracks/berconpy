@@ -7,21 +7,18 @@ Suggested reading about sansio:
 """
 from .base import RCONGenericProtocol
 from .check import Check, NonceCheck
-from .client import (
+from .client import ClientState, RCONClientProtocol
+from .errors import InvalidStateError
+from .events import (
     ClientAuthEvent,
     ClientCommandEvent,
     ClientEvent,
     ClientMessageEvent,
-    ClientState,
-    RCONClientProtocol,
-)
-from .errors import InvalidStateError
-from .packet import *
-from .server import (
-    RCONServerProtocol,
+    Event,
     ServerAuthEvent,
     ServerCommandEvent,
     ServerEvent,
     ServerMessageEvent,
-    ServerState,
 )
+from .packet import *
+from .server import RCONServerProtocol, ServerState
