@@ -67,14 +67,12 @@ class Ban(ABC):
         )
 
     @property
-    @abstractmethod
     def cache(self) -> "RCONClientCache":
         """The cache that created this object."""
         return self._cache
 
     @property
-    @abstractmethod
-    def client(self) -> "RCONClient":
+    def client(self) -> "RCONClient | None":
         """Returns the client associated with the cache."""
         return self.cache.client
 
