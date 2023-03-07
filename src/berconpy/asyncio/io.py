@@ -506,7 +506,7 @@ class AsyncClientConnector(AsyncClientProtocol):
             # periodically update the client's cache
             self._last_players = time.monotonic()
             response = await self.send_command("players")
-            self.client._update_players(response)
+            self.client.cache.update_players(response)
         else:
             await self.send_command("")
 

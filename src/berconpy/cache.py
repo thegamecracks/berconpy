@@ -9,6 +9,7 @@ from .parser import (
     PlayerConnect,
     PlayerGUID,
     PlayerVerifyGUID,
+    parse_players,
 )
 
 if TYPE_CHECKING:
@@ -101,3 +102,20 @@ class RCONClientCache(ABC):
         :returns: The player that was created.
 
         """
+
+    def update_players(self, response: str) -> None:
+        """Updates the cache by parsing a response to the "players" command."""
+        current_ids = set()
+        for player in parse_players(response):
+            p = self.get_player(player["id"])
+            if p is None:
+                self.add_missing_player(player)
+            else:
+                p._update(**player)
+
+            current_ids.add(player["id"])
+
+        # Throw away players no longer in the server
+        previous_ids = set(p.id for p in self.players)
+        for missing in previous_ids - current_ids:
+            self.remove_player(missing)

@@ -17,7 +17,6 @@ from .parser import (
     is_expected_message,
     parse_admins,
     parse_bans,
-    parse_players,
 )
 from . import utils
 
@@ -381,20 +380,3 @@ class RCONClient(ABC):
 
         elif not is_expected_message(message):
             raise ValueError(f"unexpected server message: {message}")
-
-    def _update_players(self, response: str) -> None:
-        """Updates the cache from a server response to the "players" RCON command."""
-        current_ids = set()
-        for player in parse_players(response):
-            p = self.cache.get_player(player["id"])
-            if p is None:
-                self.cache.add_missing_player(player)
-            else:
-                p._update(**player)
-
-            current_ids.add(player["id"])
-
-        # Throw away players no longer in the server
-        previous_ids = set(p.id for p in self.players)
-        for missing in previous_ids - current_ids:
-            self.cache.remove_player(missing)
