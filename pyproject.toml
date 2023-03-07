@@ -38,4 +38,4 @@ types = ["typing-extensions>=4.0.0"]
 allow_redefinition = true
 
 [tool.pytest.ini_options]
-addopts = ["--import-mode=importlib"]
+addopts = ["--import-mode=prepend"]
