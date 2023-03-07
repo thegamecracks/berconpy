@@ -9,7 +9,7 @@ classes.
 import binascii
 import enum
 import functools
-from typing import Type
+from typing import Literal, Type, overload
 
 __all__ = (
     "PacketType",
@@ -184,8 +184,18 @@ class Packet:
         return self
 
     @classmethod
+    @overload
+    def from_bytes(cls, data: bytes, *, from_client: Literal[True]) -> "ClientPacket":
+        ...
+
+    @classmethod
+    @overload
+    def from_bytes(cls, data: bytes, *, from_client: Literal[False]) -> "ServerPacket":
+        ...
+
+    @classmethod
     @_convert_exception(IndexError, ValueError, "insufficient data provided")
-    def from_bytes(cls, data: bytes, *, from_client: bool):
+    def from_bytes(cls, data: bytes, *, from_client: bool) -> "Packet":
         """Constructs a packet from the given data.
 
         :param data: The data to parse.

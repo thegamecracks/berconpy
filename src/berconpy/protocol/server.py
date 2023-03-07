@@ -78,13 +78,6 @@ class RCONServerProtocol(RCONGenericProtocol):
 
         """
         packet = Packet.from_bytes(data, from_client=True)
-
-        if not isinstance(packet, ClientPacket):
-            raise ValueError(
-                f"Expected a {type(ClientPacket).__name__}, "
-                f"received {type(packet).__name__} instead"
-            )
-
         events, to_send = self._handle_packet(packet)
         self._events.extend(events)
         self._to_send.extend(to_send)
