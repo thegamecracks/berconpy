@@ -1,6 +1,10 @@
 Changelog
 =========
 
+.. contents::
+  :depth: 2
+  :local:
+
 1.1.1
 -----
 
