@@ -161,10 +161,10 @@ class Packet:
     def message(self) -> bytes | None:
         """The message that was sent to the client/server.
 
-        While returned as bytes, this should be decodable into a UTF-8
+        While returned as bytes, this should be decodable as a UTF-8
         string, with the exception of :py:class:`ServerMessagePacket`
-        instances which only needs to be decodable when all of its
-        associated packet messages are joined.
+        objects which only need to be decodable when all of the messages
+        are joined together.
 
         For LOGIN, this would be the password sent to the server.
         For COMMAND, this would be the command string sent to the server.
