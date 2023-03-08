@@ -24,7 +24,7 @@ IP = "XXX.XXX.XXX.XXX"
 PORT = 9999
 PASSWORD = "ASCII_PASSWORD"
 
-@client.listen()
+@client.dispatch.on_login
 async def on_login():
     print("We have logged in!")
 
