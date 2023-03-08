@@ -10,7 +10,7 @@ import berconpy
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "berconpy"
-copyright = "2022, thegamecracks"
+copyright = "2023, thegamecracks"
 author = "thegamecracks"
 release = berconpy.__version__
 
