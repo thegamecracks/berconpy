@@ -5,6 +5,69 @@ Changelog
   :depth: 2
   :local:
 
+2.0.0
+-----
+
+This is a major rewrite of the library to increase the flexibility and
+re-usability of components. Many new abstractions have been introduced
+between the protocol, I/O layers, and the client.
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+
+* :py:class:`Packet <berconpy.protocol.Packet>` and its subclasses are now
+  only available through the :doc:`berconpy.protocol </protocol>` package
+* :py:attr:`Packet.message <berconpy.protocol.Packet.message>` property now
+  returns bytes
+* :py:attr:`AsyncRCONClient.client_id <berconpy.AsyncRCONClient.admin_id>`
+  has been renamed to :py:attr:`~berconpy.AsyncRCONClient.admin_id`
+* :py:class:`RCONClientDatagramProtocol` is now replaced with
+  :py:class:`~berconpy.AsyncClientConnector`
+* The ``protocol_cls`` parameter for :py:class:`~berconpy.AsyncRCONClient`
+  has been replaced with ``protocol`` and must take an
+  :py:class:`~berconpy.AsyncClientProtocol` instance
+
+New Features
+^^^^^^^^^^^^
+
+* Add `Sans-I/O <https://sans-io.readthedocs.io/>`__ client and server
+  implementations of the RCON protocol
+
+* Add Sans-I/O base classes:
+
+  * :py:class:`~berconpy.client.RCONClient`
+  * :py:class:`~berconpy.ban.Ban`
+  * :py:class:`~berconpy.player.Player`
+
+* Allow customization of the client cache by using a subclass of
+  :py:class:`~berconpy.cache.RCONClientCache`
+
+* Allow customization of keep alive messages, reconnect parameters,
+  and command handling for :py:class:`~berconpy.AsyncClientConnector`
+  using :py:class:`~berconpy.ConnectorConfig`
+  and :py:class:`~berconpy.AsyncCommander`
+
+* Add send/receive support for UTF-8 encoding
+
+* Improve validation of server responses to commands
+
+  * Indexes must be within range
+  * Indexes must not be repeated
+  * Total must be consistent across associated packets
+
+Bug Fixes
+^^^^^^^^^
+
+* Fixed :py:attr:`Ban.index <berconpy.Ban.index>` not actually being stored
+  as an integer
+
+Miscellaneous
+^^^^^^^^^^^^^
+
+* Show full traceback for malformed data being received when
+  using DEBUG logging level
+* Add this changelog to the documentation
+
 1.1.1
 -----
 
