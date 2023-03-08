@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 
 class AsyncEventDispatcher(EventDispatcher):
-    """Implements the :py:class:`EventDispatcher` interface for asyncio."""
+    """Implements the :py:class:`.EventDispatcher` interface for asyncio."""
 
     _event_listeners: dict[str, list[MaybeCoroFunc]]
     _temporary_listeners: dict[str, list[tuple[asyncio.Future, MaybeCoroFunc]]]
