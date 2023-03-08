@@ -31,9 +31,13 @@ New Features
 ^^^^^^^^^^^^
 
 * Add `Sans-I/O <https://sans-io.readthedocs.io/>`__ client and server
-  implementations of the RCON protocol
+  implementations of the RCON protocol:
 
-* Add Sans-I/O base classes:
+  * :py:class:`~berconpy.RCONGenericProtocol`
+  * :py:class:`~berconpy.RCONClientProtocol`
+  * :py:class:`~berconpy.RCONServerProtocol`
+
+* Add Sans-I/O base classes, inherited by their original asyncio components:
 
   * :py:class:`~berconpy.client.RCONClient`
   * :py:class:`~berconpy.ban.Ban`
@@ -48,6 +52,11 @@ New Features
   and :py:class:`~berconpy.AsyncCommander`
 
 * Add send/receive support for UTF-8 encoding
+
+  Despite the :download:`BattlEye RCON protocol </BERConProtocol.txt>`
+  specifying that payloads be encoded in ASCII, RCON servers are willing
+  to send UTF-8 encoded text back. As such, this library will begin
+  processing strings in UTF-8.
 
 * Improve validation of server responses to commands
 
