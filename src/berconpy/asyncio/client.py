@@ -208,6 +208,9 @@ class AsyncRCONClient(RCONClient):
         # super().cache doesn't work so we're invoking the descriptor directly
         super(AsyncRCONClient, type(self)).cache.__set__(self, new_cache)  # type: ignore
 
+    def get_player(self, player_id: int) -> "Player | None":
+        return super().get_player(player_id)  # type: ignore
+
     @property
     def players(self) -> list[Player]:
         return super().players  # type: ignore
