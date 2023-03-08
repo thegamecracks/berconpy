@@ -31,6 +31,9 @@ class TypedEvent(Generic[P, T]):
     as a listener for a specific event. The listener must match the same
     signature as given in the two type arguments to this class.
 
+    To remove the listener afterwards, call :py:meth:`BoundTypedEvent.remove()`
+    with the same function.
+
     The :py:meth:`BoundTypedEvent.fire()` method is also provided for
     dispatching the event, statically enforcing that the arguments match
     the parameter spec in the first type argument.
@@ -97,6 +100,9 @@ class BoundTypedEvent(Generic[P, T]):
 
     def fire(self, *args: P.args, **kwargs: P.kwargs) -> None:
         return self.dispatch(self.event, *args, **kwargs)
+
+    def remove(self, callback: Callable[P, T]) -> None:
+        return self.dispatch.remove_listener(self.event, callback)
 
 
 def typed_event(func: Callable[P, T], /) -> TypedEvent[P, T]:
