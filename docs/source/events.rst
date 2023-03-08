@@ -27,7 +27,7 @@ method or the :py:meth:`~berconpy.AsyncRCONClient.listen()` decorator.
 
     :param str response: The response received by the server.
 
-.. py:function:: on_message(response: str)
+.. py:function:: on_message(message: str)
 
     Fired for messages sent by the server, e.g. player connections.
     More specific events such as :py:func:`on_admin_login`
