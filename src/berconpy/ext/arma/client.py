@@ -1,6 +1,6 @@
 import logging
 
-from berconpy import *
+from berconpy import AsyncRCONClient
 
 log = logging.getLogger(__name__)
 
