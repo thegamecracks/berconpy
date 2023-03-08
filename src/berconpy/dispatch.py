@@ -88,18 +88,19 @@ class BoundTypedEvent(Generic[P, T]):
     See TypeEvent's docstring for more information.
     """
 
-    __slots__ = ("dispatch", "event")
+    __slots__ = ("dispatch", "dispatch_event", "event")
 
     def __init__(self, dispatch: EventDispatcher, event: str) -> None:
         self.dispatch = dispatch
         self.event = event
+        self.dispatch_event = event.removeprefix("on_")
 
     def __call__(self, callback: Callable[P, T]) -> Callable[P, T]:
         self.dispatch.add_listener(self.event, callback)
         return callback
 
     def fire(self, *args: P.args, **kwargs: P.kwargs) -> None:
-        return self.dispatch(self.event, *args, **kwargs)
+        return self.dispatch(self.dispatch_event, *args, **kwargs)
 
     def remove(self, callback: Callable[P, T]) -> None:
         return self.dispatch.remove_listener(self.event, callback)
