@@ -1,0 +1,21 @@
+name: Lint with Pyright
+
+on: push
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+    - name: Install pyright
+      run: pip install pyright
+    - name: Install berconpy
+      run: pip install .[docs,tests,types]
+    - name: Run pyright
+      run: pyright

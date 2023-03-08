@@ -49,5 +49,9 @@ include_namespace_packages = true
 [tool.mypy]
 allow_redefinition = true
 
+[tool.pyright]
+include = ["src"]
+typeCheckingMode = "basic"
+
 [tool.pytest.ini_options]
 addopts = ["--import-mode=prepend"]
