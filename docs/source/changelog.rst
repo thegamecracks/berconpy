@@ -204,7 +204,7 @@ New Features
 * Use sequence number from server messages to avoid re-triggering ``on_message``
   events in case of network instability
 * Add ``berconpy.ext`` namespace package for third-party extension support
-* Add :py:mod:`berconpy.ext.arma` extension containing an
+* Add :doc:`berconpy.ext.arma </ext/arma>` extension containing an
   :py:class:`~berconpy.ext.arma.AsyncArmaRCONClient` subclass with methods
   specific to the Arma game series
 
