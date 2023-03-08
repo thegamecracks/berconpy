@@ -32,28 +32,9 @@ class AsyncEventDispatcher(EventDispatcher):
             )
 
     def add_listener(self, event: str, func: MaybeCoroFunc):
-        """Adds a listener for a given event, e.g. ``"on_login"``.
-
-        See the :doc:`/events` for a list of supported events.
-
-        :param event:
-            The event to listen for.
-        :param func:
-            The coroutine function to dispatch when the event is received.
-
-        """
         self._event_listeners[event].append(func)
 
     def remove_listener(self, event: str, func: MaybeCoroFunc):
-        """Removes a listener from a given event, e.g. ``"on_login"``.
-
-        This method is a no-op if the given event and function
-        does not match any registered listener.
-
-        :param event: The event used by the listener.
-        :param func: The coroutine function used by the listener.
-
-        """
         try:
             self._event_listeners[event].remove(func)
         except ValueError:
