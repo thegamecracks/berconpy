@@ -149,13 +149,32 @@ def typed_event(func: Callable[P, T], /) -> TypedEvent[P, T]:
 
 
 class EventDispatcher(ABC):
-    """The base class for implementing an event handler system."""
+    """The base class for implementing an event handler system.
+
+    To listen for one of the following events, use the :py:meth:`add_listener()`
+    method, the :py:meth:`listen()` decorator, or the type-safe ``on_*`` decorators::
+
+        dispatch: EventDispatcher
+
+        dispatch.add_listener("on_login", event)
+
+        @dispatch.listen()
+        def on_login():
+            ...
+
+        @dispatch.listen("on_login")
+        def my_listener():
+            ...
+
+        @dispatch.on_login
+        def my_listener():
+            ...
+
+    """
 
     @abstractmethod
     def add_listener(self, event: str, func: Callable, /):
         """Adds a listener for a given event, e.g. ``"on_login"``.
-
-        See the :doc:`/events` for a list of supported events.
 
         :param event:
             The event to listen for.

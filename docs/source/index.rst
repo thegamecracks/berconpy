@@ -34,7 +34,6 @@ Reference
    asyncio
    client
    protocol
-   events
    ext/*
 
 Meta

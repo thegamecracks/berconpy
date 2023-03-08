@@ -324,7 +324,7 @@ class RCONClient(ABC):
     def add_listener(self, event: str, func: Callable) -> None:
         """A shorthand for the :py:meth:`EventDispatcher.add_listener()` method.
 
-        See the :doc:`/events` for a list of supported events.
+        See the :py:class:`EventDispatcher` for a list of supported events.
 
         :param event:
             The event to listen for.

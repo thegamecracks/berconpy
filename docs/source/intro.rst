@@ -124,7 +124,7 @@ decorator adds a function as a listener for that specific event when it is
 received from the server. All ``on_*`` methods provided by
 :py:attr:`@client.dispatch <berconpy.AsyncRCONClient.dispatch>` have function signatures
 that allow your type checker to ensure that your listener is correctly typed.
-For a full list of events, see the :doc:`/events`.
+For a full list of events, see the :py:class:`~berconpy.dispatch.EventDispatcher`.
 
 You might have also noticed in the listener that it receives a
 :py:class:`~berconpy.Player` instance as its first argument.
