@@ -18,17 +18,17 @@ log.addHandler(handler)
 client = rcon.AsyncRCONClient()
 
 
-@client.listen()
+@client.dispatch.on_login
 async def on_login():
     print("on_login")
 
 
-@client.listen()
+@client.dispatch.on_message
 async def on_message(message: str):
     print("on_message:", message)
 
 
-@client.listen("on_command")
+@client.dispatch.on_command
 async def server_response_to_command(response: str):
     # this event also includes keep alive commands we send to the server;
     # for handling commands, reading the return value of

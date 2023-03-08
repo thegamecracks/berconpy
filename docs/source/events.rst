@@ -3,7 +3,8 @@ Event Reference
 
 All events dispatched by :py:class:`~berconpy.AsyncRCONClient` are documented here.
 To listen for one of the following events, use the :py:meth:`~berconpy.AsyncRCONClient.add_listener()`
-method or the :py:meth:`~berconpy.AsyncRCONClient.listen()` decorator.
+method, the :py:meth:`~berconpy.AsyncRCONClient.listen()` decorator, or the
+type-safe ``on_*`` method from :py:class:`~berconpy.AsyncEventDispatcher`.
 
 .. py:function:: on_raw_event(packet: ServerPacket)
 
