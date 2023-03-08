@@ -46,6 +46,7 @@ class TypedEvent(Generic[P, T]):
     __slots__ = ("event",)
 
     event: str
+    """The name of the event that this is bound to."""
 
     def __set_name__(self, owner: Type[EventDispatcher], name: str) -> None:
         self.event = name
@@ -89,6 +90,13 @@ class BoundTypedEvent(Generic[P, T]):
     """
 
     __slots__ = ("dispatch", "dispatch_event", "event")
+
+    dispatch: "EventDispatcher"
+    """The dispatch object that this is bound to."""
+    dispatch_event: str
+    """Same as :py:attr:`event` but without the "on_" prefix."""
+    event: str
+    """The name of the event that this is bound to."""
 
     def __init__(self, dispatch: EventDispatcher, event: str) -> None:
         self.dispatch = dispatch
