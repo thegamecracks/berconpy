@@ -39,7 +39,7 @@ class TypedEvent(Generic[P, T]):
     the parameter spec in the first type argument.
 
     For better signature specification, it is recommended to use the
-    :py:func:`@typed_event` decorator instead of this class directly.
+    :py:func:`typed_event` decorator instead of this class directly.
 
     """
 
@@ -121,7 +121,7 @@ def typed_event(func: Callable[P, T], /) -> TypedEvent[P, T]:
 
     This decorator can only be applied on methods within an
     :py:class:`EventDispatcher` class.
-    :py:func:`@staticmethod()` should also be applied under this decorator.
+    :py:func:`staticmethod()` should also be applied under this decorator.
 
     """
     unwrapped = inspect.unwrap(func)
