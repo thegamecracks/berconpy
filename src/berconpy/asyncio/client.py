@@ -9,7 +9,6 @@ from .dispatch import AsyncEventDispatcher
 from .io import AsyncClientProtocol, AsyncClientConnector
 from .player import Player
 from ..client import RCONClient
-from ..errors import RCONCommandError
 from ..utils import MaybeCoroFunc
 
 log = logging.getLogger(__name__)
