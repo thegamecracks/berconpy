@@ -51,7 +51,7 @@ class RCONClient(ABC):
         # so all attributes need to be defined above
         self.cache.client = self
 
-        self.dispatch.add_listener("on_message", self.on_message)
+        self.dispatch.on_message(self.on_message)
 
     @abstractmethod
     def is_logged_in(self) -> bool | None:
@@ -370,46 +370,46 @@ class RCONClient(ABC):
 
         """
         if m := AdminConnect.try_from_message(message):
-            self.dispatch("admin_login", m.id, m.addr)
+            self.dispatch.on_admin_login.fire(m.id, m.addr)
 
         elif m := PlayerConnect.try_from_message(message):
             p = self.cache.add_connected_player(m)
-            self.dispatch("player_connect", p)
+            self.dispatch.on_player_connect.fire(p)
 
         elif m := PlayerGUID.try_from_message(message):
             # NOTE: it might be possible to receive these events before
             # on_player_connect, in which case we cannot get a Player
             # object to dispatch
             if p := self.cache.set_player_guid(m):
-                self.dispatch("player_guid", p)
+                self.dispatch.on_player_guid.fire(p)
 
         elif m := PlayerVerifyGUID.try_from_message(message):
             if p := self.cache.verify_player_guid(m):
-                self.dispatch("player_verify_guid", p)
+                self.dispatch.on_player_verify_guid.fire(p)
 
         elif m := PlayerDisconnect.try_from_message(message):
             if p := self.cache.remove_player(m.id):
-                self.dispatch("player_disconnect", p)
+                self.dispatch.on_player_disconnect.fire(p)
 
         elif m := PlayerKick.try_from_message(message):
             if p := self.cache.remove_player(m.id):
-                self.dispatch("player_kick", p, m.reason)
+                self.dispatch.on_player_kick.fire(p, m.reason)
 
         elif m := RCONMessage.try_from_message(message):
-            self.dispatch("admin_message", m.id, m.channel, m.message)
+            self.dispatch.on_admin_message.fire(m.id, m.channel, m.message)
 
             if m.channel == "Global":
-                self.dispatch("admin_announcement", m.id, m.message)
+                self.dispatch.on_admin_announcement.fire(m.id, m.message)
             elif m.channel.startswith("To "):
                 name = m.channel.removeprefix("To ")
                 p = utils.get(self.players, name=name)
                 if p is not None:
-                    self.dispatch("admin_whisper", p, m.id, m.message)
+                    self.dispatch.on_admin_whisper.fire(p, m.id, m.message)
 
         elif m := PlayerMessage.try_from_message(message):
             p = utils.get(self.players, name=m.name)
             if p is not None:
-                self.dispatch("player_message", p, m.channel, m.message)
+                self.dispatch.on_player_message.fire(p, m.channel, m.message)
 
         elif not is_expected_message(message):
             raise ValueError(f"unexpected server message: {message}")
