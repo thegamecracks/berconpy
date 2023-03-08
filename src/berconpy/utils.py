@@ -8,6 +8,14 @@ CoroFunc = Callable[..., Coroutine]
 MaybeCoroFunc = CoroFunc | Callable
 
 
+def copy_doc(original: Callable) -> Callable[[T], T]:
+    def decorator(new: T) -> T:
+        new.__doc__ = original.__doc__
+        return new
+
+    return decorator
+
+
 def find(iterable: Iterable[T], predicate: Callable[[T], bool]) -> T | None:
     """Returns the first item in the iterable where the given predicate returns True."""
     for item in iterable:
