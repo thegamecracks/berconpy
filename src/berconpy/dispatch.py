@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from typing_extensions import Self
 
     from .player import Player
-    from .protocol.packet import Packet
+    from .protocol.packet import ServerPacket
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -189,7 +189,7 @@ class EventDispatcher(ABC):
 
     @typed_event
     @staticmethod
-    def on_raw_event(packet: Packet, /) -> Any:
+    def on_raw_event(packet: ServerPacket, /) -> Any:
         """Fired for every parsable packet received by the server.
 
         :param packet: The packet that was received.
