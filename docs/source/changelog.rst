@@ -67,7 +67,7 @@ New Features
 Bug Fixes
 ^^^^^^^^^
 
-* Fixed :py:attr:`Ban.index <berconpy.Ban.index>` not actually being stored
+* Fix :py:attr:`Ban.index <berconpy.Ban.index>` not actually being stored
   as an integer
 
 Miscellaneous
