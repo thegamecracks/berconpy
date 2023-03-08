@@ -5,8 +5,8 @@ Changelog
   :depth: 2
   :local:
 
-2.0.0
------
+v2.0.0
+------
 
 This is a major rewrite of the library to increase the flexibility and
 re-usability of components. Many new abstractions have been introduced
@@ -68,8 +68,8 @@ Miscellaneous
   using DEBUG logging level
 * Add this changelog to the documentation
 
-1.1.1
------
+v1.1.1
+------
 
 Bug Fixes
 ^^^^^^^^^
@@ -85,8 +85,8 @@ Miscellaneous
 * Clean up table of contents
 * Fix docs/ Makefile building in the wrong directory
 
-1.1.0
------
+v1.1.0
+------
 
 Bug Fixes
 ^^^^^^^^^
