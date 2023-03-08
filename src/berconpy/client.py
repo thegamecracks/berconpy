@@ -305,6 +305,10 @@ class RCONClient(ABC):
     def cache(self, new_cache: RCONClientCache) -> None:
         self._cache = new_cache
 
+    def get_player(self, player_id: int) -> "Player | None":
+        """A shorthand for :py:meth:`RCONClientCache.get_player()`."""
+        return self.cache.get_player(player_id)
+
     @property
     def players(self) -> "Sequence[Player]":
         """A shorthand for :py:attr:`RCONClientCache.players`."""
