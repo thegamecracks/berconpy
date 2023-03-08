@@ -89,7 +89,7 @@ v0.2.1
 New Features
 ^^^^^^^^^^^^
 
-* Add facade methods to :py:class:`~berconpy.AsyncRCONClient`::
+* Add facade methods to :py:class:`~berconpy.AsyncRCONClient`:
 
   * :py:meth:`~berconpy.AsyncRCONClient.is_running()`
   * :py:meth:`~berconpy.AsyncRCONClient.is_connected()`
@@ -106,7 +106,7 @@ v0.2.0
 Breaking Changes
 ^^^^^^^^^^^^^^^^
 
-* Refactor the :py:class:`~berconpy.protocol.Packet` into refinement types::
+* Refactor the :py:class:`~berconpy.protocol.Packet` into refinement types:
 
   * :py:class:`~berconpy.protocol.ClientPacket`
   * :py:class:`~berconpy.protocol.ClientLoginPacket`
@@ -136,7 +136,7 @@ New Features
   :py:class:`~berconpy.ext.arma.AsyncArmaRCONClient` subclass with methods
   specific to the Arma game series
 
-* Add new events::
+* Add new events:
 
   * ``on_admin_login(admin_id, addr)``
   * ``on_player_connect(player)``
@@ -157,7 +157,7 @@ New Features
 * Exponential backoff to reduce excessive connection attempts
 
 * New exceptions have been added to replace :py:exc:`ValueError`
-  and :py:exc:`RuntimeError` in various locations::
+  and :py:exc:`RuntimeError` in various locations:
 
   * :py:exc:`~berconpy.RCONError`
   * :py:exc:`~berconpy.LoginFailure`
@@ -165,7 +165,7 @@ New Features
 
 * Add :py:attr:`AsyncRCONClient.client_id <berconpy.AsyncRCONClient.client_id>` property
 
-* Add new methods to :py:class:`~berconpy.AsyncRCONClient`::
+* Add new methods to :py:class:`~berconpy.AsyncRCONClient`:
 
   * :py:meth:`~berconpy.AsyncRCONClient.ban()`
   * :py:meth:`~berconpy.AsyncRCONClient.fetch_admins()`
