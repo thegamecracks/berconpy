@@ -19,6 +19,8 @@ Breaking Changes
   only available through the :doc:`berconpy.protocol </protocol>` package
 * :py:attr:`Packet.message <berconpy.protocol.Packet.message>` property now
   returns bytes
+* :py:meth:`Packet.from_bytes() <berconpy.protocol.Packet.from_bytes>`
+  no longer raises :py:exc:`IndexError`
 * :py:class:`ServerCommandPacket <berconpy.protocol.ServerCommandPacket>`
   now raises :py:exc:`ValueError` when ``total`` is 1 and ``index`` is
   set to anything other than 0
