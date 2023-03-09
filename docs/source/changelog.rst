@@ -19,6 +19,9 @@ Breaking Changes
   only available through the :doc:`berconpy.protocol </protocol>` package
 * :py:attr:`Packet.message <berconpy.protocol.Packet.message>` property now
   returns bytes
+* :py:class:`ServerCommandPacket <berconpy.protocol.ServerCommandPacket>`
+  now raises :py:exc:`ValueError` when ``total`` is 1 and ``index`` is
+  set to anything other than 0
 * :py:attr:`AsyncRCONClient.client_id <berconpy.AsyncRCONClient.admin_id>`
   has been renamed to :py:attr:`~berconpy.AsyncRCONClient.admin_id`
 * :py:class:`RCONClientDatagramProtocol` is now replaced with

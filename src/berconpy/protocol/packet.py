@@ -476,6 +476,8 @@ class ServerCommandPacket(ServerPacket):
         buffer.append(sequence)
         if total != 1:
             buffer.extend((0, total, index))
+        elif index != 0:
+            raise ValueError(f"index must equal 0 when total=0")
         buffer.extend(response)
 
         payload = bytes(buffer)
