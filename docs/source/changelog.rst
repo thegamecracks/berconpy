@@ -22,8 +22,10 @@ Breaking Changes
 * :py:meth:`Packet.from_bytes() <berconpy.protocol.Packet.from_bytes>`
   no longer raises :py:exc:`IndexError`
 * :py:class:`ServerCommandPacket <berconpy.protocol.ServerCommandPacket>`
-  now raises :py:exc:`ValueError` when ``total`` is 1 and ``index`` is
-  set to anything other than 0
+  now raises :py:exc:`ValueError` when:
+
+  * ``total`` is 0, or;
+  * ``total`` is 1 and ``index`` is set to anything other than 0
 * :py:attr:`AsyncRCONClient.client_id <berconpy.AsyncRCONClient.admin_id>`
   has been renamed to :py:attr:`~berconpy.AsyncRCONClient.admin_id`
 * :py:class:`RCONClientDatagramProtocol` is now replaced with

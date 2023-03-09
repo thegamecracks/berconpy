@@ -474,10 +474,12 @@ class ServerCommandPacket(ServerPacket):
     def __init__(self, sequence: int, total: int, index: int, response: bytes):
         buffer = self._get_initial_message(PacketType.COMMAND)
         buffer.append(sequence)
-        if total != 1:
-            buffer.extend((0, total, index))
-        elif index != 0:
+        if total < 1:
+            raise ValueError(f"total must be 1 or higher, not {total!r}")
+        elif total == 1 and index != 0:
             raise ValueError(f"index must equal 0 when total=0")
+        else:
+            buffer.extend((0, total, index))
         buffer.extend(response)
 
         payload = bytes(buffer)
