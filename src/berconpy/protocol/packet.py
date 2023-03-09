@@ -468,6 +468,7 @@ class ServerCommandPacket(ServerPacket):
         The contents contained in the response,
         or part of the response if this content is split across
         multiple packets.
+    :raises ValueError: Either the total was 0 or the index was out of bounds.
 
     """
 
@@ -476,9 +477,9 @@ class ServerCommandPacket(ServerPacket):
         buffer.append(sequence)
         if total < 1:
             raise ValueError(f"total must be 1 or higher, not {total!r}")
-        elif total == 1 and index != 0:
-            raise ValueError(f"index must equal 0 when total=0")
-        else:
+        elif index not in range(total):
+            raise ValueError(f"index must be below {total - 1}, not {index}")
+        elif total != 1:
             buffer.extend((0, total, index))
         buffer.extend(response)
 

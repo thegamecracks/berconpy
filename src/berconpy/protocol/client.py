@@ -212,11 +212,6 @@ class RCONClientProtocol(RCONGenericProtocol):
             raise ValueError(
                 f"Unexpected command response (sequence {packet.sequence})"
             )
-        if packet.index not in range(packet.total):
-            raise ValueError(
-                f"Command response index {packet.index} exceeds the expected "
-                f"maximum of {packet.total - 1} (sequence {packet.sequence})"
-            )
         if packet.index in rest:
             raise ValueError(
                 f"Command response index {packet.index} already received "
