@@ -20,7 +20,7 @@ from berconpy.protocol import (
 from . import client, first_and_only_event
 
 
-def test_client_invalid_states(client: RCONClientProtocol):
+def test_invalid_states(client: RCONClientProtocol):
     """Asserts the client will raise :py:exc:`InvalidStateError` where appropriate."""
     for _ in range(2):
         message = ServerMessagePacket(sequence=0, message=b"Hello world!")
