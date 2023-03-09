@@ -262,7 +262,7 @@ class Packet:
             message = data[9:]
             return ServerMessagePacket(sequence, message).assert_checksum(crc)
 
-        raise RuntimeError(
+        raise RuntimeError(  # pragma: no cover
             f"unhandled PacketType enum: {ptype} (from_client: {from_client})"
         )
 

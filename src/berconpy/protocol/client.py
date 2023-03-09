@@ -193,7 +193,7 @@ class RCONClientProtocol(RCONGenericProtocol):
 
             return events, (ClientMessagePacket(packet.sequence),)
 
-        raise ValueError(f"unexpected packet received: {packet}")
+        raise ValueError(f"unexpected packet received: {packet}")  # pragma: no cover
 
     def _handle_command_packet(
         self,
