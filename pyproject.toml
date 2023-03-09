@@ -43,6 +43,7 @@ exclude_lines = [
     "pragma: no cover",
     "if (typing\\.)?TYPE_CHECKING:",
     "if __name__ == \"__main__\":",
+    "\\s*\\.\\.\\.$",
 ]
 include_namespace_packages = true
 
