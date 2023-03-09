@@ -44,6 +44,8 @@ exclude_lines = [
     "if (typing\\.)?TYPE_CHECKING:",
     "if __name__ == \"__main__\":",
     "\\s*\\.\\.\\.$",
+    "raise NotImplementedError",
+    "def __repr__",
 ]
 include_namespace_packages = true
 
