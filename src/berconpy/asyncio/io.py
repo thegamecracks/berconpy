@@ -303,7 +303,10 @@ class AsyncClientConnector(AsyncClientProtocol):
         if self.is_running():
             raise RuntimeError("connection is already running")
 
-        self._task = asyncio.create_task(self._run_and_handle(ip, port, password))
+        self._task = asyncio.create_task(
+            self._run_and_handle(ip, port, password),
+            name="berconpy-run",
+        )
         return self._task
 
     def send(self, packet: ClientPacket):
@@ -325,7 +328,10 @@ class AsyncClientConnector(AsyncClientProtocol):
         if self._is_logged_in is None:
             self._is_logged_in = loop.create_future()
 
-        close_task = asyncio.create_task(self._close_event.wait())
+        close_task = asyncio.create_task(
+            self._close_event.wait(),
+            name="berconpy-wait-for-login",
+        )
         done, _ = await asyncio.wait(
             (self._is_logged_in, close_task),
             return_when=asyncio.FIRST_COMPLETED,
@@ -440,7 +446,10 @@ class AsyncClientConnector(AsyncClientProtocol):
             elapsed_time = time.monotonic() - self._last_command
             if elapsed_time > self.config.keep_alive_interval:
                 log.debug("sending keep alive packet")
-                asyncio.create_task(self._send_keep_alive())
+                asyncio.create_task(
+                    self._send_keep_alive(),
+                    name="berconpy-keep-alive",
+                )
 
             try:
                 coro = self._close_event.wait()
