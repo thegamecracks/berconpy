@@ -425,6 +425,8 @@ class AsyncClientConnector(AsyncClientProtocol):
                 elif (exc := self._is_logged_in.exception()) is not None:
                     log.error("password authentication was denied")
                     raise exc
+                else:
+                    log.info("successfully connected to the server")
 
             elapsed_time = time.monotonic() - self._last_received
             if elapsed_time > self.LAST_RECEIVED_TIMEOUT:
