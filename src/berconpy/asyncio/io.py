@@ -194,7 +194,7 @@ class AsyncCommander:
                 self.cancel_command(packet.sequence)
 
         log.warning(f"could not send command after {self.command_attempts} attempts")
-        raise RCONCommandError(f"failed to send command: {command}")
+        raise RCONCommandError(f"failed to send command: {command!r}")
 
     def wait_for_command(self, sequence: int) -> asyncio.Future[str]:
         """Returns a future waiting for a command response with
