@@ -366,7 +366,7 @@ class AsyncClientConnector(AsyncClientProtocol):
         before creating a new connection.
 
         :returns:
-            True if authenticated or None if the connection closed
+            True if authenticated or False if the connection closed
             without an error.
         :raises LoginFailure:
             The password given to the server was denied.
