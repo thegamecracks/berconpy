@@ -4,13 +4,15 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 from sphinx.application import Sphinx
 
+import berconpy
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "berconpy"
-copyright = "2022, thegamecracks"
+copyright = "2023, thegamecracks"
 author = "thegamecracks"
-release = "1.0.0"
+release = berconpy.__version__
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

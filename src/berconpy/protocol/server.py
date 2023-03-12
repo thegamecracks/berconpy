@@ -214,4 +214,4 @@ class RCONServerProtocol(RCONGenericProtocol):
 
             return (ServerMessageEvent(packet.sequence),), ()
 
-        raise ValueError(f"unexpected packet received: {packet}")
+        raise ValueError(f"unexpected packet received: {packet}")  # pragma: no cover

@@ -5,8 +5,85 @@ Changelog
   :depth: 2
   :local:
 
-1.1.1
------
+v2.0.0
+------
+
+This is a major rewrite of the library to increase the flexibility and
+re-usability of components. Many new abstractions have been introduced
+between the protocol, I/O layers, and the client.
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+
+* :py:class:`Packet <berconpy.protocol.Packet>` and its subclasses are now
+  only available through the :doc:`berconpy.protocol </protocol>` package
+* :py:attr:`Packet.message <berconpy.protocol.Packet.message>` property now
+  returns bytes
+* :py:meth:`Packet.from_bytes() <berconpy.protocol.Packet.from_bytes>`
+  no longer raises :py:exc:`IndexError`
+* :py:class:`ServerCommandPacket <berconpy.protocol.ServerCommandPacket>`
+  now raises :py:exc:`ValueError` when ``total`` is 0 or ``index`` is out
+  of bounds
+* :py:attr:`AsyncRCONClient.client_id <berconpy.AsyncRCONClient.admin_id>`
+  has been renamed to :py:attr:`~berconpy.AsyncRCONClient.admin_id`
+* :py:class:`RCONClientDatagramProtocol` is now replaced with
+  :py:class:`~berconpy.AsyncClientConnector`
+* The ``protocol_cls`` parameter for :py:class:`~berconpy.AsyncRCONClient`
+  has been replaced with ``protocol`` and must take an
+  :py:class:`~berconpy.AsyncClientProtocol` instance
+
+New Features
+^^^^^^^^^^^^
+
+* Add `Sans-I/O <https://sans-io.readthedocs.io/>`__ client and server
+  implementations of the RCON protocol:
+
+  * :py:class:`~berconpy.RCONGenericProtocol`
+  * :py:class:`~berconpy.RCONClientProtocol`
+  * :py:class:`~berconpy.RCONServerProtocol`
+
+* Add Sans-I/O base classes, inherited by their original asyncio components:
+
+  * :py:class:`~berconpy.client.RCONClient`
+  * :py:class:`~berconpy.ban.Ban`
+  * :py:class:`~berconpy.player.Player`
+
+* Allow customization of the client cache by using a subclass of
+  :py:class:`~berconpy.cache.RCONClientCache`
+
+* Allow customization of keep alive messages, reconnect parameters,
+  and command handling for :py:class:`~berconpy.AsyncClientConnector`
+  using :py:class:`~berconpy.ConnectorConfig`
+  and :py:class:`~berconpy.AsyncCommander`
+
+* Add send/receive support for UTF-8 encoding
+
+  Despite the :download:`BattlEye RCON protocol </BERConProtocol.txt>`
+  specifying that payloads be encoded in ASCII, RCON servers are willing
+  to send UTF-8 encoded text back. As such, this library will begin
+  processing strings in UTF-8.
+
+* Improve validation of server responses to commands
+
+  * Indexes must be within range
+  * Indexes must not be repeated
+  * Total must be consistent across associated packets
+
+Bug Fixes
+^^^^^^^^^
+
+* Fix :py:attr:`Ban.index <berconpy.Ban.index>` not actually being stored
+  as an integer
+
+Miscellaneous
+^^^^^^^^^^^^^
+
+* Show full traceback for malformed data being received when
+  using DEBUG logging level
+* Add this changelog to the documentation
+
+v1.1.1
+------
 
 Bug Fixes
 ^^^^^^^^^
@@ -22,8 +99,8 @@ Miscellaneous
 * Clean up table of contents
 * Fix docs/ Makefile building in the wrong directory
 
-1.1.0
------
+v1.1.0
+------
 
 Bug Fixes
 ^^^^^^^^^
@@ -132,7 +209,7 @@ New Features
 * Use sequence number from server messages to avoid re-triggering ``on_message``
   events in case of network instability
 * Add ``berconpy.ext`` namespace package for third-party extension support
-* Add :py:mod:`berconpy.ext.arma` extension containing an
+* Add :doc:`berconpy.ext.arma </ext/arma>` extension containing an
   :py:class:`~berconpy.ext.arma.AsyncArmaRCONClient` subclass with methods
   specific to the Arma game series
 

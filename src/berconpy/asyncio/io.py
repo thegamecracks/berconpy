@@ -194,7 +194,7 @@ class AsyncCommander:
                 self.cancel_command(packet.sequence)
 
         log.warning(f"could not send command after {self.command_attempts} attempts")
-        raise RCONCommandError(f"failed to send command: {command}")
+        raise RCONCommandError(f"failed to send command: {command!r}")
 
     def wait_for_command(self, sequence: int) -> asyncio.Future[str]:
         """Returns a future waiting for a command response with
@@ -303,7 +303,10 @@ class AsyncClientConnector(AsyncClientProtocol):
         if self.is_running():
             raise RuntimeError("connection is already running")
 
-        self._task = asyncio.create_task(self._run_and_handle(ip, port, password))
+        self._task = asyncio.create_task(
+            self._run_and_handle(ip, port, password),
+            name="berconpy-run",
+        )
         return self._task
 
     def send(self, packet: ClientPacket):
@@ -325,7 +328,10 @@ class AsyncClientConnector(AsyncClientProtocol):
         if self._is_logged_in is None:
             self._is_logged_in = loop.create_future()
 
-        close_task = asyncio.create_task(self._close_event.wait())
+        close_task = asyncio.create_task(
+            self._close_event.wait(),
+            name="berconpy-wait-for-login",
+        )
         done, _ = await asyncio.wait(
             (self._is_logged_in, close_task),
             return_when=asyncio.FIRST_COMPLETED,
@@ -366,7 +372,7 @@ class AsyncClientConnector(AsyncClientProtocol):
         before creating a new connection.
 
         :returns:
-            True if authenticated or None if the connection closed
+            True if authenticated or False if the connection closed
             without an error.
         :raises LoginFailure:
             The password given to the server was denied.
@@ -425,6 +431,8 @@ class AsyncClientConnector(AsyncClientProtocol):
                 elif (exc := self._is_logged_in.exception()) is not None:
                     log.error("password authentication was denied")
                     raise exc
+                else:
+                    log.info("successfully connected to the server")
 
             elapsed_time = time.monotonic() - self._last_received
             if elapsed_time > self.LAST_RECEIVED_TIMEOUT:
@@ -438,7 +446,10 @@ class AsyncClientConnector(AsyncClientProtocol):
             elapsed_time = time.monotonic() - self._last_command
             if elapsed_time > self.config.keep_alive_interval:
                 log.debug("sending keep alive packet")
-                asyncio.create_task(self._send_keep_alive())
+                asyncio.create_task(
+                    self._send_keep_alive(),
+                    name="berconpy-keep-alive",
+                )
 
             try:
                 coro = self._close_event.wait()
