@@ -109,7 +109,7 @@ in real-time. Below is an example of displaying in-game messages from players:
 
     client = rcon.AsyncRCONClient()
 
-    @client.listen()
+    @client.dispatch.on_player_message
     async def on_player_message(player: rcon.Player, channel: str, message: str):
         print(f"({channel}) {player.name}: {message}")
 
@@ -119,11 +119,12 @@ in real-time. Below is an example of displaying in-game messages from players:
 
     asyncio.run(main())
 
-The :py:meth:`@client.listen() <berconpy.AsyncRCONClient.listen>` decorator
-adds a function as a listener which the client dispatches when the appropriate
-event is received from the server. The function name in this example determines
-what event to listen to, but you can also specify the event as a string argument.
-For a full list of events, see the :doc:`/events`.
+The :py:meth:`@client.dispatch.on_player_message <berconpy.AsyncEventDispatcher.on_player_message>`
+decorator adds a function as a listener for that specific event when it is
+received from the server. All ``on_*`` methods provided by
+:py:attr:`@client.dispatch <berconpy.AsyncRCONClient.dispatch>` have function signatures
+that allow your type checker to ensure that your listener is correctly typed.
+For a full list of events, see the :py:class:`~berconpy.dispatch.EventDispatcher`.
 
 You might have also noticed in the listener that it receives a
 :py:class:`~berconpy.Player` instance as its first argument.

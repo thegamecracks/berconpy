@@ -118,8 +118,8 @@ v1.0.0.post1
 ------------
 
 This version comes with a new `online documentation`_ providing an
-:doc:`/events` and API reference for the various classes and methods
-in the library.
+:py:class:`Event Reference <berconpy.dispatch.EventDispatcher>` and
+API reference for the various classes and methods in the library.
 
 .. _online documentation: https://github.com/thegamecracks/berconpy/commit/82405b5464dce90618d8973dd0c1d5e21f7d96c3
 
