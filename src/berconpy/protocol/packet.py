@@ -1,10 +1,6 @@
 """
 Defines the various packets that can be sent and received between
 the client and server.
-
-This is not meant to be directly used outside of the Sans-IO protocol
-classes.
-
 """
 import binascii
 import enum
