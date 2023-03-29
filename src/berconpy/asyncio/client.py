@@ -1,7 +1,7 @@
 import asyncio
 import contextlib
 import logging
-from typing import Awaitable
+from typing import Generator, TypeVar
 
 from .ban import Ban
 from .cache import AsyncRCONClientCache
@@ -12,6 +12,8 @@ from ..client import RCONClient
 from ..utils import MaybeCoroFunc
 
 log = logging.getLogger(__name__)
+
+T = TypeVar("T")
 
 
 def _add_cancel_callback(
@@ -151,50 +153,51 @@ class AsyncRCONClient(RCONClient):
     # (documentation: https://www.battleye.com/support/documentation/)
 
     async def send_command(self, command: str) -> str:
-        if not self.protocol.is_running():
-            raise RuntimeError("cannot send command when not connected")
-
-        response = await self.protocol.send_command(command)
-        self.check_disallowed_command(response)
-
-        return response
+        return await self._run_commands(self._send_command(command))
 
     async def fetch_admins(self) -> list[tuple[int, str]]:
-        response = await self.send_command("admins")
-        return self.parse_admins(response)
+        return await self._run_commands(self._fetch_admins())
 
     async def fetch_bans(self) -> list[Ban]:
-        response = await self.send_command("bans")
-        return self.parse_bans(response, cls=Ban)
+        return await self._run_commands(self._fetch_bans(cls=Ban))
 
     async def fetch_missions(self) -> list[str]:
-        response = await self.send_command("missions")
-        return self.parse_missions(response)
+        return await self._run_commands(self._fetch_missions())
 
     async def fetch_players(self) -> list[Player]:
-        response = await self.send_command("players")
-        self.cache.update_players(response)
-        return self.players
+        return await self._run_commands(self._fetch_players())  # type: ignore
 
-    def ban(
+    async def ban(
         self,
         addr: int | str,
         duration: int | None = None,
-        reason: str = "",
-    ) -> Awaitable[str]:
-        return super().ban(addr, duration, reason)  # type: ignore
+        reason: str = ""
+    ) -> str:
+        return await self._run_commands(self._ban(addr, duration, reason))
 
-    def kick(self, player_id: int, reason: str = "") -> Awaitable[str]:
-        return super().kick(player_id, reason)  # type: ignore
+    async def kick(self, player_id: int, reason: str = "") -> str:
+        return await self._run_commands(self._kick(player_id, reason))
 
-    def send(self, message: str) -> Awaitable[str]:
-        return super().send(message)  # type: ignore
+    async def send(self, message: str) -> str:
+        return await self._run_commands(self._send(message))
 
-    def unban(self, ban_id: int) -> Awaitable[str]:
-        return super().unban(ban_id)  # type: ignore
+    async def unban(self, ban_id: int) -> str:
+        return await self._run_commands(self._unban(ban_id))
 
-    def whisper(self, player_id: int, message: str) -> Awaitable[str]:
-        return super().whisper(player_id, message)  # type: ignore
+    async def whisper(self, player_id: int, message: str) -> str:
+        return await self._run_commands(self._whisper(player_id, message))
+
+    async def _run_commands(self, gen: Generator[str, str, T]) -> T:
+        if not self.protocol.is_running():
+            raise RuntimeError("cannot send command when not connected")
+
+        try:
+            command = next(gen)
+            while True:
+                response = await self.protocol.send_command(command)
+                command = gen.send(response)
+        except StopIteration as e:
+            return e.value
 
     # Cache
 

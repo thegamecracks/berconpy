@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Callable, Sequence, Type, TypeVar
+from typing import TYPE_CHECKING, Callable, Generator, Sequence, Type, TypeVar
 
 from .cache import RCONClientCache
 from .dispatch import EventDispatcher
@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from .player import Player
 
 BanT = TypeVar("BanT", bound="Ban")
+PlayerT = TypeVar("PlayerT", bound="Player")
 T = TypeVar("T")
 
 
@@ -108,26 +109,50 @@ class RCONClient(ABC):
     # (documentation: https://www.battleye.com/support/documentation/)
 
     @abstractmethod
-    def fetch_admins(self) -> Sequence[tuple[int, str]] | Awaitable[Sequence[tuple[int, str]]]:
+    def fetch_admins(
+        self,
+    ) -> list[tuple[int, str]] | Awaitable[list[tuple[int, str]]]:
         """Requests a list of RCON admins connected to the server,
         ordered by admin ID and IP address with port.
         """
+
+    def _fetch_admins(self) -> Generator[str, str, list[tuple[int, str]]]:
+        response = yield "admins"
+        return [(admin["id"], admin["addr"]) for admin in parse_admins(response)]
 
     @abstractmethod
     def fetch_bans(self) -> Sequence[Ban] | Awaitable[Sequence[Ban]]:
         """Requests a list of bans on the server."""
 
-    @abstractmethod
-    def fetch_missions(self) -> Sequence[str] | Awaitable[Sequence[str]]:
-        """Requests a list of mission files on the server."""
+    def _fetch_bans(self, *, cls: Type[BanT]) -> Generator[str, str, list[BanT]]:
+        response = yield "bans"
+        return [
+            cls(self.cache, b["index"], b["ban_id"], b["duration"], b["reason"])
+            for b in parse_bans(response)
+        ]
 
     @abstractmethod
-    def fetch_players(self) -> Sequence[Player] | Awaitable[Sequence[Player]]:
+    def fetch_missions(self) -> list[str] | Awaitable[list[str]]:
+        """Requests a list of mission files on the server."""
+
+    def _fetch_missions(self) -> Generator[str, str, list[str]]:
+        response = yield "missions"
+        lines = response.splitlines()
+        lines.pop(0)  # "Missions on server:"
+        return lines
+
+    @abstractmethod
+    def fetch_players(self) -> Sequence[PlayerT] | Awaitable[Sequence[PlayerT]]:
         """Requests a list of players from the server.
 
         This method also updates the player cache.
 
         """
+
+    def _fetch_players(self) -> Generator[str, str, list[Player]]:
+        response = yield "players"
+        self.cache.update_players(response)
+        return self.players  # type: ignore
 
     @abstractmethod
     def send_command(self, command: str) -> str | Awaitable[str]:
@@ -144,6 +169,13 @@ class RCONClient(ABC):
 
         """
 
+    def _send_command(self, command: str) -> Generator[str, str, str]:
+        response = yield command
+        if response == "Disallowed command":
+            raise RCONCommandError("server has disabled this command")
+        return response
+
+    @abstractmethod
     def ban(
         self,
         addr: int | str,
@@ -172,11 +204,19 @@ class RCONClient(ABC):
             could/would not respond to the command.
 
         """
+
+    def _ban(
+        self,
+        addr: int | str,
+        duration: int | None = None,
+        reason: str = "",
+    ) -> Generator[str, str, str]:
         command = "ban" if isinstance(addr, int) else "addBan"
         if duration is None:
             duration = 0
-        return self.send_command(f"{command} {duration:d} {reason}".rstrip())
+        return (yield f"{command} {duration:d} {reason}".rstrip())
 
+    @abstractmethod
     def kick(self, player_id: int, reason: str = "") -> str | Awaitable[str]:
         """Kicks a player with the given ID from the server
         with an optional reason.
@@ -194,8 +234,11 @@ class RCONClient(ABC):
             could/would not respond to the command.
 
         """
-        return self.send_command(f"kick {player_id:d} {reason}".rstrip())
 
+    def _kick(self, player_id: int, reason: str = "") -> Generator[str, str, str]:
+        return (yield f"kick {player_id:d} {reason}".rstrip())
+
+    @abstractmethod
     def send(self, message: str) -> str | Awaitable[str]:
         """Sends a message to all players in the server.
 
@@ -209,8 +252,11 @@ class RCONClient(ABC):
             could/would not respond to the command.
 
         """
-        return self.send_command(f"say -1 {message}")
 
+    def _send(self, message: str) -> Generator[str, str, str]:
+        return (yield f"say -1 {message}")
+
+    @abstractmethod
     def unban(self, ban_id: int) -> str | Awaitable[str]:
         """Removes the ban with the given ID from the server.
 
@@ -224,8 +270,11 @@ class RCONClient(ABC):
             could/would not respond to the command.
 
         """
-        return self.send_command(f"removeBan {ban_id:d}")
 
+    def _unban(self, ban_id: int) -> Generator[str, str, str]:
+        return (yield f"removeBan {ban_id:d}")
+
+    @abstractmethod
     def whisper(self, player_id: int, message: str) -> str | Awaitable[str]:
         """Sends a message to the player with the given ID.
 
@@ -242,52 +291,25 @@ class RCONClient(ABC):
             could/would not respond to the command.
 
         """
-        return self.send_command(f"say {player_id:d} {message}")
 
-    # Utilities
+    def _whisper(self, player_id: int, message: str) -> Generator[str, str, str]:
+        return (yield f"say {player_id:d} {message}")
 
-    def check_disallowed_command(self, response: str) -> None:
-        """Raises :py:exc:`RCONCommandError` if the server responded
-        with "Disallowed command".
+    @abstractmethod
+    def _run_commands(self, gen: Generator[str, str, T]) -> T | Awaitable[T]:
+        """Takes a generator and processes it to retrieve its return value.
 
-        This method should be used when implementing :py:meth:`send_command()`.
+        The generator can yield commands to be sent to the server,
+        and should be given back responses to those commands.
 
-        """
-        if response == "Disallowed command":
-            raise RCONCommandError("server has disabled this command")
-
-    def parse_admins(self, response: str) -> list[tuple[int, str]]:
-        """Parses an "admins" command response into a list of (IP, port) tuples.
-
-        This method should be used when implementing :py:meth:`fetch_admins()`.
-
-        """
-        return [(admin["id"], admin["addr"]) for admin in parse_admins(response)]
-
-    def parse_bans(self, response: str, *, cls: Type[BanT]) -> list[BanT]:
-        """Parses a "bans" command response into a list of
-        :py:class:`~berconpy.ban.Ban` objects.
-
-        This method should be used when implementing :py:meth:`fetch_bans()`.
-
-        :param response: The server response to parse.
-        :param cls: The :py:class:`~berconpy.ban.Ban` subclass to use.
+        :raises RCONCommandError:
+            The server has either disabled this command or failed to
+            respond to our command.
+        :raises RuntimeError:
+            The client is either not connected or the server
+            could/would not respond to the command.
 
         """
-        return [
-            cls(self.cache, b["index"], b["ban_id"], b["duration"], b["reason"])
-            for b in parse_bans(response)
-        ]
-
-    def parse_missions(self, response: str) -> list[str]:
-        """Parses a "missions" command response into a list of mission files.
-
-        This method should be used when implementing :py:meth:`fetch_missions()`.
-
-        """
-        lines = response.splitlines()
-        lines.pop(0)  # "Missions on server:"
-        return lines
 
     # Cache
 
