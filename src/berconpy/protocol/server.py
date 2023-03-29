@@ -74,6 +74,8 @@ class RCONServerProtocol(RCONGenericProtocol):
     def receive_datagram(self, data: bytes) -> ClientPacket:
         """Handles a packet received by the server.
 
+        :raises InvalidStateError:
+            The given packet cannot be handled in the current state.
         :raises ValueError: Handling failed due to a malformed packet.
 
         """
