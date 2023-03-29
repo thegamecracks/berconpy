@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Callable, Generator, Sequence, Type, TypeVar
+from typing import TYPE_CHECKING, Callable, Generator, Generic, Sequence, Type, TypeVar
 
 from .cache import RCONClientCache
 from .dispatch import EventDispatcher
@@ -32,14 +32,14 @@ PlayerT = TypeVar("PlayerT", bound="Player")
 T = TypeVar("T")
 
 
-class RCONClient(ABC):
+class RCONClient(ABC, Generic[PlayerT]):
     """The base class for all client implementations of the RCON protocol."""
 
     def __init__(
         self,
         *,
-        cache: RCONClientCache,
-        dispatch: EventDispatcher,
+        cache: RCONClientCache[PlayerT],
+        dispatch: EventDispatcher[PlayerT],
     ):
         """
         :param cache: The cache to use for the client.
@@ -149,10 +149,10 @@ class RCONClient(ABC):
 
         """
 
-    def _fetch_players(self) -> Generator[str, str, list[Player]]:
+    def _fetch_players(self) -> Generator[str, str, Sequence[PlayerT]]:
         response = yield "players"
         self.cache.update_players(response)
-        return self.players  # type: ignore
+        return self.players
 
     @abstractmethod
     def send_command(self, command: str) -> str | Awaitable[str]:
@@ -327,12 +327,12 @@ class RCONClient(ABC):
     def cache(self, new_cache: RCONClientCache) -> None:
         self._cache = new_cache
 
-    def get_player(self, player_id: int) -> "Player | None":
+    def get_player(self, player_id: int) -> "PlayerT | None":
         """A shorthand for :py:meth:`RCONClientCache.get_player()`."""
         return self.cache.get_player(player_id)
 
     @property
-    def players(self) -> "Sequence[Player]":
+    def players(self) -> "Sequence[PlayerT]":
         """A shorthand for :py:attr:`RCONClientCache.players`."""
         return self.cache.players
 

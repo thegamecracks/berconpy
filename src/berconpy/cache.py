@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Generic, Sequence, TypeVar
 import weakref
 
 from .parser import (
@@ -16,8 +16,10 @@ if TYPE_CHECKING:
     from .client import RCONClient
     from .player import Player
 
+PlayerT = TypeVar("PlayerT", bound="Player")
 
-class RCONClientCache(ABC):
+
+class RCONClientCache(ABC, Generic[PlayerT]):
     """The base class for implementing caching."""
 
     _client: RCONClient | None = None
@@ -49,11 +51,11 @@ class RCONClientCache(ABC):
 
     @property
     @abstractmethod
-    def players(self) -> Sequence[Player]:
+    def players(self) -> Sequence[PlayerT]:
         """A list of players in the server."""
 
     @abstractmethod
-    def get_player(self, player_id: int) -> Player | None:
+    def get_player(self, player_id: int) -> PlayerT | None:
         """Looks up a player from cache using their server-given ID.
 
         :param player_id: The ID of the player.
@@ -64,7 +66,7 @@ class RCONClientCache(ABC):
     # Cache maintenance (template methods)
 
     @abstractmethod
-    def add_connected_player(self, payload: PlayerConnect) -> Player:
+    def add_connected_player(self, payload: PlayerConnect) -> PlayerT:
         """Adds a player to the cache after having connected.
 
         :returns: The player that was created.
@@ -72,7 +74,7 @@ class RCONClientCache(ABC):
         """
 
     @abstractmethod
-    def set_player_guid(self, payload: PlayerGUID) -> Player | None:
+    def set_player_guid(self, payload: PlayerGUID) -> PlayerT | None:
         """Sets the GUID of a cached player.
 
         :returns: The player that was updated, if any.
@@ -80,7 +82,7 @@ class RCONClientCache(ABC):
         """
 
     @abstractmethod
-    def verify_player_guid(self, payload: PlayerVerifyGUID) -> Player | None:
+    def verify_player_guid(self, payload: PlayerVerifyGUID) -> PlayerT | None:
         """Verifies the GUID of a cached player.
 
         :returns: The player that was updated, if any.
@@ -88,7 +90,7 @@ class RCONClientCache(ABC):
         """
 
     @abstractmethod
-    def remove_player(self, player_id: int) -> Player | None:
+    def remove_player(self, player_id: int) -> PlayerT | None:
         """Invalidates a player in the cache.
 
         :returns: The player that was removed, if any.
@@ -96,7 +98,7 @@ class RCONClientCache(ABC):
         """
 
     @abstractmethod
-    def add_missing_player(self, payload: ParsedPlayer) -> Player:
+    def add_missing_player(self, payload: ParsedPlayer) -> PlayerT:
         """Adds a player that was missing from the cache.
 
         :returns: The player that was created.

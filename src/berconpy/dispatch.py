@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from .protocol.packet import ServerPacket
 
 P = ParamSpec("P")
+PlayerT = TypeVar("PlayerT", bound="Player")
 T = TypeVar("T")
 
 
@@ -148,7 +149,7 @@ def typed_event(func: Callable[P, T], /) -> TypedEvent[P, T]:
     return obj
 
 
-class EventDispatcher(ABC):
+class EventDispatcher(ABC, Generic[PlayerT]):
     """The base class for implementing an event handler system.
 
     To listen for one of the following events, use the :py:meth:`add_listener()`
@@ -279,7 +280,7 @@ class EventDispatcher(ABC):
 
     @typed_event
     @staticmethod
-    def on_player_connect(player: Player, /) -> Any:
+    def on_player_connect(player: PlayerT, /) -> Any:
         """Fired when a player connects to a server.
 
         .. note::
@@ -295,7 +296,7 @@ class EventDispatcher(ABC):
 
     @typed_event
     @staticmethod
-    def on_player_guid(player: Player, /) -> Any:
+    def on_player_guid(player: PlayerT, /) -> Any:
         """Fired when receiving the BattlEye GUID for a connecting player.
 
         The given player object will have the updated GUID.
@@ -306,7 +307,7 @@ class EventDispatcher(ABC):
 
     @typed_event
     @staticmethod
-    def on_player_verify_guid(player: Player, /) -> Any:
+    def on_player_verify_guid(player: PlayerT, /) -> Any:
         """Fired when the server has verified the BattlEye GUID
         for a connecting player.
 
@@ -316,7 +317,7 @@ class EventDispatcher(ABC):
 
     @typed_event
     @staticmethod
-    def on_player_disconnect(player: Player, /) -> Any:
+    def on_player_disconnect(player: PlayerT, /) -> Any:
         """Fired when a player manually disconnects from the server.
 
         The :py:attr:`~berconpy.client.RCONClient.players` list will
@@ -331,7 +332,7 @@ class EventDispatcher(ABC):
 
     @typed_event
     @staticmethod
-    def on_player_kick(player: Player, reason: str, /) -> Any:
+    def on_player_kick(player: PlayerT, reason: str, /) -> Any:
         """Fired when BattlEye kicks a player, either automatically
         (e.g. ``"Client not responding"``) or by an admin
         (i.e. ``"Admin Kick"``).
@@ -373,7 +374,7 @@ class EventDispatcher(ABC):
 
     @typed_event
     @staticmethod
-    def on_admin_whisper(player: Player, admin_id: int, message: str, /) -> Any:
+    def on_admin_whisper(player: PlayerT, admin_id: int, message: str, /) -> Any:
         """Fired when an RCON admin sends a message to a specific player.
 
         .. note::
@@ -389,7 +390,7 @@ class EventDispatcher(ABC):
 
     @typed_event
     @staticmethod
-    def on_player_message(player: Player, channel: str, message: str, /) -> Any:
+    def on_player_message(player: PlayerT, channel: str, message: str, /) -> Any:
         """Fired when a player sends a message.
 
         :param player: The player that the message was directed towards.

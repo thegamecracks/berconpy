@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class AsyncRCONClientCache(RCONClientCache):
+class AsyncRCONClientCache(RCONClientCache[Player]):
     """A basic cache implementation for :py:class:`AsyncRCONClient`.
 
     When a :py:attr:`client` is set, this will add an ``on_login`` listener

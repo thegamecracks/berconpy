@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 
 
-class AsyncEventDispatcher(EventDispatcher):
+class AsyncEventDispatcher(EventDispatcher["Player"]):
     """Implements the :py:class:`.EventDispatcher` interface for asyncio."""
 
     _event_listeners: dict[str, list[MaybeCoroFunc]]
