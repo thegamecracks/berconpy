@@ -5,6 +5,27 @@ Changelog
   :depth: 2
   :local:
 
+v2.1.0
+------
+
+New Features
+^^^^^^^^^^^^
+
+* Add type-safe decorators to :py:class:`~berconpy.dispatch.EventDispatcher`
+  for existing events
+
+  This serves as an alternative interface to the existing
+  :py:meth:`~berconpy.AsyncRCONClient.listen()`
+  and :py:meth:`~berconpy.AsyncRCONClient.add_listener()` methods for those
+  that want stronger type safety in their code (avoiding string typos and
+  validating listener signatures).
+
+Documentation
+^^^^^^^^^^^^^
+
+* Document :py:meth:`~berconpy.RCONClientProtocol.receive_datagram()`
+  for client/server protocols potentially raising :py:exc:`~berconpy.InvalidStateError`
+
 v2.0.0
 ------
 
