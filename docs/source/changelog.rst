@@ -20,6 +20,12 @@ New Features
   that want stronger type safety in their code (avoiding string typos and
   validating listener signatures).
 
+Bug Fixes
+^^^^^^^^^
+
+* Hide stderr clutter from ``berconpy-keep-alive`` tasks failing to send
+  commands
+
 Documentation
 ^^^^^^^^^^^^^
 

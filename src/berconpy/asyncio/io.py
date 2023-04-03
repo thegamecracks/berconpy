@@ -446,10 +446,9 @@ class AsyncClientConnector(AsyncClientProtocol):
             elapsed_time = time.monotonic() - self._last_command
             if elapsed_time > self.config.keep_alive_interval:
                 log.debug("sending keep alive packet")
-                asyncio.create_task(
-                    self._send_keep_alive(),
-                    name="berconpy-keep-alive",
-                )
+                # NOTE: may result in "Task destroyed but it is pending!"
+                #       TaskGroup would be a good idea here
+                keep_alive_task = self._begin_keep_alive()
 
             try:
                 coro = self._close_event.wait()
@@ -509,7 +508,19 @@ class AsyncClientConnector(AsyncClientProtocol):
 
         return False
 
-    async def _send_keep_alive(self):
+    def _begin_keep_alive(self) -> asyncio.Task[None]:
+        def done_callback(task: asyncio.Task):
+            if not isinstance(task.exception(), RCONCommandError):
+                task.result()  # unexpected error
+
+        task = asyncio.create_task(
+            self._send_keep_alive(),
+            name="berconpy-keep-alive",
+        )
+        task.add_done_callback(done_callback)
+        return task
+
+    async def _send_keep_alive(self) -> None:
         assert self.client is not None
 
         if time.monotonic() - self._last_players > self.config.players_interval:
