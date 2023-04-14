@@ -33,4 +33,4 @@ from .protocol import (
     ServerState,
 )
 
-__version__ = "2.1.0b3"
+__version__ = "2.1.0"
