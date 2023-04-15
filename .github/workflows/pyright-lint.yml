@@ -1,6 +1,9 @@
 name: Lint with Pyright
 
-on: push
+on:
+  push:
+    paths:
+      - '**.py'
 
 jobs:
   lint:
