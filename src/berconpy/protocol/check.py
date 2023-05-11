@@ -33,17 +33,20 @@ class NonceCheck:
     has not been recently seen before.
 
     :param max_size:
-        Specifies the max size to use for the internal deque to keep
-        track of indices. Since the range of a packet's sequence is only 256,
-        a max size matching or exceeding that will eventually lead to this
-        check infinitely returning False, and as such a :py:exc`:`ValueError`
-        is raised to prevent that from occurring.
+        The maximum number of sequences to keep track of.
+        After N unique sequences are received, each unique sequence that
+        follows will cause the first (i.e. oldest) sequence to be dropped.
+        Since a packet's sequence can only have 256 different values,
+        a :py:exc:`ValueError` is raised if the max size is set to 256
+        or greater.
 
     """
 
     deque: collections.deque[int]
 
     def __init__(self, max_size: int):
+        if max_size not in range(256):
+            raise ValueError(f"max_size must be within 0-255, not {max_size!r}")
         self.deque = collections.deque((), max_size)
 
     def __call__(self, packet: Sequential) -> bool:
