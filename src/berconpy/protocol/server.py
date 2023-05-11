@@ -153,8 +153,9 @@ class RCONServerProtocol(RCONGenericProtocol):
         return ServerMessagePacket(sequence, message.encode())
 
     def try_authenticate(self, password: bytes) -> ServerLoginPacket:
-        """Returns the payload needed to authenticate with the server.
+        """Attempts to authenticate the client with the given password.
 
+        :returns: The payload indicating if the client is authenticated.
         :raises InvalidStateError:
             This method can only be called during authentication.
 
