@@ -27,7 +27,7 @@ class MessageBase:
     @classmethod
     def try_from_message(cls, message: str) -> "Self | None":
         if m := cls._PATTERN.fullmatch(message):
-            return cls(**_get_pattern_kwargs(m))
+            return cls(**_get_pattern_kwargs(m))  # type: ignore
 
 
 @dataclass(frozen=True, slots=True)
