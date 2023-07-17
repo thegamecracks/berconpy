@@ -5,6 +5,18 @@ Changelog
   :depth: 2
   :local:
 
+Latest
+------
+
+Bug Fixes
+^^^^^^^^^
+
+* Ignore more known server messages in :py:class:`~berconpy.client.RCONClient`
+
+  * Ban check timed out, no response from BE Master
+  * Disconnected from BE Master
+  * Failed to resolve BE Master DNS name(s)
+
 v2.1.0
 ------
 
