@@ -11,6 +11,9 @@ Latest
 Bug Fixes
 ^^^^^^^^^
 
+* Fix :py:class:`~berconpy.NonceCheck` not raising ValueError
+  when ``max_size`` exceeds 255
+
 * Ignore more known server messages in :py:class:`~berconpy.client.RCONClient`
 
   * Ban check timed out, no response from BE Master
