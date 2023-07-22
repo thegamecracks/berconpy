@@ -5,7 +5,7 @@ Changelog
   :depth: 2
   :local:
 
-Latest
+v2.1.1
 ------
 
 Bug Fixes
