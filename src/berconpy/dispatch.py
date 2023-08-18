@@ -201,7 +201,8 @@ class EventDispatcher(ABC):
     # Specific events to provide type inference
 
     @typed_event
-    def on_raw_event(self, packet: ServerPacket, /) -> Any:
+    @staticmethod
+    def on_raw_event(packet: ServerPacket, /) -> Any:
         """Fired for every parsable packet received by the server.
 
         :param packet: The packet that was received.
@@ -209,11 +210,13 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_login(self) -> Any:
+    @staticmethod
+    def on_login() -> Any:
         """Fired after a successful login to the server."""
 
     @typed_event
-    def on_command(self, response: str, /) -> Any:
+    @staticmethod
+    def on_command(response: str, /) -> Any:
         """Fired after receiving any command response from the server.
 
         This should only be used for debugging purposes as the
@@ -225,7 +228,8 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_message(self, message: str, /) -> Any:
+    @staticmethod
+    def on_message(message: str, /) -> Any:
         """Fired for messages sent by the server, e.g. player connections.
 
         More specific events such as :py:func:`on_admin_login`
@@ -236,7 +240,8 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_admin_login(self, admin_id: int, addr: str, /) -> Any:
+    @staticmethod
+    def on_admin_login(admin_id: int, addr: str, /) -> Any:
         """Fired when a RCON admin logs into the server.
 
         The first message received will be our client logging in.
@@ -252,7 +257,8 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_player_connect(self, player: Player, /) -> Any:
+    @staticmethod
+    def on_player_connect(player: Player, /) -> Any:
         """Fired when a player connects to a server.
 
         .. note::
@@ -267,7 +273,8 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_player_guid(self, player: Player, /) -> Any:
+    @staticmethod
+    def on_player_guid(player: Player, /) -> Any:
         """Fired when receiving the BattlEye GUID for a connecting player.
 
         The given player object will have the updated GUID.
@@ -277,7 +284,8 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_player_verify_guid(self, player: Player, /) -> Any:
+    @staticmethod
+    def on_player_verify_guid(player: Player, /) -> Any:
         """Fired when the server has verified the BattlEye GUID
         for a connecting player.
 
@@ -286,7 +294,8 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_player_disconnect(self, player: Player, /) -> Any:
+    @staticmethod
+    def on_player_disconnect(player: Player, /) -> Any:
         """Fired when a player manually disconnects from the server.
 
         The :py:attr:`~berconpy.client.RCONClient.players` list will
@@ -300,7 +309,8 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_player_kick(self, player: Player, reason: str, /) -> Any:
+    @staticmethod
+    def on_player_kick(player: Player, reason: str, /) -> Any:
         """Fired when BattlEye kicks a player, either automatically
         (e.g. ``"Client not responding"``) or by an admin
         (i.e. ``"Admin Kick"``).
@@ -314,7 +324,8 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_admin_message(self, admin_id: int, channel: str, message: str, /) -> Any:
+    @staticmethod
+    def on_admin_message(admin_id: int, channel: str, message: str, /) -> Any:
         """Fired when an RCON admin sends a message.
 
         If the ``channel`` is ``"Global"``, the :py:meth:`on_admin_announcement()`
@@ -330,7 +341,8 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_admin_announcement(self, admin_id: int, message: str, /) -> Any:
+    @staticmethod
+    def on_admin_announcement(admin_id: int, message: str, /) -> Any:
         """Fired when an RCON admin sends a global message.
 
         :param admin_id: The ID of the admin that sent the message.
@@ -339,7 +351,8 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_admin_whisper(self, player: Player, admin_id: int, message: str, /) -> Any:
+    @staticmethod
+    def on_admin_whisper(player: Player, admin_id: int, message: str, /) -> Any:
         """Fired when an RCON admin sends a message to a specific player.
 
         .. note::
@@ -354,7 +367,8 @@ class EventDispatcher(ABC):
         """
 
     @typed_event
-    def on_player_message(self, player: Player, channel: str, message: str, /) -> Any:
+    @staticmethod
+    def on_player_message(player: Player, channel: str, message: str, /) -> Any:
         """Fired when a player sends a message.
 
         :param player: The player that the message was directed towards.
