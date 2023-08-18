@@ -144,43 +144,36 @@ class AsyncEventDispatcher(EventDispatcher):
     # Specific events to provide type inference
 
     @typed_event
-    @staticmethod
     @copy_doc(EventDispatcher.on_player_connect)
-    def on_player_connect(player: Player, /) -> Any:
+    def on_player_connect(self, player: Player, /) -> Any:
         ...
 
     @typed_event
-    @staticmethod
     @copy_doc(EventDispatcher.on_player_guid)
-    def on_player_guid(player: Player, /) -> Any:
+    def on_player_guid(self, player: Player, /) -> Any:
         ...
 
     @typed_event
-    @staticmethod
     @copy_doc(EventDispatcher.on_player_verify_guid)
-    def on_player_verify_guid(player: Player, /) -> Any:
+    def on_player_verify_guid(self, player: Player, /) -> Any:
         ...
 
     @typed_event
-    @staticmethod
     @copy_doc(EventDispatcher.on_player_disconnect)
-    def on_player_disconnect(player: Player, /) -> Any:
+    def on_player_disconnect(self, player: Player, /) -> Any:
         ...
 
     @typed_event
-    @staticmethod
     @copy_doc(EventDispatcher.on_player_kick)
-    def on_player_kick(player: Player, reason: str, /) -> Any:
+    def on_player_kick(self, player: Player, reason: str, /) -> Any:
         ...
 
     @typed_event
-    @staticmethod
     @copy_doc(EventDispatcher.on_admin_whisper)
-    def on_admin_whisper(player: Player, admin_id: int, message: str, /) -> Any:
+    def on_admin_whisper(self, player: Player, admin_id: int, message: str, /) -> Any:
         ...
 
     @typed_event
-    @staticmethod
     @copy_doc(EventDispatcher.on_player_message)
-    def on_player_message(player: Player, channel: str, message: str, /) -> Any:
+    def on_player_message(self, player: Player, channel: str, message: str, /) -> Any:
         ...
