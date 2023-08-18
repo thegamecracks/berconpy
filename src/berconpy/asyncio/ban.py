@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class Ban(BaseBan):
-    """An asynchronous implemenation of the :py:class:`~berconpy.ban.Ban` class."""
+    """An asynchronous implementation of the :py:class:`~berconpy.ban.Ban` class."""
 
     @property
     def cache(self) -> "AsyncRCONClientCache":
