@@ -15,7 +15,14 @@ log = logging.getLogger(__name__)
 
 
 class AsyncEventDispatcher(EventDispatcher):
-    """Implements the :py:class:`.EventDispatcher` interface for asyncio."""
+    """
+    Implements the :py:class:`.EventDispatcher` interface for asyncio.
+    See that class for details on registering event listeners.
+
+    Unlike :py:class:`.EventDispatcher`, asynchronous functions can be
+    added as listeners and will run in their own task when fired.
+
+    """
 
     _event_listeners: dict[str, list[MaybeCoroFunc]]
     _temporary_listeners: dict[str, list[tuple[asyncio.Future, MaybeCoroFunc]]]
