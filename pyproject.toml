@@ -54,6 +54,16 @@ allow_redefinition = true
 
 [tool.pyright]
 include = ["src"]
+# typeCheckingMode = "strict"
+# reportImportCycles = "none"
+# reportMissingParameterType = "none"
+# reportMissingTypeArgument = "none"
+# reportPrivateUsage = "none"
+# reportUnknownArgumentType = "none"
+# reportUnknownMemberType = "none"
+# reportUnknownParameterType = "none"
+# reportUnknownVariableType = "none"
+# reportUnusedImport = "none"
 typeCheckingMode = "basic"
 
 [tool.pytest.ini_options]
