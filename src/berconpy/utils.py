@@ -36,7 +36,12 @@ def get(iterable: Iterable[T], **attrs) -> T | None:
     return find(iterable, predicate)
 
 
-async def maybe_coro(func, *args, **kwargs):
-    if inspect.iscoroutinefunction(func):
-        return await func(*args, **kwargs)
-    return func(*args, **kwargs)
+async def maybe_coro(
+    func: MaybeCoroFunc[P, T],
+    *args: P.args,
+    **kwargs: P.kwargs,
+) -> T:
+    ret = func(*args, **kwargs)
+    if inspect.isawaitable(ret):
+        return await ret
+    return ret  # type: ignore
