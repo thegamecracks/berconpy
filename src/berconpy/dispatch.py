@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import inspect
+import functools
 from abc import ABC, abstractmethod
 from typing import (
     TYPE_CHECKING,
@@ -42,8 +42,6 @@ class TypedEvent(Generic[P, T]):
     :py:func:`typed_event` decorator instead of this class directly.
 
     """
-
-    __slots__ = ("event",)
 
     event: str
     """The name of the event that this is bound to."""
@@ -124,28 +122,9 @@ def typed_event(func: Callable[P, T], /) -> TypedEvent[P, T]:
     :py:func:`staticmethod()` should also be applied under this decorator.
 
     """
-    unwrapped = inspect.unwrap(func)
-    # Create a copy of TypedEvent with uniquely stored attributes
-    new_event = type(
-        "TypedEvent",
-        (TypedEvent,),
-        {
-            "__annotations__": func.__annotations__,
-            "__name__": func.__name__,
-            "__qualname__": func.__qualname__,
-            # Ideally we would set __unwrapped__ so it would work with unwrap(),
-            # but it causes Sphinx to remove the first parameter from the signature
-            "__globals__": unwrapped.__globals__,
-            # __globals__ is needed for typing.get_type_hints() to work
-            "__signature__": inspect.signature(func),
-            # __signature__ is needed by inspect.signature()
-        },
-    )
-    obj = new_event()
-    # The documentation must be part of the object, otherwise Sphinx will
-    # think it was inherited and ignore it
-    obj.__doc__ = func.__doc__
-    return obj
+    new_event = TypedEvent[P, T]()
+    functools.update_wrapper(new_event, func)
+    return new_event
 
 
 class EventDispatcher(ABC):
