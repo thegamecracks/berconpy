@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import inspect
 from abc import ABC, abstractmethod
 from typing import (
     TYPE_CHECKING,
@@ -124,6 +125,25 @@ def typed_event(func: Callable[P, T], /) -> TypedEvent[P, T]:
     """
     new_event = TypedEvent[P, T]()
     functools.update_wrapper(new_event, func)
+
+    unwrapped = inspect.unwrap(func)
+
+    # Ideally we would set __wrapped__ so it would work with unwrap(),
+    # but it causes Sphinx to remove the first parameter from the signature.
+    # Removing this attribute breaks inspect.getsource().
+    del new_event.__wrapped__  # type: ignore
+
+    new_event.__annotations__ = func.__annotations__
+    new_event.__name__ = func.__name__  # type: ignore
+    new_event.__qualname__ = func.__qualname__  # type: ignore
+
+    # Sphinx requires this to evaluate our TYPE_CHECKING block correctly
+    # (sphinx_autodoc_typehints/__init__.py@_resolve_type_guarded_imports)
+    new_event.__globals__ = unwrapped.__globals__  # type: ignore
+
+    # Required for inspect.signature() due to __wrapped__ being unset
+    new_event.__signature__ = inspect.signature(func)  # type: ignore
+
     return new_event
 
 
