@@ -24,8 +24,10 @@ class AsyncEventDispatcher(EventDispatcher):
 
     """
 
-    _event_listeners: dict[str, list[MaybeCoroFunc]]
-    _temporary_listeners: dict[str, list[tuple[asyncio.Future, MaybeCoroFunc]]]
+    _event_listeners: dict[str, list[MaybeCoroFunc[..., Any]]]
+    _temporary_listeners: dict[
+        str, list[tuple[asyncio.Future, MaybeCoroFunc[..., Any]]]
+    ]
 
     def __init__(self) -> None:
         self._event_listeners = collections.defaultdict(list)
@@ -44,10 +46,10 @@ class AsyncEventDispatcher(EventDispatcher):
                 name=f"berconpy-temp-{event}",
             )
 
-    def add_listener(self, event: str, func: MaybeCoroFunc):
+    def add_listener(self, event: str, func: MaybeCoroFunc[..., Any]):
         self._event_listeners[event].append(func)
 
-    def remove_listener(self, event: str, func: MaybeCoroFunc):
+    def remove_listener(self, event: str, func: MaybeCoroFunc[..., Any]):
         try:
             self._event_listeners[event].remove(func)
         except ValueError:
@@ -57,7 +59,7 @@ class AsyncEventDispatcher(EventDispatcher):
         self,
         event: str,
         *,
-        check: MaybeCoroFunc | None = None,
+        check: MaybeCoroFunc[..., Any] | None = None,
         timeout: float | int | None = None,
     ):
         """Waits for a specific event to occur and returns the result.
@@ -96,7 +98,7 @@ class AsyncEventDispatcher(EventDispatcher):
     def _add_temporary_listener(
         self,
         event: str,
-        predicate: MaybeCoroFunc,
+        predicate: MaybeCoroFunc[..., Any],
     ) -> asyncio.Future:
         fut = asyncio.get_running_loop().create_future()
         self._temporary_listeners[event].append((fut, predicate))
@@ -106,7 +108,7 @@ class AsyncEventDispatcher(EventDispatcher):
         self,
         event: str,
         fut: asyncio.Future,
-        pred: MaybeCoroFunc,
+        pred: MaybeCoroFunc[..., Any],
     ) -> None:
         listeners = self._temporary_listeners[event]
         e = (fut, pred)
@@ -117,7 +119,11 @@ class AsyncEventDispatcher(EventDispatcher):
             pass
 
     async def _try_dispatch_temporary(
-        self, event: str, fut: asyncio.Future, pred: MaybeCoroFunc, *args
+        self,
+        event: str,
+        fut: asyncio.Future,
+        pred: MaybeCoroFunc[..., Any],
+        *args,
     ):
         if fut.done():
             return self._remove_temporary_listener(event, fut, pred)

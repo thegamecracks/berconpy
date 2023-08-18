@@ -1,7 +1,7 @@
 import asyncio
 import contextlib
 import logging
-from typing import Awaitable
+from typing import Any, Awaitable
 
 from .ban import Ban
 from .cache import AsyncRCONClientCache
@@ -229,7 +229,7 @@ class AsyncRCONClient(RCONClient):
         self,
         event: str,
         *,
-        check: MaybeCoroFunc | None = None,
+        check: MaybeCoroFunc[..., Any] | None = None,
         timeout: float | int | None = None,
     ):
         """A shorthand for :py:class:`AsyncEventDispatcher.wait_for()`."""

@@ -1,11 +1,11 @@
 import inspect
-from typing import Callable, Coroutine, Iterable, TypeVar
+from typing import Awaitable, Callable, Iterable, ParamSpec, TypeVar
 
 EMPTY = object()
+P = ParamSpec("P")
 T = TypeVar("T")
 
-CoroFunc = Callable[..., Coroutine]
-MaybeCoroFunc = CoroFunc | Callable
+MaybeCoroFunc = Callable[P, T | Awaitable[T]]
 
 
 def copy_doc(original: Callable) -> Callable[[T], T]:
