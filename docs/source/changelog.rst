@@ -5,6 +5,27 @@ Changelog
   :depth: 2
   :local:
 
+v2.1.3
+------
+
+Bug Fixes
+^^^^^^^^^
+
+* Remove unnecessary ``wheel`` build dependency
+
+* Add missing ``py.typed`` marker to comply with `PEP 561`_
+  distribution of type information
+
+Documentation
+^^^^^^^^^^^^^
+
+* Fix typo in :py:class:`berconpy.Ban` docstring
+
+* Explicitly document coroutine listener support in
+  :py:class:`~berconpy.AsyncEventDispatcher`
+
+.. _PEP 561: https://peps.python.org/pep-0561/
+
 v2.1.1
 ------
 
