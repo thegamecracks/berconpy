@@ -94,6 +94,8 @@ class AsyncEventDispatcher(EventDispatcher):
         except asyncio.TimeoutError:
             fut.cancel()
             raise
+        finally:
+            self._remove_temporary_listener(event, fut, check)
 
     def _add_temporary_listener(
         self,
@@ -126,20 +128,16 @@ class AsyncEventDispatcher(EventDispatcher):
         *args,
     ):
         if fut.done():
-            return self._remove_temporary_listener(event, fut, pred)
+            return
 
         try:
             result = await maybe_coro(pred, *args)
         except Exception as e:
             if not fut.done():
                 fut.set_exception(e)
-            self._remove_temporary_listener(event, fut, pred)
         else:
-            if not result or fut.done():
-                return
-
-            fut.set_result(args)
-            self._remove_temporary_listener(event, fut, pred)
+            if result and not fut.done():
+                fut.set_result(args)
 
     # Specific events to provide type inference
 
