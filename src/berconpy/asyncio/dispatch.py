@@ -40,9 +40,9 @@ class AsyncEventDispatcher(EventDispatcher):
         for func in self._event_listeners[event]:
             asyncio.create_task(maybe_coro(func, *args), name=f"berconpy-{event}")
 
-        for fut, pred in self._temporary_listeners[event]:
+        for fut, check in self._temporary_listeners[event]:
             asyncio.create_task(
-                self._try_dispatch_temporary(event, fut, pred, *args),
+                self._try_dispatch_temporary(event, fut, check, *args),
                 name=f"berconpy-temp-{event}",
             )
 
@@ -100,20 +100,20 @@ class AsyncEventDispatcher(EventDispatcher):
     def _add_temporary_listener(
         self,
         event: str,
-        predicate: MaybeCoroFunc[..., Any],
+        check: MaybeCoroFunc[..., Any],
     ) -> asyncio.Future:
         fut = asyncio.get_running_loop().create_future()
-        self._temporary_listeners[event].append((fut, predicate))
+        self._temporary_listeners[event].append((fut, check))
         return fut
 
     def _remove_temporary_listener(
         self,
         event: str,
         fut: asyncio.Future,
-        pred: MaybeCoroFunc[..., Any],
+        check: MaybeCoroFunc[..., Any],
     ) -> None:
         listeners = self._temporary_listeners[event]
-        e = (fut, pred)
+        e = (fut, check)
 
         try:
             listeners.remove(e)
@@ -124,19 +124,19 @@ class AsyncEventDispatcher(EventDispatcher):
         self,
         event: str,
         fut: asyncio.Future,
-        pred: MaybeCoroFunc[..., Any],
+        check: MaybeCoroFunc[..., Any],
         *args,
     ):
         if fut.done():
             return
 
         try:
-            result = await maybe_coro(pred, *args)
+            check_accepted = await maybe_coro(check, *args)
         except Exception as e:
             if not fut.done():
                 fut.set_exception(e)
         else:
-            if result and not fut.done():
+            if check_accepted and not fut.done():
                 fut.set_result(args)
 
     # Specific events to provide type inference
