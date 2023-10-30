@@ -5,6 +5,15 @@ Changelog
   :depth: 2
   :local:
 
+v2.1.4
+------
+
+Bug Fixes
+^^^^^^^^^
+
+* Fix potential :py:exc:`~berconpy.InvalidStateError` while sending a command
+  if :py:class:`~berconpy.AsyncRCONClient` disconnects before a response is received
+
 v2.1.3
 ------
 
