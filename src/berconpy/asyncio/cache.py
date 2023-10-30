@@ -76,6 +76,10 @@ class AsyncRCONClientCache(RCONClientCache):
         else:
             self.admin_id = admin_id
 
+            if len(self._players) > 0:
+                # The user had already fetched players before us
+                return
+
             try:
                 await self.client.fetch_players()
             except RCONCommandError:
