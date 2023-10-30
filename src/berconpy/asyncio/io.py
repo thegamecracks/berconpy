@@ -16,6 +16,7 @@ from ..protocol import (
     ClientCommandEvent,
     RCONClientProtocol,
     ClientMessageEvent,
+    ClientState,
 )
 
 log = logging.getLogger(__name__)
@@ -136,16 +137,23 @@ class AsyncCommander:
 
         self.command_attempts = command_attempts
         self.command_interval = command_interval
-        self.reset()
+
+        self._command_futures = {}
 
     def cancel_command(self, sequence: int) -> None:
         """Cancels a command in the protocol along with its associated future.
+
+        If the protocol is not logged in, usually due to a timeout
+        or the client closing, this is a no-op. Cancellation should
+        instead be handled by calling :py:meth:`reset()`.
 
         If the command sequence was not queued before, this is a no-op.
 
         """
         if self.proto_layer is None:
             raise RuntimeError("proto_layer must be assigned")
+        if self.proto_layer.state != ClientState.LOGGED_IN:
+            return
 
         self.proto_layer.invalidate_command(sequence)
         fut = self._command_futures.pop(sequence, None)
@@ -153,7 +161,9 @@ class AsyncCommander:
             fut.cancel()
 
     def reset(self) -> None:
-        self._command_futures = {}
+        for fut in self._command_futures.values():
+            fut.cancel()
+        self._command_futures.clear()
 
     def set_command(self, sequence: int, message: str) -> None:
         """Notifies the future waiting on a command response packet.
