@@ -158,6 +158,9 @@ def _get_pattern_kwargs(m: re.Match) -> dict:
 
 def is_expected_message(message: str) -> bool:
     """Determines if a server message is expected."""
+    if message.startswith("Config entry:"):
+        return True
+
     return message in (
         "Ban check timed out, no response from BE Master",
         "Connected to BE Master",
