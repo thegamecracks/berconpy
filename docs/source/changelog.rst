@@ -11,8 +11,14 @@ v2.1.4
 Bug Fixes
 ^^^^^^^^^
 
+* Fix possible (but minor) memory leak when using
+  :py:meth:`AsyncRCONClient.wait_for() <berconpy.AsyncRCONClient.wait_for>`
+  to wait on a non-predefined event
 * Fix potential :py:exc:`~berconpy.InvalidStateError` while sending a command
   if :py:class:`~berconpy.AsyncRCONClient` disconnects before a response is received
+* Fix players potentially being fetched more than once during login
+  if cache is already populated
+* Fix ``Config entry:`` server messages causing superfluous errors
 
 v2.1.3
 ------
