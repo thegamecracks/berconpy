@@ -11,17 +11,10 @@ PASSWORD = "ASCII_PASSWORD"
 client = rcon.AsyncRCONClient()
 
 
-@client.dispatch.on_message
-async def on_message(message: str):
-    match = re.match(
-        r"Player #(\d+) (\w+(?: \(\d+\))?) \(\d+\.\d+\.\d+\.\d+:\d+\) connected",
-        message,
-    )
-    if match:
-        player_id = match.group(1)
-        player_name = match.group(2)
-        if player_name == "Survivor" or re.match(r"^Survivor \(\d+\)$", player_name):
-            await client.kick(int(player_id), "Name 'Survivor' not allowed")
+@client.dispatch.on_player_connect
+async def on_player_connect(player: rcon.Player):
+    if player.name == "Survivor" or re.match(r"^Survivor \(\d+\)$", player.name):
+        await player.kick("Name 'Survivor' not allowed")
 
 
 async def main():
