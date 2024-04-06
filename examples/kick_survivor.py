@@ -1,4 +1,4 @@
-"""Connects to an RCON server and kicks players with "Survivor" as their name."""
+"""Kicks players that join with the "Survivor" name."""
 import asyncio
 import math
 import re

@@ -1,4 +1,4 @@
-"""Connects to an RCON server and sends a single command to it."""
+"""Sends a command to an RCON server."""
 import asyncio
 import logging
 

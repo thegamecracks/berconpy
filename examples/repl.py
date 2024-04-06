@@ -1,4 +1,4 @@
-"""Connects to an RCON server and allows typing in any command."""
+"""Provides an interactive prompt for sending commands."""
 import asyncio
 import logging
 

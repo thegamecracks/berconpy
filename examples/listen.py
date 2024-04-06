@@ -1,4 +1,4 @@
-"""Connects to an RCON server and listens for messages indefinitely."""
+"""Listens to an RCON server for messages."""
 import asyncio
 import logging
 import math
