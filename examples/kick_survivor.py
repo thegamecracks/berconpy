@@ -13,7 +13,7 @@ client = rcon.AsyncRCONClient()
 
 @client.dispatch.on_player_connect
 async def on_player_connect(player: rcon.Player):
-    if player.name == "Survivor" or re.match(r"^Survivor \(\d+\)$", player.name):
+    if re.match(r"Survivor(?: \(\d+\))?", player.name) is not None:
         await player.kick("Name 'Survivor' not allowed")
 
 
