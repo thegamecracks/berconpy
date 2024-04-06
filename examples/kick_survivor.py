@@ -1,6 +1,7 @@
 """Connects to an RCON server and kicks players with "Survivor" as their name."""
-import re, math
 import asyncio
+import math
+import re
 
 import berconpy as rcon
 
