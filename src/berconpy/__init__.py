@@ -33,4 +33,11 @@ from .protocol import (
     ServerState,
 )
 
-__version__ = "2.1.4"
+
+def _get_version() -> str:
+    from importlib.metadata import version
+
+    return version("berconpy")
+
+
+__version__ = _get_version()

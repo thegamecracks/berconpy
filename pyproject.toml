@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0.0"]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -21,8 +21,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 
-[tool.setuptools.dynamic]
-version = {attr = "berconpy.__version__"}
+[tool.setuptools_scm]
 
 [project.optional-dependencies]
 docs = ["sphinx>=5.1.1", "sphinx-autodoc-typehints>=1.19.2"]
