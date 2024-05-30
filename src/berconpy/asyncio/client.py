@@ -3,13 +3,14 @@ import contextlib
 import logging
 from typing import Any, Awaitable
 
+from berconpy.client import RCONClient
+from berconpy.utils import MaybeCoroFunc
+
 from .ban import Ban
 from .cache import AsyncRCONClientCache
 from .dispatch import AsyncEventDispatcher
 from .io import AsyncClientProtocol, AsyncClientConnector
 from .player import Player
-from ..client import RCONClient
-from ..utils import MaybeCoroFunc
 
 log = logging.getLogger(__name__)
 

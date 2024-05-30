@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar
 
-from ..errors import RCONError
+from berconpy.errors import RCONError
 
 T = TypeVar("T")
 

@@ -2,8 +2,9 @@ from typing import TypedDict
 
 import pytest
 
+from tests.models import Player, sample_players
+
 from . import RCONClient, client
-from ..models import Player, sample_players
 
 
 def test_update_players(client: RCONClient):

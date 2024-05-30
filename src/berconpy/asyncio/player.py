@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from ..player import Player as BasePlayer
+from berconpy.player import Player as BasePlayer
 
 if TYPE_CHECKING:
     from .cache import AsyncRCONClientCache

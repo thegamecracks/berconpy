@@ -2,15 +2,16 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING
 
-from .player import Player
-from ..cache import RCONClientCache
-from ..errors import RCONCommandError
-from ..parser import (
+from berconpy.cache import RCONClientCache
+from berconpy.errors import RCONCommandError
+from berconpy.parser import (
     ParsedPlayer,
     PlayerConnect,
     PlayerGUID,
     PlayerVerifyGUID,
 )
+
+from .player import Player
 
 if TYPE_CHECKING:
     from .client import AsyncRCONClient

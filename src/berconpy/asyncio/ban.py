@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
-from ..ban import Ban as BaseBan
-from .. import utils
+from berconpy import utils
+from berconpy.ban import Ban as BaseBan
 
 if TYPE_CHECKING:
     from .cache import AsyncRCONClientCache

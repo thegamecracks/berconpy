@@ -5,8 +5,8 @@ import collections
 import logging
 from typing import TYPE_CHECKING, Any
 
-from ..dispatch import EventDispatcher, typed_event
-from ..utils import MaybeCoroFunc, copy_doc, maybe_coro
+from berconpy.dispatch import EventDispatcher, typed_event
+from berconpy.utils import MaybeCoroFunc, copy_doc, maybe_coro
 
 if TYPE_CHECKING:
     from .player import Player

@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from ..errors import LoginFailure, RCONCommandError
-from ..protocol import (
+from berconpy.errors import LoginFailure, RCONCommandError
+from berconpy.protocol import (
     ClientAuthEvent,
     ClientEvent,
     ClientCommandPacket,
