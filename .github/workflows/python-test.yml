@@ -10,18 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        cache: pip
-        cache-dependency-path: pyproject.toml
-        python-version-file: pyproject.toml
-    - name: Install pyright
-      run: pip install pyright
-    - name: Install berconpy
-      run: pip install .[docs,tests,types]
-    - name: Run pyright
-      run: pyright
-    - name: Run tests
-      run: pytest
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          cache: pip
+          cache-dependency-path: pyproject.toml
+          python-version-file: pyproject.toml
+      - name: Install pyright
+        run: pip install pyright
+      - name: Install berconpy
+        run: pip install .[docs,tests,types]
+      - name: Run pyright
+        run: pyright
+      - name: Run tests
+        run: pytest
