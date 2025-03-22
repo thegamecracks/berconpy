@@ -2,12 +2,19 @@
 Provides utility functions for parsing messages sent by
 the BattlEye server into objects and events.
 """
-from dataclasses import dataclass
+from __future__ import annotations
+
 import re
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar, Iterator, TypedDict
+
+from berconpy import utils
 
 if TYPE_CHECKING:
     from typing_extensions import Self
+
+    from .cache import ArmaCache
+    from .dispatch import ArmaDispatcher
 
 # Command responses
 _ADMINS_ROW = re.compile(r"(?P<id>\d+) +(?P<addr>.*?:\d+)")
@@ -206,3 +213,50 @@ def parse_players(response: str) -> Iterator[ParsedPlayer]:
         player["is_guid_valid"] = player.pop("guid_status") == "OK"
         player["in_lobby"] = in_lobby
         yield player  # type: ignore
+
+
+def parse_message(cache: ArmaCache, dispatch: ArmaDispatcher, message: str) -> None:
+    if m := AdminConnect.try_from_message(message):
+        dispatch.on_admin_login.fire(m.id, m.addr)
+
+    elif m := PlayerConnect.try_from_message(message):
+        p = cache.add_connected_player(m)
+        dispatch.on_player_connect.fire(p)
+
+    elif m := PlayerGUID.try_from_message(message):
+        # NOTE: it might be possible to receive these events before
+        # on_player_connect, in which case we cannot get a Player
+        # object to dispatch
+        if p := cache.set_player_guid(m):
+            dispatch.on_player_guid.fire(p)
+
+    elif m := PlayerVerifyGUID.try_from_message(message):
+        if p := cache.verify_player_guid(m):
+            dispatch.on_player_verify_guid.fire(p)
+
+    elif m := PlayerDisconnect.try_from_message(message):
+        if p := cache.remove_player(m.id):
+            dispatch.on_player_disconnect.fire(p)
+
+    elif m := PlayerKick.try_from_message(message):
+        if p := cache.remove_player(m.id):
+            dispatch.on_player_kick.fire(p, m.reason)
+
+    elif m := RCONMessage.try_from_message(message):
+        dispatch.on_admin_message.fire(m.id, m.channel, m.message)
+
+        if m.channel == "Global":
+            dispatch.on_admin_announcement.fire(m.id, m.message)
+        elif m.channel.startswith("To "):
+            name = m.channel.removeprefix("To ")
+            p = utils.get(cache.players, name=name)
+            if p is not None:
+                dispatch.on_admin_whisper.fire(p, m.id, m.message)
+
+    elif m := PlayerMessage.try_from_message(message):
+        p = utils.get(cache.players, name=m.name)
+        if p is not None:
+            dispatch.on_player_message.fire(p, m.channel, m.message)
+
+    elif not is_expected_message(message):
+        raise ValueError(f"unexpected server message: {message}")

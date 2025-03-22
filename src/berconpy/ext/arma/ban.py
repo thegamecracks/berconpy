@@ -1,13 +1,14 @@
-from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Awaitable
 import weakref
+from typing import TYPE_CHECKING
+
+from berconpy import utils
 
 if TYPE_CHECKING:
-    from .cache import RCONClientCache
-    from .client import RCONClient
+    from .cache import ArmaCache
+    from .client import ArmaClient
 
 
-class Ban(ABC):
+class Ban:
     """Represents a GUID/IP ban on the server."""
 
     __slots__ = (
@@ -46,7 +47,7 @@ class Ban(ABC):
 
     def __init__(
         self,
-        cache: "RCONClientCache",
+        cache: "ArmaCache",
         index: int,
         id: str,
         duration: int | None,
@@ -67,19 +68,22 @@ class Ban(ABC):
         )
 
     @property
-    def cache(self) -> "RCONClientCache":
-        """The cache that created this object."""
-        return self._cache
+    def cache(self) -> "ArmaCache":
+        return super().cache  # type: ignore
 
     @property
-    def client(self) -> "RCONClient | None":
-        """Returns the client associated with the cache."""
+    def client(self) -> "ArmaClient | None":
         return self.cache.client
 
-    @abstractmethod
-    def unban(self) -> str | Awaitable[str]:
-        """Removes this ban from the server.
+    async def unban(self) -> str:
+        assert self.client is not None
 
-        :returns: The response from the server, if any.
+        # Since ban indices are non-unique, we need to match the identifier
+        # and remove the corresponding index (possible race condition)
+        bans = await self.client.fetch_bans()
 
-        """
+        b = utils.get(bans, id=self.id)
+        if b is None:
+            return ""
+
+        return await self.client.unban(b.index)

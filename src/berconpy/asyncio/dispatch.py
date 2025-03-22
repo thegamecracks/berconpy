@@ -3,13 +3,10 @@ from __future__ import annotations
 import asyncio
 import collections
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from berconpy.dispatch import EventDispatcher, typed_event
-from berconpy.utils import MaybeCoroFunc, copy_doc, maybe_coro
-
-if TYPE_CHECKING:
-    from .player import Player
+from berconpy.dispatch import EventDispatcher
+from berconpy.utils import MaybeCoroFunc, maybe_coro
 
 log = logging.getLogger(__name__)
 
@@ -138,47 +135,3 @@ class AsyncEventDispatcher(EventDispatcher):
         else:
             if check_accepted and not fut.done():
                 fut.set_result(args)
-
-    # Specific events to provide type inference
-
-    @typed_event
-    @staticmethod
-    @copy_doc(EventDispatcher.on_player_connect)
-    def on_player_connect(player: Player, /) -> Any:
-        ...
-
-    @typed_event
-    @staticmethod
-    @copy_doc(EventDispatcher.on_player_guid)
-    def on_player_guid(player: Player, /) -> Any:
-        ...
-
-    @typed_event
-    @staticmethod
-    @copy_doc(EventDispatcher.on_player_verify_guid)
-    def on_player_verify_guid(player: Player, /) -> Any:
-        ...
-
-    @typed_event
-    @staticmethod
-    @copy_doc(EventDispatcher.on_player_disconnect)
-    def on_player_disconnect(player: Player, /) -> Any:
-        ...
-
-    @typed_event
-    @staticmethod
-    @copy_doc(EventDispatcher.on_player_kick)
-    def on_player_kick(player: Player, reason: str, /) -> Any:
-        ...
-
-    @typed_event
-    @staticmethod
-    @copy_doc(EventDispatcher.on_admin_whisper)
-    def on_admin_whisper(player: Player, admin_id: int, message: str, /) -> Any:
-        ...
-
-    @typed_event
-    @staticmethod
-    @copy_doc(EventDispatcher.on_player_message)
-    def on_player_message(player: Player, channel: str, message: str, /) -> Any:
-        ...

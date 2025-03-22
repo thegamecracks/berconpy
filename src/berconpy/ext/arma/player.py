@@ -1,13 +1,12 @@
-from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Awaitable
+from typing import TYPE_CHECKING
 import weakref
 
 if TYPE_CHECKING:
-    from .cache import RCONClientCache
-    from .client import RCONClient
+    from .cache import ArmaCache
+    from .client import ArmaClient
 
 
-class Player(ABC):
+class Player:
     """Represents a player in the server."""
 
     __slots__ = (
@@ -58,7 +57,7 @@ class Player(ABC):
 
     def __init__(
         self,
-        cache: "RCONClientCache",
+        cache: "ArmaCache",
         id: int,
         name: str,
         guid: str,
@@ -110,22 +109,17 @@ class Player(ABC):
         return self.addr.split(":")[0]
 
     @property
-    def cache(self) -> "RCONClientCache":
+    def cache(self) -> "ArmaCache":
         """The cache that created this object."""
         return self._cache
 
     @property
-    def client(self) -> "RCONClient | None":
+    def client(self) -> "ArmaClient | None":
         """Returns the client associated with the cache."""
         return self.cache.client
 
-    @abstractmethod
-    def ban_guid(
-        self,
-        duration: int | None = None,
-        reason: str = "",
-    ) -> str | Awaitable[str]:
-        """Bans this player from the server using their GUID.
+    async def ban_guid(self, duration: int | None = None, reason: str = "") -> str:
+        """Bans the player from the server using their GUID.
 
         :param duration:
             How long the player should be banned.
@@ -135,15 +129,12 @@ class Player(ABC):
         :returns: The response from the server, if any.
 
         """
+        assert self.client is not None
         # NOTE: ban #ID does the same as adding the player's GUID
+        return await self.client.ban(self.guid, duration, reason)
 
-    @abstractmethod
-    def ban_ip(
-        self,
-        duration: int | None = None,
-        reason: str = "",
-    ) -> str | Awaitable[str]:
-        """Bans this player from the server using their IP.
+    async def ban_ip(self, duration: int | None = None, reason: str = "") -> str:
+        """Bans the player from the server using their IP.
 
         :param duration:
             How long the player should be banned.
@@ -153,25 +144,31 @@ class Player(ABC):
         :returns: The response from the server, if any.
 
         """
+        assert self.client is not None
+        ip = self.addr.split(":")[0]
+        return await self.client.ban(ip, duration, reason)
 
-    @abstractmethod
     def is_connected(self) -> bool:
-        """Checks if this player is still in the client's cache."""
+        """Checks if the player is still in the client's cache."""
+        assert self.client is not None
+        return self.id in self.client.cache._players
 
-    @abstractmethod
-    def kick(self, reason: str = "") -> str | Awaitable[str]:
-        """Kicks this player from the server.
+    async def kick(self, reason: str = "") -> str:
+        """Kicks the player from the server.
 
         :param reason: The reason to display when kicking the player.
         :returns: The response from the server, if any.
 
         """
+        assert self.client is not None
+        return await self.client.kick(self.id, reason)
 
-    @abstractmethod
-    def send(self, message: str) -> str | Awaitable[str]:
-        """Sends a message to this player.
+    async def send(self, message: str) -> str:
+        """Sends a message to the player.
 
         :param message: The string to use as the message.
         :returns: The response from the server, if any.
 
         """
+        assert self.client is not None
+        return await self.client.whisper(self.id, message)

@@ -1,16 +1,14 @@
 import asyncio
 import contextlib
 import logging
-from typing import Any, Awaitable
+from typing import Any, Callable, TypeVar
 
-from berconpy.client import RCONClient
 from berconpy.utils import MaybeCoroFunc
 
-from .ban import Ban
-from .cache import AsyncRCONClientCache
 from .dispatch import AsyncEventDispatcher
 from .io import AsyncClientProtocol, AsyncClientConnector
-from .player import Player
+
+T = TypeVar("T")
 
 log = logging.getLogger(__name__)
 
@@ -34,20 +32,16 @@ def _add_cancel_callback(
     fut.add_done_callback(_actual_canceller)
 
 
-class AsyncRCONClient(RCONClient):
+class AsyncRCONClient:
     """An implementation of the RCON client protocol using asyncio."""
 
     def __init__(
         self,
         *,
-        cache: AsyncRCONClientCache | None = None,
         dispatch: AsyncEventDispatcher | None = None,
         protocol: AsyncClientProtocol | None = None,
     ):
         """
-        :param cache:
-            The cache to use for the client.
-            Defaults to an instance of :py:class:`AsyncRCONClientCache`.
         :param dispatch:
             The dispatcher object to use for transmitting events.
             Defaults to an instance of :py:class:`AsyncEventDispatcher`.
@@ -55,15 +49,12 @@ class AsyncRCONClient(RCONClient):
             The protocol to use for handling connections.
             Defaults to an instance of :py:class:`AsyncClientConnector`.
         """
-        if cache is None:
-            cache = AsyncRCONClientCache()
         if dispatch is None:
             dispatch = AsyncEventDispatcher()
         if protocol is None:
             protocol = AsyncClientConnector()
 
-        super().__init__(cache=cache, dispatch=dispatch)
-
+        self.dispatch = dispatch
         self.protocol = protocol
         self.protocol.client = self
 
@@ -149,82 +140,67 @@ class AsyncRCONClient(RCONClient):
         self.protocol.close()
 
     # Commands
-    # (documentation: https://www.battleye.com/support/documentation/)
 
     async def send_command(self, command: str) -> str:
+        """Sends a command to the server and waits for a response.
+
+        :param command: The command to send.
+        :returns: The server's response as a string.
+        :raises RCONCommandError:
+            The server has either disabled this command or failed to
+            respond to our command.
+        :raises RuntimeError:
+            The client is either not connected or the server
+            could/would not respond to the command.
+
+        """
         if not self.protocol.is_running():
             raise RuntimeError("cannot send command when not connected")
-
-        response = await self.protocol.send_command(command)
-        self.check_disallowed_command(response)
-
-        return response
-
-    async def fetch_admins(self) -> list[tuple[int, str]]:
-        response = await self.send_command("admins")
-        return self.parse_admins(response)
-
-    async def fetch_bans(self) -> list[Ban]:
-        response = await self.send_command("bans")
-        return self.parse_bans(response, cls=Ban)
-
-    async def fetch_missions(self) -> list[str]:
-        response = await self.send_command("missions")
-        return self.parse_missions(response)
-
-    async def fetch_players(self) -> list[Player]:
-        response = await self.send_command("players")
-        self.cache.update_players(response)
-        return self.players
-
-    def ban(
-        self,
-        addr: int | str,
-        duration: int | None = None,
-        reason: str = "",
-    ) -> Awaitable[str]:
-        return super().ban(addr, duration, reason)  # type: ignore
-
-    def kick(self, player_id: int, reason: str = "") -> Awaitable[str]:
-        return super().kick(player_id, reason)  # type: ignore
-
-    def send(self, message: str) -> Awaitable[str]:
-        return super().send(message)  # type: ignore
-
-    def unban(self, ban_id: int) -> Awaitable[str]:
-        return super().unban(ban_id)  # type: ignore
-
-    def whisper(self, player_id: int, message: str) -> Awaitable[str]:
-        return super().whisper(player_id, message)  # type: ignore
-
-    # Cache
-
-    @property
-    def cache(self) -> AsyncRCONClientCache:
-        return super().cache  # type: ignore
-
-    @cache.setter
-    def cache(self, new_cache: AsyncRCONClientCache) -> None:
-        # super().cache doesn't work so we're invoking the descriptor directly
-        super(AsyncRCONClient, type(self)).cache.__set__(self, new_cache)  # type: ignore
-
-    def get_player(self, player_id: int) -> "Player | None":
-        return super().get_player(player_id)  # type: ignore
-
-    @property
-    def players(self) -> list[Player]:
-        return super().players  # type: ignore
+        return await self.protocol.send_command(command)
 
     # Event dispatcher
 
-    @property
-    def dispatch(self) -> AsyncEventDispatcher:
-        return super().dispatch  # type: ignore
+    def add_listener(self, event: str, func: Callable) -> None:
+        """A shorthand for the :py:meth:`EventDispatcher.add_listener()` method.
 
-    @dispatch.setter
-    def dispatch(self, new_dispatch: AsyncEventDispatcher) -> None:
-        # super().dispatch doesn't work so we're invoking the descriptor directly
-        super(AsyncRCONClient, type(self)).dispatch.__set__(self, new_dispatch)  # type: ignore
+        See the :py:class:`EventDispatcher` for a list of supported events.
+
+        :param event:
+            The event to listen for.
+        :param func:
+            The function to dispatch when the event is received.
+
+        """
+        return self.dispatch.add_listener(event, func)
+
+    def remove_listener(self, event: str, func: Callable) -> None:
+        """A shorthand for the :py:meth:`EventDispatcher.remove_listener()` method.
+
+        This method should be a no-op if the given event and function
+        does not match any registered listener.
+
+        :param event: The event used by the listener.
+        :param func: The function used by the listener.
+
+        """
+        return self.dispatch.remove_listener(event, func)
+
+    def listen(self, event: str | None = None) -> Callable[[T], T]:
+        """A shorthand for the :py:meth:`EventDispatcher.listen()` decorator.
+
+        Example usage::
+
+            >>> client = AsyncRCONClient()
+            >>> @client.listen()
+            ... async def on_login():
+            ...     print("We have logged in!")
+
+        :param event:
+            The event to listen for. If ``None``, the function name
+            is used as the event name.
+
+        """
+        return self.dispatch.listen(event)
 
     async def wait_for(
         self,

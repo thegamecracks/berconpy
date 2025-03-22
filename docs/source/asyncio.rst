@@ -9,7 +9,7 @@ Client Interface
    :nosignatures:
 
    berconpy.AsyncRCONClient
-   berconpy.AsyncRCONClientCache
+   berconpy.ArmaCache
    berconpy.AsyncEventDispatcher
 
 Client Connector
