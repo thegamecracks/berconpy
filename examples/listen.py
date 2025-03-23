@@ -30,12 +30,7 @@ async def on_message(message: str):
 
 @client.dispatch.on_command
 async def server_response_to_command(response: str):
-    # In most cases, this event is not needed as await client.send_command()
-    # will return the server's response corresponding to that command.
-    if not response:
-        return print("on_command: <empty>")
-
-    print("on_command:", response)
+    print("on_command:", response or "<empty>")
 
 
 async def main():
