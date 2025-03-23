@@ -37,63 +37,6 @@ class EventDispatcher:
 
     """
 
-    def listen(self, event: str | None = None) -> Callable[[T], T]:
-        """A decorator shorthand to add a listener for a given event,
-        e.g. ``"on_login"``.
-
-        :param event:
-            The event to listen for. If ``None``, the function name
-            is used as the event name.
-
-        """
-
-        def decorator(func):
-            self.add_listener(event or func.__name__, func)
-            return func
-
-        return decorator
-
-    # Specific events to provide type inference
-
-    @typed_event
-    @staticmethod
-    def on_raw_event(packet: ServerPacket, /) -> Any:
-        """Fired for every parsable packet received by the server.
-
-        :param packet: The packet that was received.
-
-        """
-
-    @typed_event
-    @staticmethod
-    def on_login() -> Any:
-        """Fired after a successful login to the server."""
-
-    @typed_event
-    @staticmethod
-    def on_command(response: str, /) -> Any:
-        """Fired after receiving any command response from the server.
-
-        This should only be used for debugging purposes as the
-        :py:meth:`~berconpy.client.RCONClient.send_command()` method already
-        returns the server's response.
-
-        :param response: The response received by the server.
-
-        """
-
-    @typed_event
-    @staticmethod
-    def on_message(message: str, /) -> Any:
-        """Fired for messages sent by the server, e.g. player connections.
-
-        More specific events such as :py:func:`on_admin_login`
-        are dispatched from this event.
-
-        :param response: The message that was sent by the server.
-
-        """
-
     _event_listeners: dict[str, list[MaybeCoroFunc[..., Any]]]
     _temporary_listeners: dict[
         str, list[tuple[asyncio.Future, MaybeCoroFunc[..., Any]]]
@@ -131,6 +74,22 @@ class EventDispatcher:
 
         """
         self._event_listeners[event].append(func)
+
+    def listen(self, event: str | None = None) -> Callable[[T], T]:
+        """A decorator shorthand to add a listener for a given event,
+        e.g. ``"on_login"``.
+
+        :param event:
+            The event to listen for. If ``None``, the function name
+            is used as the event name.
+
+        """
+
+        def decorator(func):
+            self.add_listener(event or func.__name__, func)
+            return func
+
+        return decorator
 
     def remove_listener(self, event: str, func: MaybeCoroFunc[..., Any]):
         """Removes a listener from a given event, e.g. ``"on_login"``.
@@ -230,3 +189,44 @@ class EventDispatcher:
         else:
             if check_accepted and not fut.done():
                 fut.set_result(args)
+
+    # Specific events to provide type inference
+
+    @typed_event
+    @staticmethod
+    def on_raw_event(packet: ServerPacket, /) -> Any:
+        """Fired for every parsable packet received by the server.
+
+        :param packet: The packet that was received.
+
+        """
+
+    @typed_event
+    @staticmethod
+    def on_login() -> Any:
+        """Fired after a successful login to the server."""
+
+    @typed_event
+    @staticmethod
+    def on_command(response: str, /) -> Any:
+        """Fired after receiving any command response from the server.
+
+        This should only be used for debugging purposes as the
+        :py:meth:`~berconpy.client.RCONClient.send_command()` method already
+        returns the server's response.
+
+        :param response: The response received by the server.
+
+        """
+
+    @typed_event
+    @staticmethod
+    def on_message(message: str, /) -> Any:
+        """Fired for messages sent by the server, e.g. player connections.
+
+        More specific events such as :py:func:`on_admin_login`
+        are dispatched from this event.
+
+        :param response: The message that was sent by the server.
+
+        """
