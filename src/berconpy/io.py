@@ -234,15 +234,6 @@ class ConnectorConfig:
 
     For optimal stability, this interval should be below 45 seconds.
     """
-    players_interval: float = 60.0
-    """
-    The amount of time in seconds from the last keep alive command
-    before it should be replaced with a "players" RCON command to
-    update the client's cache.
-
-    When set to a value less than :py:attr:`keep_alive_interval`,
-    keep alive will always be used to update the cache.
-    """
 
     initial_connect_attempts: int = 3
     """
@@ -265,7 +256,6 @@ class AsyncClientConnector(AsyncClientProtocol):
     _last_command: float
     _last_received: float
     _last_sent: float  # NOTE: unused
-    _last_players: float
 
     _is_logged_in: asyncio.Future[bool] | None
     _task: asyncio.Task | None
@@ -532,15 +522,7 @@ class AsyncClientConnector(AsyncClientProtocol):
 
     async def _send_keep_alive(self) -> None:
         assert self.client is not None
-
-        if time.monotonic() - self._last_players > self.config.players_interval:
-            # Instead of an empty message, ask for players so we can
-            # periodically update the client's cache
-            self._last_players = time.monotonic()
-            response = await self.send_command("players")
-            self.client.cache.update_players(response)
-        else:
-            await self.send_command("")
+        await self.send_command("")
 
     # RCONClientProtocol handling
 

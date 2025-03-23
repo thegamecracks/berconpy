@@ -1,15 +1,11 @@
 import logging
 
-from berconpy import (
-    AsyncClientConnector,
-    AsyncClientProtocol,
-    RCONClient,
-    RCONCommandError,
-)
+from berconpy import RCONClient, RCONCommandError
 
 from .ban import Ban
 from .cache import ArmaCache
 from .dispatch import ArmaDispatcher
+from .io import ArmaConnector
 from .parser import parse_admins, parse_bans, parse_message
 from .player import Player
 
@@ -24,7 +20,7 @@ class ArmaClient(RCONClient):
         *,
         cache: ArmaCache | None = None,
         dispatch: ArmaDispatcher | None = None,
-        protocol: AsyncClientProtocol | None = None,
+        protocol: ArmaConnector | None = None,
     ):
         """
         :param cache:
@@ -42,7 +38,7 @@ class ArmaClient(RCONClient):
         if dispatch is None:
             dispatch = ArmaDispatcher()
         if protocol is None:
-            protocol = AsyncClientConnector()
+            protocol = ArmaConnector()
 
         super().__init__(dispatch=dispatch, protocol=protocol)
 
