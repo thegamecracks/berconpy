@@ -14,10 +14,10 @@ from .parser import (
     PlayerVerifyGUID,
     parse_players,
 )
+from .player import Player
 
 if TYPE_CHECKING:
     from .client import ArmaClient
-    from .player import Player
 
 log = logging.getLogger(__name__)
 
