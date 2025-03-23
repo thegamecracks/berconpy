@@ -10,7 +10,7 @@ An asynchronous Python wrapper over the
 
 - Easy to use event-based interface
 - Automatic network loss recovery
-- Included extension for using Arma-related commands
+- Included extension for Arma 3 commands and events
 
 ## Basic Usage
 
@@ -18,7 +18,7 @@ An asynchronous Python wrapper over the
 import asyncio
 import berconpy
 
-client = berconpy.AsyncRCONClient()
+client = berconpy.RCONClient()
 
 IP = "XXX.XXX.XXX.XXX"
 PORT = 9999
