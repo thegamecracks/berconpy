@@ -6,9 +6,9 @@ Welcome to berconpy's documentation!
 .. code:: python
 
    import asyncio
-   from berconpy import AsyncRCONClient
+   from berconpy import RCONClient
 
-   client = AsyncRCONClient()
+   client = RCONClient()
 
    async def main():
        async with client.connect("ip", 9999, "password"):

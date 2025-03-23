@@ -91,7 +91,7 @@ class RCONClient:
 
         Example usage::
 
-            client = berconpy.AsyncRCONClient()
+            client = berconpy.ArmaClient()
             async with client.connect(ip, port, password):
                 print("Connected!")
             print("Disconnected!")
@@ -190,7 +190,7 @@ class RCONClient:
 
         Example usage::
 
-            >>> client = AsyncRCONClient()
+            >>> client = ArmaClient()
             >>> @client.listen()
             ... async def on_login():
             ...     print("We have logged in!")

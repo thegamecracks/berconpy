@@ -15,7 +15,7 @@ handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
 log.addHandler(handler)
 
-client = rcon.AsyncRCONClient()
+client = rcon.ArmaClient()
 
 
 @client.dispatch.on_login
@@ -39,7 +39,7 @@ async def server_response_to_command(response: str):
     print("on_command:", response)
 
 
-# Other events are documented in AsyncRCONClient
+# Other events are documented in ArmaClient
 
 
 async def main():

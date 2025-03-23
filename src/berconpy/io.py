@@ -33,7 +33,7 @@ def maybe_replace_future(fut: asyncio.Future | None) -> asyncio.Future:
 
 class AsyncClientProtocol(ABC):
     """
-    Provides a bridge between :py:class:`AsyncRCONClient` and the underlying
+    Provides a bridge between :py:class:`RCONClient` and the underlying
     I/O implementations.
     """
 

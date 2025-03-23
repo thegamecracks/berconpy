@@ -9,7 +9,7 @@ IP_ADDR = "XXX.XXX.XXX.XXX"
 PORT = 9999
 PASSWORD = "ASCII_PASSWORD"
 
-client = rcon.AsyncRCONClient()
+client = rcon.ArmaClient()
 
 
 @client.dispatch.on_player_connect

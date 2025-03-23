@@ -8,7 +8,7 @@ Client Interface
    :toctree: generated
    :nosignatures:
 
-   berconpy.AsyncRCONClient
+   berconpy.RCONClient
    berconpy.ArmaCache
    berconpy.AsyncEventDispatcher
 

@@ -40,7 +40,7 @@ it from GitHub directly:
 Basic Usage
 -----------
 
-The primary class berconpy offers is the :py:class:`~berconpy.AsyncRCONClient`,
+The primary class berconpy offers is the :py:class:`~berconpy.ArmaClient`,
 which provides an interface over the underlying protocol and allows you to
 register event listeners and send commands to the BattlEye RCON server.
 
@@ -58,7 +58,7 @@ Let's start with an example of how to send a command:
     PORT = 9999
     PASSWORD = "ASCII_PASSWORD"
 
-    client = rcon.AsyncRCONClient()
+    client = rcon.ArmaClient()
 
     async def main():
         async with client.connect(IP_ADDR, PORT, PASSWORD):
@@ -72,7 +72,7 @@ Let's start with an example of how to send a command:
     The RCON IP address, port, and password can be found in your server's
     ``BEServer.cfg`` / ``BEServer_x64.cfg``.
 
-1. ``client = rcon.AsyncRCONClient()`` creates the client instance.
+1. ``client = rcon.ArmaClient()`` creates the client instance.
    No arguments are necessary, but you can set up event listeners
    on the client before beginning any connection which will be
    demonstrated afterwards.
@@ -84,10 +84,10 @@ Let's start with an example of how to send a command:
 3. ``response = await client.send_command("players")`` requests the
    players currently connected to the server and returns a string.
 
-:py:meth:`~berconpy.AsyncRCONClient.send_command()` provides a low-level
+:py:meth:`~berconpy.ArmaClient.send_command()` provides a low-level
 method for sending commands. Certain commands are already available as methods,
-like :py:meth:`~berconpy.AsyncRCONClient.fetch_players()` and
-:py:meth:`~berconpy.AsyncRCONClient.whisper()`.
+like :py:meth:`~berconpy.ArmaClient.fetch_players()` and
+:py:meth:`~berconpy.ArmaClient.whisper()`.
 The `BattlEye documentation`_ describes server-side commands that can
 be sent with ``send_command()``.
 
@@ -107,7 +107,7 @@ in real-time. Below is an example of displaying in-game messages from players:
     PORT = 9999
     PASSWORD = "ASCII_PASSWORD"
 
-    client = rcon.AsyncRCONClient()
+    client = rcon.ArmaClient()
 
     @client.dispatch.on_player_message
     async def on_player_message(player: rcon.Player, channel: str, message: str):
@@ -122,7 +122,7 @@ in real-time. Below is an example of displaying in-game messages from players:
 The :py:meth:`@client.dispatch.on_player_message <berconpy.AsyncEventDispatcher.on_player_message>`
 decorator adds a function as a listener for that specific event when it is
 received from the server. All ``on_*`` methods provided by
-:py:attr:`@client.dispatch <berconpy.AsyncRCONClient.dispatch>` have function signatures
+:py:attr:`@client.dispatch <berconpy.ArmaClient.dispatch>` have function signatures
 that allow your type checker to ensure that your listener is correctly typed.
 For a full list of events, see the :py:class:`~berconpy.dispatch.EventDispatcher`.
 
@@ -131,7 +131,7 @@ You might have also noticed in the listener that it receives a
 The client instance manages a cache of players which makes it easier to
 perform operations on different players like whispering and kicking.
 A list of players can be retrieved through the
-:py:attr:`~berconpy.AsyncRCONClient.players` property.
+:py:attr:`~berconpy.ArmaClient.players` property.
 
 Configuring Logging
 -------------------
