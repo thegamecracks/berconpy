@@ -29,7 +29,15 @@ from .io import (
     AsyncCommander,
     ConnectorConfig,
 )
-from .ext.arma import ArmaCache, ArmaClient, ArmaDispatcher, Ban, Player
+from .ext.arma import (
+    ArmaCache,
+    ArmaClient,
+    ArmaConnector,
+    ArmaConnectorConfig,
+    ArmaDispatcher,
+    Ban,
+    Player,
+)
 
 
 def _get_version() -> str:
