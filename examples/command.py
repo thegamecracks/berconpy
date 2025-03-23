@@ -14,7 +14,7 @@ handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
 log.addHandler(handler)
 
-client = rcon.ArmaClient()
+client = rcon.RCONClient()
 
 
 async def main():
