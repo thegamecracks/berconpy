@@ -22,7 +22,7 @@ from berconpy.protocol import (
 log = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from .client import AsyncRCONClient
+    from .client import RCONClient
 
 
 def maybe_replace_future(fut: asyncio.Future | None) -> asyncio.Future:
@@ -39,14 +39,14 @@ class AsyncClientProtocol(ABC):
 
     LAST_RECEIVED_TIMEOUT = 45  # don't change, specified by protocol
 
-    _client: "AsyncRCONClient | None" = None
+    _client: "RCONClient | None" = None
 
     @property
-    def client(self) -> "AsyncRCONClient | None":
+    def client(self) -> "RCONClient | None":
         return self._client
 
     @client.setter
-    def client(self, new_client: "AsyncRCONClient | None") -> None:
+    def client(self, new_client: "RCONClient | None") -> None:
         if new_client is not None:
             new_client = weakref.proxy(new_client)
         self._client = new_client

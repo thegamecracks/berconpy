@@ -1,12 +1,11 @@
 from typing import Any
 
-from berconpy.dispatch import typed_event
-from berconpy.asyncio.dispatch import AsyncEventDispatcher
+from berconpy.dispatch import EventDispatcher, typed_event
 
 from .player import Player
 
 
-class ArmaDispatcher(AsyncEventDispatcher):
+class ArmaDispatcher(EventDispatcher):
     """An event dispatcher for :py:class:`ArmaClient`."""
 
     @typed_event

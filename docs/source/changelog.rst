@@ -5,6 +5,30 @@ Changelog
   :depth: 2
   :local:
 
+v3.0.0
+------
+
+This is a large rewrite of the library to allow using BattlEye RCON by itself
+without Arma 3-specific features, and will break the majority of existing
+code for users. For the time being, this will be the only way to use berconpy with
+Arma Reforger. If you have any code using this library that you cannot migrate to
+the new version for, please pin your version to ``berconpy==2.1.4``. Sorry!
+
+For contributors, nearly all abstract base classes have been removed, and the
+asynchronous implementation has been hoisted to the top-level package.
+Any alternative I/O implementations are now free to declare their own
+caching, events, and data models for bans/players.
+
+Removed
+^^^^^^^
+
+* ``berconpy.ArmaCache``
+* ``berconpy.AsyncEventDispatcher``
+* ``berconpy.AsyncEventDispatcher``
+* ``berconpy.Ban``
+* ``berconpy.Player``
+* ``berconpy.client.RCONClient``
+
 v2.1.4
 ------
 
@@ -288,7 +312,7 @@ New Features
   events in case of network instability
 * Add ``berconpy.ext`` namespace package for third-party extension support
 * Add :doc:`berconpy.ext.arma </ext/arma>` extension containing an
-  :py:class:`~berconpy.ext.arma.AsyncArmaRCONClient` subclass with methods
+  :py:class:`~berconpy.ext.arma.ArmaClient` subclass with methods
   specific to the Arma game series
 
 * Add new events:

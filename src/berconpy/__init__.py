@@ -1,11 +1,5 @@
-from .asyncio import (
-    AsyncClientConnector,
-    AsyncClientProtocol,
-    AsyncCommander,
-    AsyncEventDispatcher,
-    AsyncRCONClient,
-    ConnectorConfig,
-)
+from .client import RCONClient
+from .dispatch import EventDispatcher
 from .errors import (
     LoginFailure,
     RCONCommandError,
@@ -28,6 +22,12 @@ from .protocol import (
     ServerEvent,
     ServerMessageEvent,
     ServerState,
+)
+from .io import (
+    AsyncClientConnector,
+    AsyncClientProtocol,
+    AsyncCommander,
+    ConnectorConfig,
 )
 from .ext.arma import ArmaCache, ArmaClient, ArmaDispatcher, Ban, Player
 

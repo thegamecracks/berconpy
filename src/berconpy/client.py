@@ -5,7 +5,7 @@ from typing import Any, Callable, TypeVar
 
 from berconpy.utils import MaybeCoroFunc
 
-from .dispatch import AsyncEventDispatcher
+from .dispatch import EventDispatcher
 from .io import AsyncClientProtocol, AsyncClientConnector
 
 T = TypeVar("T")
@@ -32,25 +32,25 @@ def _add_cancel_callback(
     fut.add_done_callback(_actual_canceller)
 
 
-class AsyncRCONClient:
+class RCONClient:
     """An implementation of the RCON client protocol using asyncio."""
 
     def __init__(
         self,
         *,
-        dispatch: AsyncEventDispatcher | None = None,
+        dispatch: EventDispatcher | None = None,
         protocol: AsyncClientProtocol | None = None,
     ):
         """
         :param dispatch:
             The dispatcher object to use for transmitting events.
-            Defaults to an instance of :py:class:`AsyncEventDispatcher`.
+            Defaults to an instance of :py:class:`EventDispatcher`.
         :param protocol:
             The protocol to use for handling connections.
             Defaults to an instance of :py:class:`AsyncClientConnector`.
         """
         if dispatch is None:
-            dispatch = AsyncEventDispatcher()
+            dispatch = EventDispatcher()
         if protocol is None:
             protocol = AsyncClientConnector()
 
@@ -209,5 +209,5 @@ class AsyncRCONClient:
         check: MaybeCoroFunc[..., Any] | None = None,
         timeout: float | int | None = None,
     ):
-        """A shorthand for :py:class:`AsyncEventDispatcher.wait_for()`."""
+        """A shorthand for :py:class:`EventDispatcher.wait_for()`."""
         return await self.dispatch.wait_for(event, check=check, timeout=timeout)

@@ -3,7 +3,7 @@ import logging
 from berconpy import (
     AsyncClientConnector,
     AsyncClientProtocol,
-    AsyncRCONClient,
+    RCONClient,
     RCONCommandError,
 )
 
@@ -16,7 +16,7 @@ from .player import Player
 log = logging.getLogger(__name__)
 
 
-class ArmaClient(AsyncRCONClient):
+class ArmaClient(RCONClient):
     """An AsyncRCONClient subclass that adds more methods for handling Arma 3 RCON."""
 
     def __init__(
