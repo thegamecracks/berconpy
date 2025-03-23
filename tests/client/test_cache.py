@@ -4,11 +4,12 @@ import pytest
 
 from tests.models import Player, sample_players
 
-from . import RCONClient, client
+from berconpy import ArmaClient
 
 
-def test_update_players(client: RCONClient):
+def test_update_players():
     """Checks that the cache can refresh itself from a "players" command."""
+    client = ArmaClient()
     cache = client.cache
 
     response = Player.make_message(sample_players)
