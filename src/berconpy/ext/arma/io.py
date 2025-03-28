@@ -48,7 +48,6 @@ class ArmaConnector(AsyncClientConnector):
 
     async def _send_keep_alive(self) -> None:
         assert self.client is not None
-        await self.send_command("")
 
         if time.monotonic() - self._last_players > self.config.players_interval:
             # Instead of an empty message, ask for players so we can
