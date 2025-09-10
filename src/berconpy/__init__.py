@@ -1,5 +1,5 @@
-from .client import RCONClient
-from .dispatch import EventDispatcher
+from .client import RCONClient as RCONClient
+from .dispatch import EventDispatcher as EventDispatcher
 from .errors import (
     LoginFailure as LoginFailure,
     RCONCommandError as RCONCommandError,
@@ -24,19 +24,19 @@ from .protocol import (
     ServerState as ServerState,
 )
 from .io import (
-    AsyncClientConnector,
-    AsyncClientProtocol,
-    AsyncCommander,
-    ConnectorConfig,
+    AsyncClientConnector as AsyncClientConnector,
+    AsyncClientProtocol as AsyncClientProtocol,
+    AsyncCommander as AsyncCommander,
+    ConnectorConfig as ConnectorConfig,
 )
 from .ext.arma import (
-    ArmaCache,
-    ArmaClient,
-    ArmaConnector,
-    ArmaConnectorConfig,
-    ArmaDispatcher,
-    Ban,
-    Player,
+    ArmaCache as ArmaCache,
+    ArmaClient as ArmaClient,
+    ArmaConnector as ArmaConnector,
+    ArmaConnectorConfig as ArmaConnectorConfig,
+    ArmaDispatcher as ArmaDispatcher,
+    Ban as Ban,
+    Player as Player,
 )
 
 
