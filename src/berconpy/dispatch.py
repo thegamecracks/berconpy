@@ -138,7 +138,7 @@ class EventDispatcher:
         if not event.startswith("on_"):
             event = "on_" + event
         if check is None:
-            check = lambda *args: True
+            check = lambda *args: True  # noqa: E731
 
         fut = self._add_temporary_listener(event, check)
 
