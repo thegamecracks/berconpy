@@ -38,8 +38,7 @@ def communicate(
     proto_a: RCONClientProtocol,
     proto_b: RCONServerProtocol,
     *packets: ClientPacket,
-) -> Sequence[ServerEvent]:
-    ...
+) -> Sequence[ServerEvent]: ...
 
 
 @overload
@@ -47,8 +46,7 @@ def communicate(
     proto_a: RCONServerProtocol,
     proto_b: RCONClientProtocol,
     *packets: ServerPacket,
-) -> Sequence[ClientEvent]:
-    ...
+) -> Sequence[ClientEvent]: ...
 
 
 def communicate(

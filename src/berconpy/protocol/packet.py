@@ -2,6 +2,7 @@
 Defines the various packets that can be sent and received between
 the client and server.
 """
+
 import binascii
 import enum
 import functools
@@ -181,13 +182,15 @@ class Packet:
 
     @classmethod
     @overload
-    def from_bytes(cls, data: bytes, *, from_client: Literal[True]) -> "ClientPacket":
-        ...
+    def from_bytes(
+        cls, data: bytes, *, from_client: Literal[True]
+    ) -> "ClientPacket": ...
 
     @classmethod
     @overload
-    def from_bytes(cls, data: bytes, *, from_client: Literal[False]) -> "ServerPacket":
-        ...
+    def from_bytes(
+        cls, data: bytes, *, from_client: Literal[False]
+    ) -> "ServerPacket": ...
 
     @classmethod
     @_convert_exception(IndexError, ValueError, "insufficient data provided")
@@ -303,20 +306,16 @@ class ClientLoginPacket(ClientPacket):
         return "{}({!r})".format(type(self).__name__, self.message)
 
     @property
-    def login_success(self) -> None:
-        ...
+    def login_success(self) -> None: ...
 
     @property
-    def sequence(self) -> None:
-        ...
+    def sequence(self) -> None: ...
 
     @property
-    def total(self) -> None:
-        ...
+    def total(self) -> None: ...
 
     @property
-    def index(self) -> None:
-        ...
+    def index(self) -> None: ...
 
     @property
     def message(self) -> bytes:
@@ -344,20 +343,17 @@ class ClientCommandPacket(ClientPacket):
         return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
 
     @property
-    def login_success(self) -> None:
-        ...
+    def login_success(self) -> None: ...
 
     @property
     def sequence(self) -> int:
         return self.data[8]
 
     @property
-    def total(self) -> None:
-        ...
+    def total(self) -> None: ...
 
     @property
-    def index(self) -> None:
-        ...
+    def index(self) -> None: ...
 
     @property
     def message(self) -> bytes:
@@ -383,24 +379,20 @@ class ClientMessagePacket(ClientPacket):
         return "{}({!r})".format(type(self).__name__, self.sequence)
 
     @property
-    def login_success(self) -> None:
-        ...
+    def login_success(self) -> None: ...
 
     @property
     def sequence(self) -> int:
         return self.data[8]
 
     @property
-    def total(self) -> None:
-        ...
+    def total(self) -> None: ...
 
     @property
-    def index(self) -> None:
-        ...
+    def index(self) -> None: ...
 
     @property
-    def message(self) -> None:
-        ...
+    def message(self) -> None: ...
 
 
 class ServerPacket(Packet):
@@ -438,20 +430,16 @@ class ServerLoginPacket(ServerPacket):
         return bool(self.data[8])
 
     @property
-    def sequence(self) -> None:
-        ...
+    def sequence(self) -> None: ...
 
     @property
-    def total(self) -> None:
-        ...
+    def total(self) -> None: ...
 
     @property
-    def index(self) -> None:
-        ...
+    def index(self) -> None: ...
 
     @property
-    def message(self) -> None:
-        ...
+    def message(self) -> None: ...
 
 
 class ServerCommandPacket(ServerPacket):
@@ -489,8 +477,7 @@ class ServerCommandPacket(ServerPacket):
         )
 
     @property
-    def login_success(self) -> None:
-        ...
+    def login_success(self) -> None: ...
 
     @property
     def sequence(self) -> int:
@@ -536,20 +523,17 @@ class ServerMessagePacket(ServerPacket):
         return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
 
     @property
-    def login_success(self) -> None:
-        ...
+    def login_success(self) -> None: ...
 
     @property
     def sequence(self) -> int:
         return self.data[8]
 
     @property
-    def total(self) -> None:
-        ...
+    def total(self) -> None: ...
 
     @property
-    def index(self) -> None:
-        ...
+    def index(self) -> None: ...
 
     @property
     def message(self) -> bytes:

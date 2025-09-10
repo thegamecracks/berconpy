@@ -1,4 +1,5 @@
 """Provides classes to be used as facades for :py:class:`Packet` objects."""
+
 from dataclasses import dataclass
 
 

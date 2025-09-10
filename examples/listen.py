@@ -1,4 +1,5 @@
 """Listens to an RCON server for messages."""
+
 import asyncio
 import logging
 import math
@@ -12,7 +13,9 @@ PASSWORD = "ASCII_PASSWORD"
 log = logging.getLogger("berconpy")
 log.setLevel(logging.DEBUG)
 handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
+handler.setFormatter(
+    logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+)
 log.addHandler(handler)
 
 client = rcon.RCONClient()

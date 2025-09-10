@@ -3,8 +3,18 @@
 [![PyPI](https://img.shields.io/pypi/v/berconpy?label=View%20on%20pypi&style=flat-square)](https://pypi.org/project/berconpy/)
 [![Docs](https://readthedocs.org/projects/berconpy/badge/?style=flat-square)](http://berconpy.readthedocs.io/)
 
-An asynchronous Python wrapper over the
-[BattlEye RCON protocol][1].
+An asynchronous Python wrapper over the [BattlEye RCON protocol][1].
+
+## Usage with Arma Reforger
+
+If you are only interested in RCON for Arma 3 / DayZ, you may safely ignore this section.
+
+Currently, a preliminary rewrite of this library exists to provide some degree
+of support for Arma Reforger. See issue [#7] for information on how to install it.
+Note that the official documentation is not updated to cover this rewrite, so most
+documented classes and methods will exist under different names.
+
+[#7]: https://github.com/thegamecracks/berconpy/issues/7
 
 ## Features
 
