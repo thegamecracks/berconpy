@@ -458,7 +458,7 @@ class AsyncClientConnector(AsyncClientProtocol):
                 log.debug("sending keep alive packet")
                 # NOTE: may result in "Task destroyed but it is pending!"
                 #       TaskGroup would be a good idea here
-                keep_alive_task = self._begin_keep_alive()
+                keep_alive_task = self._begin_keep_alive()  # noqa: F841
 
             try:
                 coro = self._close_event.wait()
@@ -605,7 +605,7 @@ class AsyncClientConnector(AsyncClientProtocol):
         try:
             packet = self.protocol.receive_datagram(data)
         except ValueError as e:
-            return log.debug(f"ignoring malformed data with cause:", exc_info=e)
+            return log.debug("ignoring malformed data with cause:", exc_info=e)
 
         log.debug(f"{packet.type.name} received")
         self._last_received = time.monotonic()
