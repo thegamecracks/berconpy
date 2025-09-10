@@ -59,16 +59,14 @@ class TypedEvent(Generic[P, T]):
         self,
         instance: None,
         owner: Any = None,
-    ) -> "Self":
-        ...
+    ) -> "Self": ...
 
     @overload
     def __get__(
         self,
         instance: EventDispatcher,
         owner: Any = None,
-    ) -> BoundTypedEvent[P, T]:
-        ...
+    ) -> BoundTypedEvent[P, T]: ...
 
     def __get__(
         self,

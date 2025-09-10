@@ -1,4 +1,5 @@
 """Kicks players that join with the "Survivor" name."""
+
 import asyncio
 import math
 import re

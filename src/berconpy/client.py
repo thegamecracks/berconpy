@@ -108,7 +108,9 @@ class RCONClient(ABC):
     # (documentation: https://www.battleye.com/support/documentation/)
 
     @abstractmethod
-    def fetch_admins(self) -> Sequence[tuple[int, str]] | Awaitable[Sequence[tuple[int, str]]]:
+    def fetch_admins(
+        self,
+    ) -> Sequence[tuple[int, str]] | Awaitable[Sequence[tuple[int, str]]]:
         """Requests a list of RCON admins connected to the server,
         ordered by admin ID and IP address with port.
         """

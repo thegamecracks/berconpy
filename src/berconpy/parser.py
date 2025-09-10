@@ -2,6 +2,7 @@
 Provides utility functions for parsing messages sent by
 the BattlEye server into objects and events.
 """
+
 from dataclasses import dataclass
 import re
 from typing import TYPE_CHECKING, ClassVar, Iterator, TypedDict

@@ -1,4 +1,5 @@
 """Provides an interactive prompt for sending commands."""
+
 import asyncio
 import logging
 
@@ -11,7 +12,9 @@ PASSWORD = "ASCII_PASSWORD"
 log = logging.getLogger("berconpy")
 log.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
-handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
+handler.setFormatter(
+    logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+)
 log.addHandler(handler)
 
 client = rcon.AsyncRCONClient()

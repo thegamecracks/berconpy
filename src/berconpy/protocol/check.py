@@ -24,8 +24,7 @@ class Sequential(Protocol):
     """An object that has a "sequence" integer attribute."""
 
     @property
-    def sequence(self) -> int:
-        ...
+    def sequence(self) -> int: ...
 
 
 class NonceCheck:
