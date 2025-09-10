@@ -85,8 +85,7 @@ class AsyncEventDispatcher(EventDispatcher):
         if not event.startswith("on_"):
             event = "on_" + event
         if check is None:
-            def check(*args):
-                return True
+            check = lambda *args: True  # noqa: E731
 
         fut = self._add_temporary_listener(event, check)
 
