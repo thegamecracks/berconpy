@@ -1,2 +1,3 @@
 """A package that adds arma-specific commands."""
-from .client import AsyncArmaRCONClient
+
+from .client import AsyncArmaRCONClient as AsyncArmaRCONClient

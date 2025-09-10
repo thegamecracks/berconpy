@@ -5,20 +5,21 @@ Suggested reading about sansio:
     https://sans-io.readthedocs.io/index.html
 
 """
-from .base import RCONGenericProtocol
-from .check import Check, NonceCheck
-from .client import ClientState, RCONClientProtocol
-from .errors import InvalidStateError
+
+from .base import RCONGenericProtocol as RCONGenericProtocol
+from .check import Check as Check, NonceCheck as NonceCheck
+from .client import ClientState as ClientState, RCONClientProtocol as RCONClientProtocol
+from .errors import InvalidStateError as InvalidStateError
 from .events import (
-    ClientAuthEvent,
-    ClientCommandEvent,
-    ClientEvent,
-    ClientMessageEvent,
-    Event,
-    ServerAuthEvent,
-    ServerCommandEvent,
-    ServerEvent,
-    ServerMessageEvent,
+    ClientAuthEvent as ClientAuthEvent,
+    ClientCommandEvent as ClientCommandEvent,
+    ClientEvent as ClientEvent,
+    ClientMessageEvent as ClientMessageEvent,
+    Event as Event,
+    ServerAuthEvent as ServerAuthEvent,
+    ServerCommandEvent as ServerCommandEvent,
+    ServerEvent as ServerEvent,
+    ServerMessageEvent as ServerMessageEvent,
 )
 from .packet import *
-from .server import RCONServerProtocol, ServerState
+from .server import RCONServerProtocol as RCONServerProtocol, ServerState as ServerState
