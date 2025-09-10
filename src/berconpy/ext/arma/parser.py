@@ -2,6 +2,7 @@
 Provides utility functions for parsing messages sent by
 the BattlEye server into objects and events.
 """
+
 from __future__ import annotations
 
 import re

@@ -20,6 +20,7 @@ def _add_cancel_callback(
     """Adds a callback to a future to cancel the current task
     if the future completes with an exception.
     """
+
     def _actual_canceller(_):
         assert current_task is not None
         if fut.exception() is not None:

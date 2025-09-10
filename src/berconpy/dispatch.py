@@ -138,6 +138,7 @@ class EventDispatcher:
         if not event.startswith("on_"):
             event = "on_" + event
         if check is None:
+
             def check(*args):
                 return True
 
