@@ -10,7 +10,17 @@ from .events import (
     ClientEvent,
     ClientMessageEvent,
 )
-from .packet import *
+from .packet import (
+    ClientCommandPacket,
+    ClientLoginPacket,
+    ClientMessagePacket,
+    ClientPacket,
+    Packet,
+    ServerCommandPacket,
+    ServerLoginPacket,
+    ServerMessagePacket,
+    ServerPacket,
+)
 
 
 class ClientState(enum.Enum):

@@ -11,7 +11,17 @@ from .events import (
     ServerEvent,
     ServerMessageEvent,
 )
-from .packet import *
+from .packet import (
+    ClientCommandPacket,
+    ClientLoginPacket,
+    ClientMessagePacket,
+    ClientPacket,
+    Packet,
+    ServerCommandPacket,
+    ServerLoginPacket,
+    ServerMessagePacket,
+    ServerPacket,
+)
 
 
 class ServerState(enum.Enum):
