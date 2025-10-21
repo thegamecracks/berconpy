@@ -31,7 +31,6 @@ Reference
    :maxdepth: 1
    :glob:
 
-   asyncio
    client
    protocol
    ext/*

@@ -1,46 +1,6 @@
 Async I/O API Reference
 =======================
 
-Client Interface
-----------------
+This page has been moved to :doc:`/client`.
 
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   berconpy.RCONClient
-   berconpy.ArmaCache
-   berconpy.AsyncEventDispatcher
-
-Client Connector
-----------------
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   berconpy.AsyncClientProtocol
-   berconpy.AsyncClientConnector
-   berconpy.AsyncCommander
-   berconpy.ConnectorConfig
-
-Data Models
------------
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   berconpy.Ban
-   berconpy.Player
-
-Exceptions
-----------
-
-.. autosummary::
-   :toctree: generated
-   :nosignatures:
-
-   berconpy.RCONError
-   berconpy.RCONCommandError
-   berconpy.LoginFailure
+If you're looking for v2 documentation, see here: https://berconpy.readthedocs.io/en/v2.1.4/asyncio.html
