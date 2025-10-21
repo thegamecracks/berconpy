@@ -1,7 +1,6 @@
 """Kicks players that join with the "Survivor" name."""
 
 import asyncio
-import math
 import re
 
 import berconpy as rcon
@@ -21,7 +20,7 @@ async def on_player_connect(player: rcon.Player):
 
 async def main():
     async with client.connect(IP_ADDR, PORT, PASSWORD):
-        await asyncio.sleep(math.inf)
+        await asyncio.get_running_loop().create_future()
 
 
 if __name__ == "__main__":

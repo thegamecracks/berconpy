@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-import math
 
 import berconpy as rcon
 
@@ -38,7 +37,7 @@ async def server_response_to_command(response: str):
 
 async def main():
     async with client.connect(IP_ADDR, PORT, PASSWORD):
-        await asyncio.sleep(math.inf)
+        await asyncio.get_running_loop().create_future()
 
 
 if __name__ == "__main__":
