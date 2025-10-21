@@ -25,12 +25,13 @@ and its hoisted classes like :py:class:`berconpy.RCONClientProtocol` are preserv
 Renamed
 ^^^^^^^
 
-* ``berconpy.AsyncClientConnector`` to :py:class:`berconpy.ArmaConnector`
 * ``berconpy.AsyncEventDispatcher`` to :py:class:`berconpy.ArmaDispatcher`
 * ``berconpy.AsyncRCONClient`` to :py:class:`berconpy.ArmaClient`
 * ``berconpy.AsyncRCONClientCache`` to :py:class:`berconpy.ArmaCache`
-* ``berconpy.ConnectorConfig`` to :py:class:`berconpy.ArmaConnectorConfig`
 * ``berconpy.ext.arma.AsyncArmaRCONClient`` to :py:class:`berconpy.ext.arma.ArmaClient`
+
+To improve backwards compatibility, aliases are defined for old names which will
+trigger a warning when used.
 
 Removed
 ^^^^^^^
@@ -41,7 +42,7 @@ Removed
 * ``berconpy.RCONClient`` abstract methods related to Arma, like ``fetch_players()``
 * ``berconpy.EventDispatcher`` events related to Arma, like ``on_player_message``
 * ``berconpy.ConnectorConfig.players_interval`` attribute,
-  only defined for :py:class:`~berconpy.ArmaConnectorConfig`
+  only defined for :py:class:`berconpy.ArmaConnectorConfig`
 
 Other Breaking Changes
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -51,6 +52,9 @@ Other Breaking Changes
 * Converted :py:class:`berconpy.EventDispatcher` to a concrete class,
   with implementations extracted from ``AsyncEventDispatcher``
 * Added :py:attr:`berconpy.RCONClient.protocol` parameter and attribute
+* :py:class:`berconpy.AsyncClientConnector` no longer sends the ``players``
+  command for keep alives, and this behaviour is now reserved for the new
+  :py:class:`berconpy.ArmaConnector` class
 * :py:class:`berconpy.Ban` and :py:class:`berconpy.Player` now work only with
   Arma-specific classes and cannot be used with :py:class:`berconpy.RCONClient`
 
