@@ -15,7 +15,7 @@ v3 is currently published as a pre-release version to avoid breaking existing co
 Use the following command to install berconpy v3:
 
 ```
-pip install --pre berconpy==3.0.0
+pip install --pre berconpy
 ```
 
 The [latest documentation] presents information for v3.
