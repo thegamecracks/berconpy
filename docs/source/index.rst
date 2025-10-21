@@ -34,6 +34,7 @@ Reference
    client
    protocol
    ext/*
+   (Outdated) Async I/O API Reference <asyncio>
 
 Meta
 ----
