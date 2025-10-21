@@ -19,15 +19,40 @@ asynchronous implementation has been hoisted to the top-level package.
 Any alternative I/O implementations are now free to declare their own
 caching, events, and data models for bans/players.
 
+No changes were made to the Sans-I/O protocol at :py:mod:`berconpy.protocol`,
+and its hoisted classes like :py:class:`berconpy.RCONClientProtocol` are preserved.
+
+Renamed
+^^^^^^^
+
+* ``berconpy.AsyncClientConnector`` to :py:class:`berconpy.ArmaConnector`
+* ``berconpy.AsyncEventDispatcher`` to :py:class:`berconpy.ArmaDispatcher`
+* ``berconpy.AsyncRCONClient`` to :py:class:`berconpy.ArmaClient`
+* ``berconpy.AsyncRCONClientCache`` to :py:class:`berconpy.ArmaCache`
+* ``berconpy.ConnectorConfig`` to :py:class:`berconpy.ArmaConnectorConfig`
+* ``berconpy.ext.arma.AsyncArmaRCONClient`` to :py:class:`berconpy.ext.arma.ArmaClient`
+
 Removed
 ^^^^^^^
 
-* ``berconpy.ArmaCache``
-* ``berconpy.AsyncEventDispatcher``
-* ``berconpy.AsyncEventDispatcher``
-* ``berconpy.Ban``
-* ``berconpy.Player``
-* ``berconpy.client.RCONClient``
+* ``berconpy.asyncio`` package
+* ``berconpy.cache`` package and ``RCONClientCache``
+* ``berconpy.RCONClient.cache`` parameter and attribute
+* ``berconpy.RCONClient`` abstract methods related to Arma, like ``fetch_players()``
+* ``berconpy.EventDispatcher`` events related to Arma, like ``on_player_message``
+* ``berconpy.ConnectorConfig.players_interval`` attribute,
+  only defined for :py:class:`~berconpy.ArmaConnectorConfig`
+
+Other Breaking Changes
+^^^^^^^^^^^^^^^^^^^^^^
+
+* Converted :py:class:`berconpy.RCONClient` to a concrete class,
+  with implementations extracted from ``AsyncRCONClient``
+* Converted :py:class:`berconpy.EventDispatcher` to a concrete class,
+  with implementations extracted from ``AsyncEventDispatcher``
+* Added :py:attr:`berconpy.RCONClient.protocol` parameter and attribute
+* :py:class:`berconpy.Ban` and :py:class:`berconpy.Player` now work only with
+  Arma-specific classes and cannot be used with :py:class:`berconpy.RCONClient`
 
 v2.1.4
 ------
