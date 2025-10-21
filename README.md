@@ -5,16 +5,27 @@
 
 An asynchronous Python wrapper over the [BattlEye RCON protocol][1].
 
-## Usage with Arma Reforger
+## Migrating to v3
 
-If you are only interested in RCON for Arma 3 / DayZ, you may safely ignore this section.
+v3.0.0 is a major rewrite of this library to isolate generic BattlEye RCON functionality
+from Arma 3 / DayZ-specific features. For users that need to work with other games like
+Arma Reforger, you must use v3.
 
-Currently, a preliminary rewrite of this library exists to provide some degree
-of support for Arma Reforger. See issue [#7] for information on how to install it.
-Note that the official documentation is not updated to cover this rewrite, so most
-documented classes and methods will exist under different names.
+v3 is currently published as a pre-release version to avoid breaking existing code.
+Use the following command to install berconpy v3:
 
-[#7]: https://github.com/thegamecracks/berconpy/issues/7
+```
+pip install --pre berconpy==3.0.0
+```
+
+The [latest documentation] presents information for v3.
+
+For v2 users that cannot migrate, ensure that your requirements are pinned
+to `berconpy~=2.1` to prevent accidentally upgrading to v3.
+[v2 documentation] is still available for the time being.
+
+[latest documentation]: https://berconpy.readthedocs.io/en/latest/
+[v2 documentation]: https://berconpy.readthedocs.io/en/v2.1.4/
 
 ## Features
 
@@ -52,7 +63,7 @@ See the [documentation][2] for more details.
 
 (**Python 3.10** or higher is required)
 
-This package can be installed from PyPi using the following command:
+This package can be installed from PyPI using the following command:
 
 ```
 # Linux/macOS
@@ -79,5 +90,5 @@ pip install git+https://github.com/thegamecracks/berconpy
 This project uses the [MIT][3] License.
 
 [1]: https://github.com/thegamecracks/berconpy/blob/main/docs/source/BERConProtocol.txt
-[2]: http://berconpy.readthedocs.io/
+[2]: https://berconpy.readthedocs.io/en/latest/
 [3]: https://github.com/thegamecracks/berconpy/blob/main/LICENSE
