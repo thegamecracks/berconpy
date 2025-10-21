@@ -20,7 +20,7 @@ jobs:
           python-version-file: pyproject.toml
       - run: pip install build
       - run: python -m build
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v4
         with:
           name: dist-${{ runner.os }}
           path: dist/
