@@ -26,7 +26,7 @@ dynamic = ["version"]
 [project.optional-dependencies]
 docs = ["sphinx>=5.1.1", "sphinx-autodoc-typehints>=1.19.2"]
 tests = ["pytest>=7.2.2", "coverage>=7.2.1"]
-types = ["typing-extensions>=4.0.0"]
+types = ["typing-extensions>=4.5.0"]
 
 [project.urls]
 "Homepage" = "https://github.com/thegamecracks/berconpy"

@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from .client import RCONClient as RCONClient
 from .dispatch import EventDispatcher as EventDispatcher
 from .errors import (
@@ -38,6 +40,34 @@ from .ext.arma import (
     Ban as Ban,
     Player as Player,
 )
+
+if TYPE_CHECKING:
+    from typing_extensions import deprecated
+
+    @deprecated("Use ArmaDispatcher instead")
+    class AsyncEventDispatcher(ArmaDispatcher): ...
+
+    @deprecated("Use ArmaClient instead")
+    class AsyncRCONClient(ArmaClient): ...
+
+    @deprecated("Use ArmaCache instead")
+    class AsyncRCONClientCache(ArmaCache): ...
+
+else:
+    from warnings import warn
+
+    def __getattr__(name):
+        if name == "AsyncEventDispatcher":
+            warn("AsyncEventDispatcher is deprecated, use ArmaDispatcher instead")
+            return ArmaDispatcher
+        elif name == "AsyncRCONClient":
+            warn("AsyncRCONClient is deprecated, use ArmaClient instead")
+            return ArmaClient
+        elif name == "AsyncRCONClientCache":
+            warn("AsyncRCONClientCache is deprecated, use ArmaCache instead")
+            return ArmaCache
+
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def _get_version() -> str:
