@@ -203,7 +203,7 @@ class ArmaClient(RCONClient):
             The client does not automatically close after this command
             is sent. If you need to prevent the client from indefinitely
             attempting to reconnect, you should call the
-            :py:meth:`~berconpy.RCONClient.close()` method.
+            :py:meth:`~berconpy.ArmaClient.close()` method.
 
         """
         return await self.send_command("#restartserver")
@@ -229,7 +229,7 @@ class ArmaClient(RCONClient):
             The client does not automatically close after this command
             is sent. If you need to prevent the client from indefinitely
             attempting to reconnect, you should call the
-            :py:meth:`~berconpy.RCONClient.close()` method.
+            :py:meth:`~berconpy.ArmaClient.close()` method.
 
         """
         return await self.send_command("#shutdown")

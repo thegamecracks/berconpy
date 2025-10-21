@@ -61,7 +61,7 @@ Documentation
 * Fix typo in :py:class:`berconpy.Ban` docstring
 
 * Explicitly document coroutine listener support in
-  :py:class:`~berconpy.AsyncEventDispatcher`
+  :py:class:`~berconpy.EventDispatcher`
 
 .. _PEP 561: https://peps.python.org/pep-0561/
 

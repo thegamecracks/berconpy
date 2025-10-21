@@ -67,7 +67,7 @@ class ArmaDispatcher(EventDispatcher):
     def on_player_disconnect(player: Player, /) -> Any:
         """Fired when a player manually disconnects from the server.
 
-        The :py:attr:`~berconpy.client.RCONClient.players` list will
+        The :py:attr:`~berconpy.client.ArmaClient.players` list will
         no longer contain the player provided here.
 
         This event does not fire when BattlEye kicks the player;
@@ -84,7 +84,7 @@ class ArmaDispatcher(EventDispatcher):
         (e.g. ``"Client not responding"``) or by an admin
         (i.e. ``"Admin Kick"``).
 
-        The :py:attr:`~berconpy.client.RCONClient.players` list will
+        The :py:attr:`~berconpy.client.ArmaClient.players` list will
         no longer contain the player provided here.
 
         :param player: The player that was kicked.

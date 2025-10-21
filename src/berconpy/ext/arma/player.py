@@ -39,7 +39,7 @@ class Player:
     """The player's ping on the server.
 
     This data may not be available or may be out-of-date since it is
-    only provided when the :py:meth:`RCONClient.fetch_players()` is called.
+    only provided when the :py:meth:`ArmaClient.fetch_players()` is called.
 
     """
 
@@ -50,7 +50,7 @@ class Player:
     """
     Whether the player is in the server lobby or not.
 
-    This data is only accurate after calling the :py:meth:`RCONClient.fetch_players()`
+    This data is only accurate after calling the :py:meth:`ArmaClient.fetch_players()`
     method since it cannot be determined during connection.
 
     """
