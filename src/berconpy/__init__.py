@@ -4,6 +4,8 @@ from .client import RCONClient as RCONClient
 from .dispatch import EventDispatcher as EventDispatcher
 from .errors import (
     LoginFailure as LoginFailure,
+    LoginRefused as LoginRefused,
+    LoginTimeout as LoginTimeout,
     RCONCommandError as RCONCommandError,
     RCONError as RCONError,
 )

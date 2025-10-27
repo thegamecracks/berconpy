@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from berconpy.errors import LoginFailure, RCONCommandError
+from berconpy.errors import LoginRefused, LoginTimeout, RCONCommandError
 from berconpy.protocol import (
     ClientAuthEvent,
     ClientEvent,
@@ -69,7 +69,7 @@ class AsyncClientProtocol(ABC):
             True if authenticated or None if no
             response has been received from the server.
         :raises LoginFailure:
-            The password given to the server was denied.
+            The client failed to log into the server.
 
         """
 
@@ -113,7 +113,7 @@ class AsyncClientProtocol(ABC):
 
         :returns: True if authenticated, False otherwise.
         :raises LoginFailure:
-            The password given to the server was denied.
+            The client failed to log into the server.
 
         """
 
@@ -375,7 +375,7 @@ class AsyncClientConnector(AsyncClientProtocol):
             True if authenticated or False if the connection closed
             without an error.
         :raises LoginFailure:
-            The password given to the server was denied.
+            The client failed to log into the server.
         :raises OSError:
             An error occurred while attempting to connect to the server.
 
@@ -427,7 +427,7 @@ class AsyncClientConnector(AsyncClientProtocol):
                     return
                 elif not logged_in:
                     log.error("failed to connect to the server")
-                    raise LoginFailure("could not connect to the server")
+                    raise LoginTimeout("could not connect to the server")
                 elif (exc := self._is_logged_in.exception()) is not None:
                     log.error("password authentication was denied")
                     raise exc
@@ -494,8 +494,6 @@ class AsyncClientConnector(AsyncClientProtocol):
             try:
                 timeout = self.config.connection_timeout
                 return await asyncio.wait_for(self.connect(password), timeout=timeout)
-            except LoginFailure:
-                raise  # credentials may be invalid, or server changed it
             except (asyncio.TimeoutError, OSError):
                 if i % 10 == 0:
                     log.warning(
@@ -538,9 +536,8 @@ class AsyncClientConnector(AsyncClientProtocol):
                 self._is_logged_in.set_result(True)
                 self.client.dispatch("login")
             else:
-                self._is_logged_in.set_exception(
-                    LoginFailure("invalid password provided")
-                )
+                exc = LoginRefused("invalid password provided")
+                self._is_logged_in.set_exception(exc)
 
         elif isinstance(event, ClientCommandEvent):
             self.commander.set_command(event.sequence, event.message)

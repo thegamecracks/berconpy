@@ -72,7 +72,7 @@ class RCONClient:
             True if authenticated or None if no
             response has been received from the server.
         :raises LoginFailure:
-            The password given to the server was denied.
+            The client failed to log into the server.
 
         """
         return self.protocol.is_logged_in()
@@ -102,7 +102,7 @@ class RCONClient:
         **cancelled** to prevent the script being stuck in an infinite loop.
 
         :raises LoginFailure:
-            The password given to the server was denied.
+            The client failed to log into the server.
         :raises RuntimeError:
             This method was called while the client is already connected.
 

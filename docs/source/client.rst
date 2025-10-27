@@ -41,5 +41,7 @@ These exceptions are raised by :py:class:`~berconpy.RCONClient`.
    :nosignatures:
 
    berconpy.LoginFailure
+   berconpy.LoginRefused
+   berconpy.LoginTimeout
    berconpy.RCONError
    berconpy.RCONCommandError

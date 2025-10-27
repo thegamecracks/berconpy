@@ -58,6 +58,15 @@ Other Breaking Changes
 * :py:class:`berconpy.Ban` and :py:class:`berconpy.Player` now work only with
   Arma-specific classes and cannot be used with :py:class:`berconpy.RCONClient`
 
+Added
+^^^^^
+
+* :py:class:`berconpy.LoginRefused` and :py:class:`berconpy.LoginTimeout`
+  which subclasses :py:class:`berconpy.LoginFailure` to allow distinguishing
+  when a server does not respond to a login attempt versus the server actively
+  refusing it. :py:class:`berconpy.LoginTimeout` additionally inherits from
+  :py:class:`asyncio.TimeoutError` (or :py:class:`TimeoutError` in Python 3.11+).
+
 v2.1.4
 ------
 
