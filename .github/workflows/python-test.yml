@@ -14,18 +14,12 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - uses: astral-sh/setup-uv@v7
         with:
-          cache: pip
-          cache-dependency-path: pyproject.toml
-          python-version-file: pyproject.toml
-      - name: Install pyright
-        run: pip install pyright
-      - name: Install berconpy
-        run: pip install .[docs,tests,types]
-      - name: Run pyright
-        run: pyright
+          enable-cache: true
+      - run: uv sync --locked --all-extras --dev
+      - run: uv pip install pyright
+      - run: pyright
 
   test:
     runs-on: ubuntu-latest
@@ -35,13 +29,8 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - uses: astral-sh/setup-uv@v7
         with:
-          cache: pip
-          cache-dependency-path: pyproject.toml
-          python-version-file: pyproject.toml
-      - name: Install berconpy
-        run: pip install .[docs,tests,types]
-      - name: Run tests
-        run: pytest
+          enable-cache: true
+      - run: uv sync --locked --all-extras --dev
+      - run: pytest

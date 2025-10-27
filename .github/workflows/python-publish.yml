@@ -13,13 +13,11 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-      - uses: actions/setup-python@v6
+      - uses: astral-sh/setup-uv@v7
         with:
-          cache: pip
-          cache-dependency-path: pyproject.toml
-          python-version-file: pyproject.toml
-      - run: pip install build
-      - run: python -m build
+          enable-cache: true
+      - run: uv sync --locked --all-extras --dev
+      - run: uv build
       - uses: actions/upload-artifact@v4
         with:
           name: dist-${{ runner.os }}
