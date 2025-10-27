@@ -6,7 +6,7 @@ on:
       - '**.py'
 
 jobs:
-  lint:
+  pyright:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,5 +26,22 @@ jobs:
         run: pip install .[docs,tests,types]
       - name: Run pyright
         run: pyright
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          cache: pip
+          cache-dependency-path: pyproject.toml
+          python-version-file: pyproject.toml
+      - name: Install berconpy
+        run: pip install .[docs,tests,types]
       - name: Run tests
         run: pytest
