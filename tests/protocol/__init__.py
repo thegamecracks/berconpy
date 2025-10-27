@@ -1,7 +1,5 @@
 from typing import Any, Sequence, Type, TypeVar, overload
 
-import pytest
-
 from berconpy.protocol import (
     ClientAuthEvent,
     ClientEvent,
@@ -21,16 +19,6 @@ expected_password = "foobar2000"
 incorrect_password = "abc123"
 
 T = TypeVar("T")
-
-
-@pytest.fixture
-def client() -> RCONClientProtocol:
-    return RCONClientProtocol()
-
-
-@pytest.fixture
-def server() -> RCONServerProtocol:
-    return RCONServerProtocol(password=expected_password)
 
 
 @overload
