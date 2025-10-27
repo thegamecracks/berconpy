@@ -8,12 +8,10 @@ from berconpy.protocol import (
 
 from . import (
     authenticate,
-    client,
     communicate,
     expected_password,
     first_and_only_packet,
     incorrect_password,
-    server,
 )
 
 

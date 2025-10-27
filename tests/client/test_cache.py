@@ -1,7 +1,3 @@
-from typing import TypedDict
-
-import pytest
-
 from tests.models import Player, sample_players
 
 from berconpy import ArmaClient

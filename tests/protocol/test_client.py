@@ -3,13 +3,7 @@ import pytest
 from berconpy.protocol import (
     ClientAuthEvent,
     ClientCommandEvent,
-    ClientCommandPacket,
-    ClientEvent,
-    ClientLoginPacket,
     ClientMessageEvent,
-    ClientMessagePacket,
-    ClientPacket,
-    ClientState,
     InvalidStateError,
     RCONClientProtocol,
     ServerCommandPacket,
@@ -17,7 +11,7 @@ from berconpy.protocol import (
     ServerMessagePacket,
 )
 
-from . import client, first_and_only_event
+from . import first_and_only_event
 
 
 def test_invalid_states(client: RCONClientProtocol):
