@@ -19,7 +19,7 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --all-extras --dev
       - run: uv pip install pyright
-      - run: pyright
+      - run: uv run -m pyright
 
   test:
     runs-on: ubuntu-latest
@@ -33,4 +33,4 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --locked --all-extras --dev
-      - run: pytest
+      - run: uv run -m pytest
