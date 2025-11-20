@@ -9,28 +9,6 @@
 
 An asynchronous Python wrapper over the [BattlEye RCON protocol][1].
 
-## Migrating to v3
-
-v3.0.0 is a major rewrite of this library to isolate generic BattlEye RCON functionality
-from Arma 3 / DayZ-specific features. For users that need to work with other games like
-Arma Reforger, you must use v3.
-
-v3 is currently published as a pre-release version to avoid breaking existing code.
-Use the following command to install berconpy v3:
-
-```
-pip install --pre berconpy
-```
-
-The [latest documentation] presents information for v3.
-
-For v2 users that cannot migrate, ensure that your requirements are pinned
-to `berconpy~=2.1` to prevent accidentally upgrading to v3.
-[v2 documentation] is still available for the time being.
-
-[latest documentation]: https://berconpy.readthedocs.io/en/latest/
-[v2 documentation]: https://berconpy.readthedocs.io/en/v2.1.4/
-
 ## Features
 
 - Easy to use event-based interface
@@ -62,6 +40,18 @@ asyncio.run(main())
 ```
 
 See the [documentation][2] for more details.
+
+## Migrating to v3
+
+v3.0.0 is a major rewrite of this library to isolate generic BattlEye RCON functionality
+from Arma 3 / DayZ-specific features. For users that need to work with other games like
+Arma Reforger, you must use v3.
+
+For v2 users that cannot migrate, ensure that your requirements are pinned
+to `berconpy~=2.1` to prevent accidentally upgrading to v3.
+[v2 documentation] is still available for the time being.
+
+[v2 documentation]: https://berconpy.readthedocs.io/en/v2.1.4/
 
 ## Installation
 
