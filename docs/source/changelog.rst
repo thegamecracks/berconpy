@@ -63,6 +63,17 @@ Other Breaking Changes
   want to work on the project. This also means the package will no longer use
   ``setuptools-scm`` for Git-based dynamic versioning.
 
+* Removed all dependency extras: ``docs``, ``tests``, ``types``
+
+  These extras provided dependencies that were only useful for development,
+  such as docs generation and running tests. Now, attempting to install these
+  extras (for example, ``pip install berconpy[docs]``) may result in a warning
+  or an error message depending on your package manager.
+
+  For contributors, these dependencies were moved to `Dependency Groups <https://packaging.python.org/en/latest/specifications/dependency-groups/>`__,
+  and can be installed when working on the repository directly, for example,
+  ``pip install . --group dev`` or ``uv sync --group dev``.
+
 Added
 ^^^^^
 
