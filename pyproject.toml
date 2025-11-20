@@ -27,7 +27,7 @@ classifiers = [
 
 [project.urls]
 "Homepage" = "https://github.com/thegamecracks/berconpy"
-"Documentation" = "https://berconpy.readthedocs.io/en/latest"
+"Documentation" = "https://berconpy.readthedocs.io/en/stable"
 "Issue Tracker" = "https://github.com/thegamecracks/berconpy/issues"
 
 [dependency-groups]
