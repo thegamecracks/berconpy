@@ -12,7 +12,7 @@ This is a large rewrite of the library to allow using BattlEye RCON by itself
 without Arma 3-specific features, and will break the majority of existing
 code for users. For the time being, this will be the only way to use berconpy with
 Arma Reforger. If you have any code using this library that you cannot migrate to
-the new version for, please pin your version to ``berconpy==2.1.4``. Sorry!
+the new version for, please pin your version to ``berconpy~=2.1``. Sorry!
 
 For contributors, nearly all abstract base classes have been removed, and the
 asynchronous implementation has been hoisted to the top-level package.
