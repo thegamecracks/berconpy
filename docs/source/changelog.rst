@@ -57,6 +57,11 @@ Other Breaking Changes
   :py:class:`berconpy.ArmaConnector` class
 * :py:class:`berconpy.Ban` and :py:class:`berconpy.Player` now work only with
   Arma-specific classes and cannot be used with :py:class:`berconpy.RCONClient`
+* Switched build backend from ``setuptools`` to ``uv-build``
+
+  This should not have any visible changes for end users, only contributors that
+  want to work on the project. This also means the package will no longer use
+  ``setuptools-scm`` for Git-based dynamic versioning.
 
 Added
 ^^^^^

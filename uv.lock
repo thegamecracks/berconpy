@@ -26,6 +26,7 @@ wheels = [
 
 [[package]]
 name = "berconpy"
+version = "3.0.0"
 source = { editable = "." }
 
 [package.optional-dependencies]

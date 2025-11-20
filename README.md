@@ -2,7 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/berconpy?label=View%20on%20pypi&style=flat-square)](https://pypi.org/project/berconpy/)
 [![Docs](https://readthedocs.org/projects/berconpy/badge/?style=flat-square)](http://berconpy.readthedocs.io/)
-[![](https://img.shields.io/github/actions/workflow/status/thegamecracks/berconpy/python-publish.yml?style=flat-square&logo=python&label=build)](https://setuptools.pypa.io/en/latest/)
+[![](https://img.shields.io/github/actions/workflow/status/thegamecracks/berconpy/python-publish.yml?style=flat-square&logo=uv&label=build)](https://docs.astral.sh/uv/)
 [![](https://img.shields.io/github/actions/workflow/status/thegamecracks/berconpy/python-test.yml?style=flat-square&logo=pytest&label=tests)](https://docs.pytest.org/en/stable/)
 [![](https://img.shields.io/github/actions/workflow/status/thegamecracks/berconpy/ruff-check.yml?style=flat-square&logo=ruff&label=lints)](https://docs.astral.sh/ruff/)
 [![](https://img.shields.io/github/actions/workflow/status/thegamecracks/berconpy/ruff-format.yml?style=flat-square&logo=ruff&label=style)](https://docs.astral.sh/ruff/)

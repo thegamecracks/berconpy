@@ -1,9 +1,10 @@
 [build-system]
-requires = ["setuptools>=77", "setuptools-scm>=8"]
-build-backend = "setuptools.build_meta"
+requires = ["uv-build~=0.9.10"]
+build-backend = "uv_build"
 
 [project]
 name = "berconpy"
+version = "3.0.0"
 description = "An async wrapper for the BattlEye RCON protocol"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -22,9 +23,6 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: System :: Networking",
 ]
-dynamic = ["version"]
-
-[tool.setuptools_scm]
 
 [project.optional-dependencies]
 docs = ["sphinx>=5.1.1", "sphinx-autodoc-typehints>=1.19.2"]
