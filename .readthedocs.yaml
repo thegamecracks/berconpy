@@ -11,11 +11,9 @@ build:
 
 python:
   install:
+    - requirements: docs/requirements.txt
     - method: pip
       path: .
-      extra_requirements:
-        - docs
-        - types
 
 sphinx:
   configuration: docs/source/conf.py
