@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "berconpy"
-version = "3.0.0"
+version = "3.0.0.post1"
 description = "An async wrapper for the BattlEye RCON protocol"
 readme = "README.md"
 requires-python = ">=3.10"
