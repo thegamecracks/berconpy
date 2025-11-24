@@ -166,15 +166,18 @@ def _get_pattern_kwargs(m: re.Match) -> dict:
 
 def is_expected_message(message: str) -> bool:
     """Determines if a server message is expected."""
-    if message.startswith("Config entry:"):
-        return True
-
-    return message in (
+    prefixes = (
+        "Config entry:",
+        "Failed to receive from BE Master",
+    )
+    exact = (
         "Ban check timed out, no response from BE Master",
         "Connected to BE Master",
         "Disconnected from BE Master",
         "Failed to resolve BE Master DNS name(s)",
+        "Master query timed out, no response from BE Master",
     )
+    return message.startswith(prefixes) or message in exact
 
 
 def parse_admins(response: str) -> Iterator[ParsedAdmin]:
