@@ -1,4 +1,0 @@
-# Used for .readthedocs.yaml
-sphinx>=5.1.1
-sphinx-autodoc-typehints>=1.19.2
-typing-extensions>=4.5.0
