@@ -263,4 +263,4 @@ def parse_message(cache: ArmaCache, dispatch: ArmaDispatcher, message: str) -> N
             dispatch.on_player_message.fire(p, m.channel, m.message)
 
     elif not is_expected_message(message):
-        raise ValueError(f"unexpected server message: {message}")
+        raise ValueError(f"Unexpected server message: {message!r}")
