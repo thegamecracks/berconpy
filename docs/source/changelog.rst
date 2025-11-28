@@ -5,6 +5,20 @@ Changelog
   :depth: 2
   :local:
 
+v3.1.0
+------
+
+Changed
+^^^^^^^
+
+* Add expected messages to the :py:class:`~berconpy.ArmaClient` parser:
+
+  * ``Failed to receive from BE Master``
+  * ``Master query timed out, no response from BE Master``
+
+* Directly log unexpected messages in :py:class:`~berconpy.ArmaClient` as warnings,
+  rather than raising ValueError exceptions to be logged by asyncio
+
 v3.0.0
 ------
 
