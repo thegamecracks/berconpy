@@ -203,7 +203,7 @@ class AsyncCommander:
             finally:
                 self.cancel_command(packet.sequence)
 
-        log.warning(f"could not send command after {self.command_attempts} attempts")
+        log.debug(f"could not send command after {self.command_attempts} attempts")
         raise RCONCommandError(f"failed to send command: {command!r}")
 
     def wait_for_command(self, sequence: int) -> asyncio.Future[str]:
@@ -479,13 +479,12 @@ class AsyncClientConnector(AsyncClientProtocol):
             attempts failed or the protocol was asked to close itself.
 
         """
-        log.info(
-            "attempting to {re}connect to server".format(
-                re="re" * (not first_iteration)
-            )
-        )
-        self._is_logged_in = maybe_replace_future(self._is_logged_in)
+        if first_iteration:
+            log.debug("attempting to connect to server")
+        else:
+            log.debug("attempting to reconnect to server")
 
+        self._is_logged_in = maybe_replace_future(self._is_logged_in)
         attempts = itertools.count()
         if first_iteration:
             attempts = range(self.config.initial_connect_attempts)
@@ -496,7 +495,7 @@ class AsyncClientConnector(AsyncClientProtocol):
                 return await asyncio.wait_for(self.connect(password), timeout=timeout)
             except (asyncio.TimeoutError, OSError):
                 if i % 10 == 0:
-                    log.warning(
+                    log.debug(
                         "failed {:,d} login attempt{s}".format(i + 1, s="s" * (i != 0))
                     )
 

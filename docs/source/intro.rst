@@ -166,8 +166,8 @@ Level    Messages
 ======== =============================================================
 CRITICAL *Unused*
    ERROR Potentially fatal connection errors (e.g. incorrect password)
- WARNING Failed commands and consecutive reconnects
-    INFO Connection attempts and timeouts
+ WARNING Unexpected messages and incomplete cache (see :py:class:`~berconpy.ArmaClient`)
+    INFO Connection and disconnect events
    DEBUG Events and packets transmitted/received
 ======== =============================================================
 
