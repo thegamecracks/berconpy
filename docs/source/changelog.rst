@@ -5,6 +5,19 @@ Changelog
   :depth: 2
   :local:
 
+v3.1.1
+------
+
+Changed
+^^^^^^^
+
+* Downgrade the following I/O logs to DEBUG level:
+
+  * ``could not send command after <N> attempts``
+  * ``attempting to connect to server``
+  * ``attempting to reconnect to server``
+  * ``failed <N> login attempts``
+
 v3.1.0
 ------
 
