@@ -118,7 +118,7 @@ by the server in real-time:
     async def on_command(response: str):
         print(f"Received command response: {response}")
 
-    @client.dispatch.on_command
+    @client.dispatch.on_message
     async def on_message(message: str):
         print(f"Received message: {message}")
 
