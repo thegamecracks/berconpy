@@ -26,9 +26,9 @@ Fixed
   This bug was introduced in v3.0.0 and broke the ``.admin_id`` and ``.players``
   properties from being cached on login.
 
-* :py:class:`ArmaClient.ban() <berconpy.ArmaClient.ban>`,
-  :py:class:`Player.ban_guid() <berconpy.Player.ban_guid>`,
-  and :py:class:`Player.ban_ip() <berconpy.Player.ban_ip>`
+* :py:meth:`ArmaClient.ban() <berconpy.ArmaClient.ban>`,
+  :py:meth:`Player.ban_guid() <berconpy.Player.ban_guid>`,
+  and :py:meth:`Player.ban_ip() <berconpy.Player.ban_ip>`
   not actually including the GUID/IP of the player to be banned
 
   This is a long-standing bug and has existed since v2.0.0. Usually this resulted
