@@ -16,12 +16,12 @@ class.
 Fixed
 ^^^^^
 
-* :py:exc:`AttributeError` when attempting to access :py:class:`Ban.cache <berconpy.Ban.cache>`
+* :py:exc:`AttributeError` when attempting to access :py:attr:`Ban.cache <berconpy.Ban.cache>`
 
   This bug was introduced in v3.0.0 and broke the Ban object's ``.client`` property
   and ``.unban()`` method.
 
-* :py:class:`~berconpy.ArmaClient` not assigning itself to :py:class:`ArmaCache.client <berconpy.ArmaCache.client>`
+* :py:class:`~berconpy.ArmaClient` not assigning itself to :py:attr:`ArmaCache.client <berconpy.ArmaCache.client>`
 
   This bug was introduced in v3.0.0 and broke the ``.admin_id`` and ``.players``
   properties from being cached on login.
