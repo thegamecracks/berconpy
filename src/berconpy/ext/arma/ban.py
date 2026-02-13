@@ -69,7 +69,7 @@ class Ban:
 
     @property
     def cache(self) -> "ArmaCache":
-        return super().cache  # type: ignore
+        return self._cache
 
     @property
     def client(self) -> "ArmaClient | None":
