@@ -16,19 +16,20 @@ class.
 Fixed
 ^^^^^
 
-* :py:exc:`AttributeError` when attempting to access :py:class:`~berconpy.Ban.cache`
+* :py:exc:`AttributeError` when attempting to access :py:class:`Ban.cache <berconpy.Ban.cache>`
 
   This bug was introduced in v3.0.0 and broke the Ban object's ``.client`` property
   and ``.unban()`` method.
 
-* :py:class:`~berconpy.ArmaClient` not assigning itself to :py:class:`~berconpy.ArmaCache.client`
+* :py:class:`~berconpy.ArmaClient` not assigning itself to :py:class:`ArmaCache.client <berconpy.ArmaCache.client>`
 
   This bug was introduced in v3.0.0 and broke the ``.admin_id`` and ``.players``
   properties from being cached on login.
 
-* :py:class:`~berconpy.ArmaClient.ban()`, :py:class:`~berconpy.Player.ban_guid()`,
-  and :py:class:`~berconpy.Player.ban_ip()` not actually including the GUID/IP
-  of the player to be banned
+* :py:class:`ArmaClient.ban() <berconpy.ArmaClient.ban>`,
+  :py:class:`Player.ban_guid() <berconpy.Player.ban_guid>`,
+  and :py:class:`Player.ban_ip() <berconpy.Player.ban_ip>`
+  not actually including the GUID/IP of the player to be banned
 
   This is a long-standing bug and has existed since v2.0.0. Usually this resulted
   in a "0.0.0.0" ban that was harmless, but otherwise did not have the intended
