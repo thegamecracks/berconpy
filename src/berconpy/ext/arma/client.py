@@ -15,6 +15,8 @@ log = logging.getLogger(__name__)
 class ArmaClient(RCONClient):
     """An RCONClient subclass that adds more methods for handling Arma 3 RCON."""
 
+    _cache: "ArmaCache | None" = None
+
     def __init__(
         self,
         *,
@@ -254,6 +256,9 @@ class ArmaClient(RCONClient):
 
     @cache.setter
     def cache(self, new_cache: ArmaCache) -> None:
+        if self._cache is not None:
+            self._cache.client = None
+
         self._cache = new_cache
         self._cache.client = self
 
