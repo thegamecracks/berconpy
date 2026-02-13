@@ -252,6 +252,7 @@ class ArmaClient(RCONClient):
     @property
     def cache(self) -> ArmaCache:
         """The cache used by the client."""
+        assert self._cache is not None
         return self._cache
 
     @cache.setter
