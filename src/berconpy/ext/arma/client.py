@@ -253,6 +253,7 @@ class ArmaClient(RCONClient):
     @cache.setter
     def cache(self, new_cache: ArmaCache) -> None:
         self._cache = new_cache
+        self._cache.client = self
 
     def get_player(self, player_id: int) -> "Player | None":
         """A shorthand for :py:meth:`ArmaCache.get_player()`."""
