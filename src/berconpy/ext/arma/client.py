@@ -112,10 +112,12 @@ class ArmaClient(RCONClient):
             could/would not respond to the command.
 
         """
-        command = "ban" if isinstance(addr, int) else "addBan"
         if duration is None:
             duration = 0
-        return await self.send_command(f"{command} {duration:d} {reason}".rstrip())
+
+        command = "ban" if isinstance(addr, int) else "addBan"
+        command = f"{command} {addr} {duration:d} {reason}".rstrip()
+        return await self.send_command(command)
 
     async def kick(self, player_id: int, reason: str = "") -> str:
         """Kicks a player with the given ID from the server
