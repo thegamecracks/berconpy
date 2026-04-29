@@ -5,6 +5,13 @@ Changelog
   :depth: 2
   :local:
 
+v3.1.3
+------
+
+This adds a few search keywords to help with package discoverability,
+bumps various development dependencies, and fixes some incorrect roles in
+this changelog.
+
 v3.1.2
 ------
 
