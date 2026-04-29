@@ -24,6 +24,15 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: System :: Networking",
 ]
+keywords = [
+    "asyncio",
+    "battleye",
+    "battleye rcon",
+    "be",
+    "be rcon",
+    "rcon",
+    "sansio",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/thegamecracks/berconpy"
