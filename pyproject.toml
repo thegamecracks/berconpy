@@ -77,3 +77,6 @@ typeCheckingMode = "basic"
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=prepend"]
+
+[tool.ty.src]
+include = ["src", "tests"]
