@@ -62,7 +62,7 @@ include_namespace_packages = true
 allow_redefinition = true
 
 [tool.pyright]
-include = ["src"]
+include = ["src", "tests"]
 # typeCheckingMode = "strict"
 # reportImportCycles = "none"
 # reportMissingParameterType = "none"
