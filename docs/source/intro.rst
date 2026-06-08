@@ -52,13 +52,13 @@ Let's start with an example of how to send a command:
 .. code:: python
 
     import asyncio
-    import berconpy as rcon
+    import berconpy
 
     IP_ADDR = "XXX.XXX.XXX.XXX"
     PORT = 9999
     PASSWORD = "ASCII_PASSWORD"
 
-    client = rcon.RCONClient()
+    client = berconpy.RCONClient()
 
     async def main():
         async with client.connect(IP_ADDR, PORT, PASSWORD):
@@ -98,16 +98,16 @@ by the server in real-time:
 .. code:: python
 
     import asyncio
-    import berconpy as rcon
+    import berconpy
 
     IP_ADDR = "XXX.XXX.XXX.XXX"
     PORT = 9999
     PASSWORD = "ASCII_PASSWORD"
 
-    client = rcon.RCONClient()
+    client = berconpy.RCONClient()
 
     @client.dispatch.on_raw_event
-    async def on_raw_event(packet: rcon.protocol.ServerPacket):
+    async def on_raw_event(packet: berconpy.protocol.ServerPacket):
         print(f"Raw event: {packet}")
 
     @client.dispatch.on_login

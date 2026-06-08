@@ -3,17 +3,17 @@
 import asyncio
 import re
 
-import berconpy as rcon
+import berconpy
 
 IP_ADDR = "XXX.XXX.XXX.XXX"
 PORT = 9999
 PASSWORD = "ASCII_PASSWORD"
 
-client = rcon.ArmaClient()
+client = berconpy.ArmaClient()
 
 
 @client.dispatch.on_player_connect
-async def on_player_connect(player: rcon.Player):
+async def on_player_connect(player: berconpy.Player):
     if re.match(r"Survivor(?: \(\d+\))?", player.name) is not None:
         await player.kick("Name 'Survivor' not allowed")
 

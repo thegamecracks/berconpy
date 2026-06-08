@@ -3,7 +3,7 @@
 import asyncio
 import logging
 
-import berconpy as rcon
+import berconpy
 
 IP_ADDR = "XXX.XXX.XXX.XXX"
 PORT = 9999
@@ -17,7 +17,7 @@ handler.setFormatter(
 )
 log.addHandler(handler)
 
-client = rcon.RCONClient()
+client = berconpy.RCONClient()
 
 
 @client.dispatch.on_login

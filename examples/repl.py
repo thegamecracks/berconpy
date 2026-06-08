@@ -3,7 +3,7 @@
 import asyncio
 import logging
 
-import berconpy as rcon
+import berconpy
 
 IP_ADDR = "XXX.XXX.XXX.XXX"
 PORT = 9999
@@ -17,7 +17,7 @@ handler.setFormatter(
 )
 log.addHandler(handler)
 
-client = rcon.ArmaClient()
+client = berconpy.ArmaClient()
 
 
 async def ainput():
@@ -30,17 +30,17 @@ async def on_admin_login(admin_id: int, addr: str):
 
 
 @client.dispatch.on_player_connect
-async def on_player_connect(player: rcon.Player):
+async def on_player_connect(player: berconpy.Player):
     print(f"Player #{player.id} {player.name} connected")
 
 
 @client.dispatch.on_player_disconnect
-async def on_player_disconnect(player: rcon.Player):
+async def on_player_disconnect(player: berconpy.Player):
     print(f"Player #{player.id} {player.name} disconnected")
 
 
 @client.dispatch.on_player_kick
-async def on_player_kick(player: rcon.Player, reason: str):
+async def on_player_kick(player: berconpy.Player, reason: str):
     print(f"Player #{player.id} {player.name} was kicked: {reason}")
 
 
@@ -50,7 +50,7 @@ async def on_admin_message(admin_id: int, channel: str, message: str):
 
 
 @client.dispatch.on_player_message
-async def on_player_message(player: rcon.Player, channel: str, message: str):
+async def on_player_message(player: berconpy.Player, channel: str, message: str):
     print(f"({channel}) {player.name}: {message}")
 
 
@@ -67,7 +67,7 @@ async def main():
             else:
                 try:
                     response = await client.send_command(command)
-                except rcon.RCONCommandError as e:
+                except berconpy.RCONCommandError as e:
                     print(e)
                 else:
                     print(response)
