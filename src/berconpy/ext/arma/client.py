@@ -16,6 +16,8 @@ class ArmaClient(RCONClient):
     """An RCONClient subclass that adds more methods for handling Arma 3 RCON."""
 
     _cache: "ArmaCache | None" = None
+    dispatch: ArmaDispatcher
+    protocol: ArmaConnector
 
     def __init__(
         self,
