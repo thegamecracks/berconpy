@@ -19,7 +19,7 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --all-extras --dev
       - run: uvx ty check --output-format github
-      - run: uvx pyright
+      - run: uvx pyright --pythonpath .venv/bin/python
 
   test:
     runs-on: ubuntu-latest
