@@ -3,7 +3,10 @@ name: Lint and test
 on:
   push:
     paths:
-      - '**.py'
+      - src/**
+      - tests/**
+      - pyproject.toml
+      - uv.lock
 
 jobs:
   pyright:

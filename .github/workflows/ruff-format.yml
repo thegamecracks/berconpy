@@ -3,10 +3,16 @@ name: Format with Ruff
 on:
   push:
     paths:
-      - '**.py'
+      - src/**
+      - tests/**
+      - pyproject.toml
+      - uv.lock
   pull_request:
     paths:
-      - '**.py'
+      - src/**
+      - tests/**
+      - pyproject.toml
+      - uv.lock
 
 jobs:
   lint:
