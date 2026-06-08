@@ -2,6 +2,7 @@ from dataclasses import asdict, dataclass
 from typing import Iterable
 
 
+@dataclass(frozen=True)
 class AsDict:
     def to_dict(self) -> dict:
         return asdict(self)
