@@ -386,7 +386,7 @@ class AsyncClientConnector(AsyncClientProtocol):
 
         loop = asyncio.get_running_loop()
         self._transport, _ = await loop.create_datagram_endpoint(
-            lambda: self,  # type: ignore
+            lambda: self,
             remote_addr=self._addr,
         )
 
