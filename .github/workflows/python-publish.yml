@@ -5,6 +5,8 @@ on:
     tags:
       - v*
 
+permissions: {}
+
 jobs:
   build:
     runs-on: ubuntu-latest
