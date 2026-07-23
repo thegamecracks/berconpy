@@ -546,7 +546,13 @@ class AsyncClientConnector(AsyncClientProtocol):
             self.client.dispatch("message", event.message)
 
         else:
-            raise RuntimeError(f"unhandled event type {type(event)}")
+            # Ideally, the `event` typehint should be replaced such that
+            # exhaustiveness checking can rule out this clause, enforced
+            # by assert_never().
+            #
+            # assert_never() is also Python 3.11+, and we're avoiding all
+            # runtime dependencies including typing_extensions.
+            raise RuntimeError(f"unhandled event type {type(event)}")  # noqa: TRY004
 
     # DatagramProtocol
 
