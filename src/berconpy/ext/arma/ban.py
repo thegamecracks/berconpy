@@ -13,9 +13,9 @@ class Ban:
 
     __slots__ = (
         "_cache",
-        "index",
-        "id",
         "duration",
+        "id",
+        "index",
         "reason",
     )
 
@@ -60,11 +60,9 @@ class Ban:
         self.reason = reason
 
     def __repr__(self):
-        return "<{} id={!r} duration={!r} reason={!r}>".format(
-            type(self).__name__,
-            self.id,
-            self.duration,
-            self.reason,
+        return (
+            f"<{type(self).__name__} id={self.id!r} duration={self.duration!r} "
+            f"reason={self.reason!r}>"
         )
 
     @property

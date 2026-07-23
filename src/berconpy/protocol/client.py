@@ -1,5 +1,5 @@
 import enum
-from typing import Iterable
+from collections.abc import Iterable
 
 from .base import RCONGenericProtocol
 from .check import Check, NonceCheck

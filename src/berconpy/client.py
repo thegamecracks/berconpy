@@ -1,12 +1,13 @@
 import asyncio
 import contextlib
 import logging
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from berconpy.utils import MaybeCoroFunc
 
 from .dispatch import EventDispatcher
-from .io import AsyncClientProtocol, AsyncClientConnector
+from .io import AsyncClientConnector, AsyncClientProtocol
 
 T = TypeVar("T")
 
@@ -208,7 +209,7 @@ class RCONClient:
         event: str,
         *,
         check: MaybeCoroFunc[..., Any] | None = None,
-        timeout: float | int | None = None,
+        timeout: float | None = None,
     ):
         """A shorthand for :py:class:`EventDispatcher.wait_for()`."""
         return await self.dispatch.wait_for(event, check=check, timeout=timeout)

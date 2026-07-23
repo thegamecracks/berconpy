@@ -4,8 +4,7 @@ import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from berconpy import AsyncClientConnector, ConnectorConfig
-from berconpy.io import AsyncCommander
+from berconpy.io import AsyncClientConnector, AsyncCommander, ConnectorConfig
 from berconpy.protocol.client import RCONClientProtocol
 
 if TYPE_CHECKING:

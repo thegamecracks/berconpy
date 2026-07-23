@@ -10,13 +10,13 @@ from typing import TYPE_CHECKING
 from berconpy.errors import LoginRefused, LoginTimeout, RCONCommandError
 from berconpy.protocol import (
     ClientAuthEvent,
-    ClientEvent,
-    ClientCommandPacket,
-    ClientPacket,
     ClientCommandEvent,
-    RCONClientProtocol,
+    ClientCommandPacket,
+    ClientEvent,
     ClientMessageEvent,
+    ClientPacket,
     ClientState,
+    RCONClientProtocol,
 )
 
 log = logging.getLogger(__name__)

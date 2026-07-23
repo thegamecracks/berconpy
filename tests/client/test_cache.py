@@ -1,6 +1,5 @@
-from tests.models import Player, sample_players
-
 from berconpy import ArmaClient
+from tests.models import Player, sample_players
 
 
 def test_update_players():

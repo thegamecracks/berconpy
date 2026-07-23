@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING
 import weakref
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .cache import ArmaCache
@@ -11,13 +11,13 @@ class Player:
 
     __slots__ = (
         "_cache",
-        "id",
-        "name",
-        "guid",
         "addr",
-        "ping",
-        "is_guid_valid",
+        "guid",
+        "id",
         "in_lobby",
+        "is_guid_valid",
+        "name",
+        "ping",
     )
 
     id: int
@@ -88,12 +88,9 @@ class Player:
         self.in_lobby = in_lobby
 
     def __repr__(self):
-        return "<{} id={!r} name={!r} is_guid_valid={!r} in_lobby={!r}>".format(
-            type(self).__name__,
-            self.id,
-            self.name,
-            self.is_guid_valid,
-            self.in_lobby,
+        return (
+            f"<{type(self).__name__} id={self.id!r} name={self.name!r} "
+            f"is_guid_valid={self.is_guid_valid!r} in_lobby={self.in_lobby!r}>"
         )
 
     def __str__(self):

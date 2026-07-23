@@ -6,25 +6,25 @@ the client and server.
 import binascii
 import enum
 import functools
-from typing import Literal, Type, overload
+from typing import Literal, overload
 
 __all__ = (
-    "PacketType",
-    "Packet",
-    "ClientPacket",
-    "ServerPacket",
-    "ClientLoginPacket",
     "ClientCommandPacket",
+    "ClientLoginPacket",
     "ClientMessagePacket",
-    "ServerLoginPacket",
+    "ClientPacket",
+    "Packet",
+    "PacketType",
     "ServerCommandPacket",
+    "ServerLoginPacket",
     "ServerMessagePacket",
+    "ServerPacket",
 )
 
 
 def _convert_exception(
-    from_exc: Type[Exception],
-    to_exc: Type[Exception],
+    from_exc: type[Exception],
+    to_exc: type[Exception],
     message: str | None = None,
 ):
     def decorator(func):
@@ -106,7 +106,7 @@ class Packet:
         self.data = data
 
     def __repr__(self):
-        return "{}({!r})".format(type(self).__name__, self.data)
+        return f"{type(self).__name__}({self.data!r})"
 
     @property
     def checksum(self) -> int:
@@ -303,7 +303,7 @@ class ClientLoginPacket(ClientPacket):
         super().__init__(header + payload)
 
     def __repr__(self):
-        return "{}({!r})".format(type(self).__name__, self.message)
+        return f"{type(self).__name__}({self.message!r})"
 
     @property
     def login_success(self) -> None: ...
@@ -340,7 +340,7 @@ class ClientCommandPacket(ClientPacket):
         super().__init__(header + payload)
 
     def __repr__(self):
-        return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
+        return f"{type(self).__name__}({self.sequence!r}, {self.message!r})"
 
     @property
     def login_success(self) -> None: ...
@@ -376,7 +376,7 @@ class ClientMessagePacket(ClientPacket):
         super().__init__(header + payload)
 
     def __repr__(self):
-        return "{}({!r})".format(type(self).__name__, self.sequence)
+        return f"{type(self).__name__}({self.sequence!r})"
 
     @property
     def login_success(self) -> None: ...
@@ -423,7 +423,7 @@ class ServerLoginPacket(ServerPacket):
         super().__init__(header + payload)
 
     def __repr__(self):
-        return "{}({!r})".format(type(self).__name__, self.login_success)
+        return f"{type(self).__name__}({self.login_success!r})"
 
     @property
     def login_success(self) -> bool:
@@ -472,9 +472,7 @@ class ServerCommandPacket(ServerPacket):
         super().__init__(header + payload)
 
     def __repr__(self):
-        return "{}({!r}, {!r}, {!r}, {!r})".format(
-            type(self).__name__, self.sequence, self.total, self.index, self.message
-        )
+        return f"{type(self).__name__}({self.sequence!r}, {self.total!r}, {self.index!r}, {self.message!r})"
 
     @property
     def login_success(self) -> None: ...
@@ -520,7 +518,7 @@ class ServerMessagePacket(ServerPacket):
         super().__init__(header + payload)
 
     def __repr__(self):
-        return "{}({!r}, {!r})".format(type(self).__name__, self.sequence, self.message)
+        return f"{type(self).__name__}({self.sequence!r}, {self.message!r})"
 
     @property
     def login_success(self) -> None: ...

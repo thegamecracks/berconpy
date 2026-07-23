@@ -93,7 +93,7 @@ class ArmaCache:
         self._setup_cache()
 
         try:
-            admin_id, addr = await self.client.wait_for("admin_login", timeout=10)
+            admin_id, _ = await self.client.wait_for("admin_login", timeout=10)
         except asyncio.TimeoutError:
             log.warning(
                 "did not receive admin_login event within 10 seconds; "
@@ -216,6 +216,6 @@ class ArmaCache:
             current_ids.add(player["id"])
 
         # Throw away players no longer in the server
-        previous_ids = set(p.id for p in self.players)
+        previous_ids = {p.id for p in self.players}
         for missing in previous_ids - current_ids:
             self.remove_player(missing)

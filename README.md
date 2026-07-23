@@ -27,14 +27,17 @@ IP = "XXX.XXX.XXX.XXX"
 PORT = 9999
 PASSWORD = "ASCII_PASSWORD"
 
+
 @client.dispatch.on_login
 async def on_login():
     print("We have logged in!")
+
 
 async def main():
     async with client.connect(IP, PORT, PASSWORD):
         players = await client.send_command("players")
         print(players)
+
 
 asyncio.run(main())
 ```

@@ -1,5 +1,6 @@
 import inspect
-from typing import Awaitable, Callable, Iterable, ParamSpec, TypeVar
+from collections.abc import Awaitable, Callable, Iterable
+from typing import ParamSpec, TypeVar
 
 EMPTY = object()
 P = ParamSpec("P")

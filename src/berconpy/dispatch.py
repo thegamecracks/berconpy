@@ -3,7 +3,8 @@ from __future__ import annotations
 import asyncio
 import collections
 import logging
-from typing import TYPE_CHECKING, Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from ._typed_event import typed_event
 from .utils import MaybeCoroFunc, maybe_coro
@@ -113,7 +114,7 @@ class EventDispatcher:
         event: str,
         *,
         check: MaybeCoroFunc[..., Any] | None = None,
-        timeout: float | int | None = None,
+        timeout: float | None = None,
     ):
         """Waits for a specific event to occur and returns the result.
 
@@ -135,10 +136,14 @@ class EventDispatcher:
             The timeout was exceeded while waiting.
 
         """
+
+        def noop_check(*args: object) -> bool:
+            return True
+
         if not event.startswith("on_"):
             event = "on_" + event
         if check is None:
-            check = lambda *args: True  # noqa: E731
+            check = noop_check
 
         fut = self._add_temporary_listener(event, check)
 
@@ -185,7 +190,7 @@ class EventDispatcher:
 
         try:
             check_accepted = await maybe_coro(check, *args)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             if not fut.done():
                 fut.set_exception(e)
         else:

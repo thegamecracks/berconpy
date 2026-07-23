@@ -6,8 +6,9 @@ the BattlEye server into objects and events.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, ClassVar, Iterator, TypedDict
+from typing import TYPE_CHECKING, ClassVar, TypedDict
 
 from berconpy import utils
 
@@ -33,7 +34,7 @@ class MessageBase:
     _PATTERN: ClassVar[re.Pattern]
 
     @classmethod
-    def try_from_message(cls, message: str) -> "Self | None":
+    def try_from_message(cls, message: str) -> Self | None:
         if m := cls._PATTERN.fullmatch(message):
             return cls(**_get_pattern_kwargs(m))
 

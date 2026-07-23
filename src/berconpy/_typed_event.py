@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import functools
 import inspect
+from collections.abc import Callable
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Generic,
     ParamSpec,
-    Type,
     TypeVar,
     overload,
 )
@@ -45,7 +44,7 @@ class TypedEvent(Generic[P, T]):
     event: str
     """The name of the event that this is bound to."""
 
-    def __set_name__(self, owner: Type[EventDispatcher], name: str) -> None:
+    def __set_name__(self, owner: type[EventDispatcher], name: str) -> None:
         self.event = name
 
     # Look like a callable object so Sphinx can correctly document us
@@ -57,7 +56,7 @@ class TypedEvent(Generic[P, T]):
         self,
         instance: None,
         owner: Any = None,
-    ) -> "Self": ...
+    ) -> Self: ...
 
     @overload
     def __get__(
@@ -69,7 +68,7 @@ class TypedEvent(Generic[P, T]):
     def __get__(
         self,
         instance: EventDispatcher | None,
-        owner: Type[EventDispatcher] | None = None,
+        owner: type[EventDispatcher] | None = None,
     ) -> BoundTypedEvent[P, T] | Self:
         if instance is None:
             return self
@@ -86,7 +85,7 @@ class BoundTypedEvent(Generic[P, T]):
 
     __slots__ = ("dispatch", "dispatch_event", "event")
 
-    dispatch: "EventDispatcher"
+    dispatch: EventDispatcher
     """The dispatch object that this is bound to."""
     dispatch_event: str
     """Same as :py:attr:`event` but without the "on_" prefix."""

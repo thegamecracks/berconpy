@@ -1,4 +1,5 @@
-from typing import Any, Sequence, Type, TypeVar, overload
+from collections.abc import Sequence
+from typing import Any, TypeVar, overload
 
 from berconpy.protocol import (
     ClientAuthEvent,
@@ -82,7 +83,7 @@ def authenticate(
         assert not server_event.success
 
 
-def first_and_only_event(proto_a: RCONGenericProtocol, event_cls: Type[T]) -> T:
+def first_and_only_event(proto_a: RCONGenericProtocol, event_cls: type[T]) -> T:
     events = proto_a.events_received()
     assert len(events) == 1
     first_event = events[0]
@@ -90,7 +91,7 @@ def first_and_only_event(proto_a: RCONGenericProtocol, event_cls: Type[T]) -> T:
     return first_event
 
 
-def first_and_only_packet(proto_a: RCONGenericProtocol, packet_cls: Type[T]) -> T:
+def first_and_only_packet(proto_a: RCONGenericProtocol, packet_cls: type[T]) -> T:
     packets = proto_a.packets_to_send()
     assert len(packets) == 1
     first_packet = packets[0]
