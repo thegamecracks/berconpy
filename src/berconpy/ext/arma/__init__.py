@@ -6,10 +6,8 @@ from .ban import Ban as Ban
 from .cache import ArmaCache as ArmaCache
 from .client import ArmaClient as ArmaClient
 from .dispatch import ArmaDispatcher as ArmaDispatcher
-from .io import (
-    ArmaConnector as ArmaConnector,
-    ArmaConnectorConfig as ArmaConnectorConfig,
-)
+from .io import ArmaConnector as ArmaConnector
+from .io import ArmaConnectorConfig as ArmaConnectorConfig
 from .player import Player as Player
 
 if TYPE_CHECKING:
