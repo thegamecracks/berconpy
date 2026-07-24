@@ -78,5 +78,8 @@ typeCheckingMode = "basic"
 [tool.pytest.ini_options]
 addopts = ["--import-mode=prepend"]
 
+[tool.ruff.lint.isort]
+combine-as-imports = true
+
 [tool.ty.src]
 include = ["src", "tests"]
