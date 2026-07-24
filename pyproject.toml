@@ -58,6 +58,12 @@ exclude_lines = [
 ]
 include_namespace_packages = true
 
+[tool.isort]
+combine_as_imports = true
+include_trailing_comma = true
+multi_line_output = 3
+split_on_trailing_comma = true
+
 [tool.mypy]
 allow_redefinition = true
 
