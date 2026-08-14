@@ -290,8 +290,9 @@ class ArmaClient(RCONClient):
         """Parses and dispatches events based on messages received from the server."""
         try:
             parse_message(self.cache, self.dispatch, message)
-        except ValueError as e:
-            log.warning(e)
+        except ValueError:
+            # log.warning(e)
+            pass
 
     def _parse_admins(self, response: str) -> list[tuple[int, str]]:
         """Parses an "admins" command response into a list of (IP, port) tuples.
