@@ -88,4 +88,4 @@ addopts = ["--import-mode=prepend"]
 combine-as-imports = true
 
 [tool.ty.src]
-include = ["src", "tests"]
+exclude = ["docs"]
