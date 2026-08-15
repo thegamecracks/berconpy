@@ -5,6 +5,17 @@ Changelog
   :depth: 2
   :local:
 
+v3.1.4
+------
+
+Fixed
+^^^^^
+
+* Explicitly typehint :py:attr:`ArmaClient.dispatch` and :py:attr:`.protocol <ArmaClient.protocol>`
+  for the ty type checker
+* Don't log unexpected messages in :py:class:`ArmaClient`'s message parser
+  to tolerate new RCON messages in Arma 3 v2.22
+
 v3.1.3
 ------
 
