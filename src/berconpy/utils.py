@@ -44,5 +44,5 @@ async def maybe_coro(
 ) -> T:
     ret = func(*args, **kwargs)
     if inspect.isawaitable(ret):
-        return await ret  # ty:ignore[invalid-return-type]
+        return await ret
     return ret
