@@ -29,7 +29,7 @@ class ArmaConnector(AsyncClientConnector):
     to periodically refresh the player cache.
     """
 
-    client: ArmaClient | None
+    client: ArmaClient | None  # ty: ignore[invalid-property-type-override]
     config: ArmaConnectorConfig
     _last_players: float
 
